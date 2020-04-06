@@ -263,3 +263,5 @@ paket-files/
 *.bak
 *.vsscc
 *.bak
+*.resources
+*.resources
