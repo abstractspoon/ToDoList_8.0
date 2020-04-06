@@ -3608,7 +3608,7 @@ BOOL CGanttCtrl::CalcDateRect(const CRect& rMonth, int nMonth, int nYear,
 		return FALSE;
 	
 	COleDateTime dtMonthStart(nYear, nMonth, 1, 0, 0, 0);
-	COleDateTime dtMonthEnd(nYear, nMonth, nDaysInMonth, 23, 59, 59); // end of last day
+	COleDateTime dtMonthEnd = (dtMonthStart.m_dt + nDaysInMonth);
 
 	return CalcDateRect(rMonth, nDaysInMonth, dtMonthStart, dtMonthEnd, dtFrom, dtTo, rDate);
 }
@@ -3837,6 +3837,11 @@ void CGanttCtrl::DrawGanttBar(CDC* pDC, const CRect& rMonth, int nMonth, int nYe
 	
 	if (!GetTaskStartEndDates(gi, dtStart, dtDue))
 		return;
+
+	// Move due date to beginning of next day as necessary
+	// to avoid rounding errors
+	if (CDateHelper::IsEndOfDay(dtDue, FALSE))
+		dtDue = CDateHelper::GetStartOfNextDay(dtDue);
 
 	// check for visibility
 	CRect rBar(rMonth);
