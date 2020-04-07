@@ -16,6 +16,20 @@ using Abstractspoon.Tdl.PluginHelpers;
 
 namespace HTMLReportExporter
 {
+	struct TemplateHistoryItem
+	{
+		public TemplateHistoryItem(String filePath)
+		{
+			FilePath = filePath;
+			FileName = Path.GetFileName(filePath);
+		}
+
+		public String FileName;
+		public String FilePath;
+
+		public override String ToString() { return FileName; }
+	}
+
 	public partial class HtmlReportTemplateForm : Form
 	{
 		private String m_TypeId = String.Empty;
@@ -59,14 +73,7 @@ namespace HTMLReportExporter
 			m_Template = new HtmlReportTemplate();
 			m_PrevTemplate = new HtmlReportTemplate();
 			m_CustomAttributes = new HtmlReportUtils.CustomAttributes();
-
 			m_EditedSinceLastSave = false;
-			m_TemplateFilePath = prefs.GetProfileString(key, "LastOpenTemplate", "");
-
-			if (!m_Template.Load(m_TemplateFilePath))
-				m_TemplateFilePath = String.Empty;
-			else
-				m_PrevTemplate.Copy(m_Template);
 
 			m_ChangeTimer = new Timer();
 			m_ChangeTimer.Tick += new EventHandler(OnChangeTimer);
@@ -91,17 +98,67 @@ namespace HTMLReportExporter
 
 			this.htmlReportTasksControl.SetCustomAttributes(m_CustomAttributes);
 
-			HtmlEditorControlEx.SizeEditHtmlForm = new Size(prefs.GetProfileInt(key, "HtmlFormWidth", -1),
-															prefs.GetProfileInt(key, "HtmlFormHeight", -1));
-
-			var prevSize = new Size(prefs.GetProfileInt(key, "TemplateFormWidth", -1),
-									prefs.GetProfileInt(key, "TemplateFormHeight", -1));
+			var prevSize = LoadPreferences();
 
 			if ((prevSize.Width > 0) && (prevSize.Height > 0))
 				this.Size = prevSize;
 		}
 
-        private void SetTabsToolbarBackColor()
+		private Size LoadPreferences()
+		{
+			// Last template
+			m_TemplateFilePath = m_Prefs.GetProfileString(m_PrefsKey, "LastOpenTemplate", "");
+
+			if (!m_Template.Load(m_TemplateFilePath))
+				m_TemplateFilePath = String.Empty;
+			else
+				m_PrevTemplate.Copy(m_Template);
+
+			// Template history
+			int numHistory = m_Prefs.GetProfileInt(m_PrefsKey, "TemplateHistoryCount", 0);
+
+			for (int nItem = 0; nItem < numHistory; nItem++)
+			{
+				string path = m_Prefs.GetProfileString(m_PrefsKey, string.Format("History{0}", nItem), "");
+
+				if (!string.IsNullOrEmpty(path) && (path != m_TemplateFilePath))
+					toolStripFileHistory.Items.Add(new TemplateHistoryItem(path));
+			}
+			AddFileToTopOfHistory(m_TemplateFilePath);
+
+			// Window sizes
+			HtmlEditorControlEx.SizeEditHtmlForm = new Size(m_Prefs.GetProfileInt(m_PrefsKey, "HtmlFormWidth", -1),
+															m_Prefs.GetProfileInt(m_PrefsKey, "HtmlFormHeight", -1));
+
+			var prevSize = new Size(m_Prefs.GetProfileInt(m_PrefsKey, "TemplateFormWidth", -1),
+									m_Prefs.GetProfileInt(m_PrefsKey, "TemplateFormHeight", -1));
+
+			return prevSize;
+		}
+
+		private void AddFileToTopOfHistory(string filePath)
+		{
+			if (string.IsNullOrEmpty(filePath))
+				return;
+
+			// Don't add if it already exists
+			filePath = Path.GetFullPath(filePath);
+
+			foreach (var item in toolStripFileHistory.Items)
+			{
+				string itemPath = ((TemplateHistoryItem)item).FilePath;
+
+				if (string.Compare(itemPath, filePath, true) == 0)
+					return;
+			}
+
+			toolStripFileHistory.Items.Insert(0, new TemplateHistoryItem(filePath));
+			toolStripFileHistory.SelectedIndex = 0;
+
+			FormsUtil.RecalcDropWidth(toolStripFileHistory.ComboBox);
+		}
+
+		private void SetTabsToolbarBackColor()
         {
             if (VisualStyleRenderer.IsSupported)
             {
@@ -409,8 +466,18 @@ namespace HTMLReportExporter
 					break;
 			}
 
-			// Always
+			// Last template
 			m_Prefs.WriteProfileString(m_PrefsKey, "LastOpenTemplate", m_TemplateFilePath);
+
+			// Template History
+			int numHistory = toolStripFileHistory.Items.Count;
+			m_Prefs.WriteProfileInt(m_PrefsKey, "TemplateHistoryCount", numHistory);
+
+			for (int nItem = 0; nItem < numHistory; nItem++)
+			{
+				string path = ((TemplateHistoryItem)toolStripFileHistory.Items[nItem]).FilePath;
+				m_Prefs.WriteProfileString(m_PrefsKey, string.Format("History{0}", nItem), path);
+			}
 
 			// The size of the 'Edit Html' form
 			m_Prefs.WriteProfileInt(m_PrefsKey, "HtmlFormWidth", HtmlEditorControlEx.SizeEditHtmlForm.Width);
@@ -535,6 +602,8 @@ namespace HTMLReportExporter
 					m_TemplateFilePath = dlg.FileName;
 					m_EditedSinceLastSave = false;
 
+					AddFileToTopOfHistory(m_TemplateFilePath);
+
 					UpdateCaption();
 					UpdateControls();
 				}
@@ -602,7 +671,9 @@ namespace HTMLReportExporter
 					m_TemplateFilePath = dlg.FileName;
 					m_EditedSinceLastSave = false;
 
+					AddFileToTopOfHistory(m_TemplateFilePath);
 					UpdateCaption();
+
 					return true;
 				}
 			}

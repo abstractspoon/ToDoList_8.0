@@ -237,8 +237,6 @@ namespace HTMLReportExporter
 
 				ToolBar.Items.Add(m_ToolStripAttributeMenu);
 			}
-
-			base.SetUITheme(new UITheme());
 		}
 
 		virtual protected void InitialiseToolbarAttributeMenu()
