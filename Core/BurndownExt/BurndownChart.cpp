@@ -177,7 +177,9 @@ void CBurndownChart::LoadPreferences(const IPreferences* pPrefs, LPCTSTR szKey)
 			CColorArray aColors;
 			Misc::Split(sColors, aColors, '|');
 
-			pGraph->SetColors(aColors);
+			// Only allow the same number of colours as the graph's default palette
+			if (aColors.GetSize() == pGraph->GetColors().GetSize())
+				pGraph->SetColors(aColors);
 		}
 
 		sGraphKey = Misc::MakeKey(_T("GraphOption%d"), nGraph);
