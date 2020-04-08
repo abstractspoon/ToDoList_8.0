@@ -11719,13 +11719,18 @@ void CToDoCtrl::RedrawReminders()
 TDC_ATTRIBUTE CToDoCtrl::GetFocusedControlAttribute() const
 {
 	HWND hFocus = ::GetFocus();
+
 	UINT nCtrlID = ::GetDlgCtrlID(hFocus);
 	TDC_ATTRIBUTE nAttrib = MapCtrlIDToAttribute(nCtrlID);
 
 	// handle edit controls of combos and custom comments plugins
 	if (nAttrib == TDCA_NONE)
 	{
-		if (IsChildOrSame(m_ctrlComments, hFocus))
+		if (hFocus == m_eTaskName)
+		{
+			nAttrib = TDCA_TASKNAME;
+		}
+		else if (IsChildOrSame(m_ctrlComments, hFocus))
 		{
 			nAttrib = TDCA_COMMENTS;
 		}
