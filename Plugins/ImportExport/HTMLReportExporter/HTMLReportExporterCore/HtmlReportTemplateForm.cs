@@ -151,7 +151,7 @@ namespace HTMLReportExporter
 			if (string.IsNullOrEmpty(filePath))
 				return;
 
-			// Don't add if it already exists
+			// Delete item if it already exists
 			filePath = Path.GetFullPath(filePath);
 
 			foreach (var item in toolStripFileHistory.Items)
@@ -159,13 +159,22 @@ namespace HTMLReportExporter
 				string itemPath = ((TemplateHistoryItem)item).FilePath;
 
 				if (string.Compare(itemPath, filePath, true) == 0)
-					return;
+                {
+                    toolStripFileHistory.Items.Remove(item);
+                    break;
+                }
 			}
 
+            // (re)Add to top of list
 			toolStripFileHistory.Items.Insert(0, new TemplateHistoryItem(filePath));
-			toolStripFileHistory.SelectedIndex = 0;
 
-			FormsUtil.RecalcDropWidth(toolStripFileHistory.ComboBox);
+            {
+                toolStripFileHistory.SelectedIndexChanged -= new EventHandler(OnSelChangeTemplateHistoryCombo);
+                toolStripFileHistory.SelectedIndex = 0;
+                toolStripFileHistory.SelectedIndexChanged += new EventHandler(OnSelChangeTemplateHistoryCombo);
+            }
+
+            FormsUtil.RecalcDropWidth(toolStripFileHistory.ComboBox);
 		}
 
 		private void SetTabsToolbarBackColor()
@@ -261,6 +270,8 @@ namespace HTMLReportExporter
 
 		private void InitialiseToolbar()
 		{
+            FormsUtil.SetEditCue(toolStripFileHistory.ComboBox, "<untitled>");
+
 			m_TBRenderer = new UIThemeToolbarRenderer();
 			m_TBRenderer.SetUITheme(new UITheme());
 			m_TBRenderer.EnableDrawRowSeparators(true);
@@ -330,8 +341,24 @@ namespace HTMLReportExporter
 			RefreshPreview();
 		}
 
+        protected void OnSelChangeTemplateHistoryCombo(object obj, EventArgs args)
+        {
+            string path = ((TemplateHistoryItem)toolStripFileHistory.SelectedItem).FilePath;
 
-		private void UpdateToolbar()
+            if (m_Template.Load(path))
+            {
+                m_TemplateFilePath = path;
+                m_EditedSinceLastSave = false;
+
+                AddFileToTopOfHistory(m_TemplateFilePath);
+
+                UpdateCaption();
+                UpdateControls();
+            }
+
+        }
+
+        private void UpdateToolbar()
 		{
 			this.toolStripSaveReport.Enabled = m_EditedSinceLastSave;
 			this.toolStripBackColorClear.Enabled = m_Template.HasBackColor;
