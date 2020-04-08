@@ -11719,7 +11719,6 @@ void CToDoCtrl::RedrawReminders()
 TDC_ATTRIBUTE CToDoCtrl::GetFocusedControlAttribute() const
 {
 	HWND hFocus = ::GetFocus();
-
 	UINT nCtrlID = ::GetDlgCtrlID(hFocus);
 	TDC_ATTRIBUTE nAttrib = MapCtrlIDToAttribute(nCtrlID);
 
