@@ -64,8 +64,6 @@ protected:
 
 	BOOL AddImporter(IImportTasklist* pImporter, int nPos = -1);
 	BOOL AddExporter(IExportTasklist* pExporter, int nPos = -1);
-
-	static CString& FormatExtension(CString& sExt, BOOL bWithDot);
 };
 
 //////////////////////////////////////////////////////////////////////
