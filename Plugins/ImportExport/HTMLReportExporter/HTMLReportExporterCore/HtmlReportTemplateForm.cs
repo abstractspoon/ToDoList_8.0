@@ -33,7 +33,7 @@ namespace HTMLReportExporter
 		private Preferences m_Prefs = null;
 		private UIThemeToolbarRenderer m_TBRenderer = null;
 
-		private HtmlReportTemplate m_Template = null;
+        private HtmlReportTemplate m_Template = null;
 		private HtmlReportTemplate m_PrevTemplate = null;
 		private Timer m_ChangeTimer = null;
 		private String m_TemplateFilePath = "";
@@ -69,11 +69,12 @@ namespace HTMLReportExporter
 			m_CustomAttributes = new HtmlReportUtils.CustomAttributes();
 			m_EditedSinceLastSave = false;
 
-			m_ChangeTimer = new Timer();
+            m_ChangeTimer = new Timer();
 			m_ChangeTimer.Tick += new EventHandler(OnChangeTimer);
 			m_ChangeTimer.Interval = 500;
 
 			InitializeComponent();
+            InitialiseControlsFont();
 			DoHighDPIFixups();
             SetTabsToolbarBackColor();
 
@@ -98,7 +99,22 @@ namespace HTMLReportExporter
 				this.Size = prevSize;
 		}
 
-		private Size LoadPreferences()
+        private void InitialiseControlsFont()
+        {
+            var controlsFont = new Font("Tahoma", 8.25f);
+
+            FormsUtil.SetFont(this, controlsFont);
+
+            // Manual fixups
+            htmlReportHeaderControl.SetControlFont(controlsFont);
+            htmlReportTitleControl.SetControlFont(controlsFont);
+            htmlReportTasksControl.SetControlFont(controlsFont);
+            htmlReportFooterControl.SetControlFont(controlsFont);
+
+            toolStripFileHistory.Font = controlsFont;
+        }
+
+        private Size LoadPreferences()
 		{
 			// Last template
 			m_TemplateFilePath = m_Prefs.GetProfileString(m_PrefsKey, "LastOpenTemplate", "");
@@ -154,20 +170,18 @@ namespace HTMLReportExporter
 
 		private void SetTabsToolbarBackColor()
         {
-            if (VisualStyleRenderer.IsSupported)
-            {
-                this.htmlReportHeaderControl.ToolbarBackColor = System.Drawing.SystemColors.ControlLightLight;
-                this.htmlReportTitleControl.ToolbarBackColor = System.Drawing.SystemColors.ControlLightLight;
-                this.htmlReportTasksControl.ToolbarBackColor = System.Drawing.SystemColors.ControlLightLight;
-                this.htmlReportFooterControl.ToolbarBackColor = System.Drawing.SystemColors.ControlLightLight;
-            }
-            else
-            {
-                this.htmlReportHeaderControl.ToolbarBackColor = System.Drawing.SystemColors.ButtonFace;
-                this.htmlReportTitleControl.ToolbarBackColor = System.Drawing.SystemColors.ButtonFace;
-                this.htmlReportTasksControl.ToolbarBackColor = System.Drawing.SystemColors.ButtonFace;
-                this.htmlReportFooterControl.ToolbarBackColor = System.Drawing.SystemColors.ButtonFace;
-            }
+            // Since we have no theme, we set the toolbar's 
+            // back color to the back color of the tabs
+            var toolbarTheme = new UITheme();
+
+            toolbarTheme.SetAppDrawingColor(UITheme.AppColor.ToolbarLight, headerPage.BackColor);
+            toolbarTheme.SetAppDrawingColor(UITheme.AppColor.ToolbarDark, headerPage.BackColor);
+            toolbarTheme.RecalcToolbarHotColor();
+
+            this.htmlReportHeaderControl.SetUITheme(toolbarTheme);
+            this.htmlReportTitleControl.SetUITheme(toolbarTheme);
+            this.htmlReportTasksControl.SetUITheme(toolbarTheme);
+            this.htmlReportFooterControl.SetUITheme(toolbarTheme);
         }
 
 		private void DoHighDPIFixups()
@@ -252,6 +266,7 @@ namespace HTMLReportExporter
 			m_TBRenderer.EnableDrawRowSeparators(true);
 
 			this.Toolbar.Renderer = m_TBRenderer;
+            this.Toolbar.BackColor = BackColor;
 
 			if (DPIScaling.WantScaling())
 			{
