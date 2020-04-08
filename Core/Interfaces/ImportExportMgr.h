@@ -64,6 +64,9 @@ protected:
 
 	BOOL AddImporter(IImportTasklist* pImporter, int nPos = -1);
 	BOOL AddExporter(IExportTasklist* pExporter, int nPos = -1);
+
+	CString GetExporterPreferenceKey(int nExporter) const;
+	CString GetImporterPreferenceKey(int nImporter) const;
 };
 
 //////////////////////////////////////////////////////////////////////
