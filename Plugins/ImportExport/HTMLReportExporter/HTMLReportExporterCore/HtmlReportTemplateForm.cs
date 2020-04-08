@@ -270,8 +270,6 @@ namespace HTMLReportExporter
 
 		private void InitialiseToolbar()
 		{
-            FormsUtil.SetEditCue(toolStripFileHistory.ComboBox, "<untitled>");
-
 			m_TBRenderer = new UIThemeToolbarRenderer();
 			m_TBRenderer.SetUITheme(new UITheme());
 			m_TBRenderer.EnableDrawRowSeparators(true);
