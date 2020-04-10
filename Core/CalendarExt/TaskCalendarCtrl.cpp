@@ -1410,7 +1410,7 @@ DWORD CTaskCalendarCtrl::HitTest(const CPoint& ptClient, TCC_HITTEST& nHit) cons
 		DWORD dwTaskID = pTCI->GetTaskID();
 		ASSERT(dwTaskID);
 
-		int nTaskPos = GetTaskVertPos(dwTaskID, nTask, pCell, TRUE);
+		int nTaskPos = GetTaskVertPos(dwTaskID, nTask, pCell, IsCellScrollBarActive());
 		
 		if (nTaskPos == nPos)
 		{
