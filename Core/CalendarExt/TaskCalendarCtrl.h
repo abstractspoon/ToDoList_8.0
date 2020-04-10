@@ -75,6 +75,7 @@ public:
 
 protected:
 	CTaskCalItemMap m_mapData;
+	TASKCALITEM m_tciPreDrag;
 
 	BOOL m_bDraggingStart, m_bDraggingEnd, m_bDragging;
 	BOOL m_bReadOnly;
@@ -87,7 +88,6 @@ protected:
 
 	DWORD m_dwSelectedTaskID;
 	DWORD m_dwOptions;
-	TASKCALITEM m_tciPreDrag;
 	CPoint m_ptDragOrigin;
 	int m_nCellVScrollPos;
 	CFont m_fontAltText;
@@ -95,7 +95,6 @@ protected:
 	COleDateTime m_dtMin, m_dtMax;
 	int m_nTaskHeight;
 	TDC_ATTRIBUTE m_nSortBy;
-	CDWordSet m_mapRecurringTaskIDs;
 	COLORREF m_crWeekend, m_crToday; // Grid color handled by base class
 
 	struct CONTINUOUSDRAWINFO
@@ -173,7 +172,7 @@ protected:
 	BOOL CanDragTask(DWORD dwTaskID, TCC_HITTEST nHit) const;
 	BOOL SetTaskCursor(DWORD dwTaskID, TCC_HITTEST nHit) const;
 	BOOL EnableLabelTips(BOOL bEnable);
-	BOOL HasTask(DWORD dwTaskID, BOOL bExcludeHidden = FALSE) const;
+	BOOL HasTask(DWORD dwTaskID, BOOL bExcludeHidden) const;
 
 	BOOL GetGridCell(DWORD dwTaskID, int &nRow, int &nCol) const;
 	BOOL GetGridCell(DWORD dwTaskID, int &nRow, int &nCol, int& nTask) const;
@@ -215,6 +214,7 @@ protected:
 	int RebuildCellTasks();
 	int RebuildCellTasks(CCalendarCell* pCell);
 	void RebuildCellTaskDrawInfo();
+	void AddTasksToCell(const CTaskCalItemMap& mapTasks, const COleDateTime& dtCell, CTaskCalItemArray* pTasks);
 
 	// helpers
 	static void BuildTaskMap(const ITASKLISTBASE* pTasks, HTASKITEM hTask, CSet<DWORD>& mapIDs, BOOL bAndSiblings);
