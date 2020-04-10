@@ -178,7 +178,7 @@ protected:
 	BOOL GetGridCell(DWORD dwTaskID, int &nRow, int &nCol) const;
 	BOOL GetGridCell(DWORD dwTaskID, int &nRow, int &nCol, int& nTask) const;
 
-	BOOL UpdateCellScrollBarVisibility();
+	BOOL UpdateCellScrollBarVisibility(BOOL bEnsureSelVisible);
 	BOOL IsCellScrollBarActive() const;
 	int GetTaskHeight() const;
 	int CalcRequiredTaskFontPointSize() const;
@@ -201,7 +201,6 @@ protected:
 	double GetSnapIncrement() const;
 	void FixupSelection(BOOL bScrollToTask);
 	bool SelectGridCell(int nRow, int nCol);
-	void EnsureSelectedTaskVisibleIfInSelectedCell();
 
 	BOOL NotifyParentDateChange(TCC_HITTEST nHit);
 	void NotifyParentDragChange();

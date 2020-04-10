@@ -494,7 +494,7 @@ BOOL CTaskCalendarCtrl::SetVisibleWeeks(int nWeeks)
 		if (HasOption(TCCO_ADJUSTTASKHEIGHTS))
 			GraphicsMisc::VerifyDeleteObject(m_fontAltText);
 
-		UpdateCellScrollBarVisibility();
+		UpdateCellScrollBarVisibility(TRUE); // scroll selected task
 		return TRUE;
 	}
 
@@ -601,7 +601,7 @@ void CTaskCalendarCtrl::DrawHeader(CDC* pDC)
 
 void CTaskCalendarCtrl::DrawCells(CDC* pDC)
 {
-	UpdateCellScrollBarVisibility();
+	UpdateCellScrollBarVisibility(FALSE);
 	RebuildCellTaskDrawInfo();
 
 	// create alternate text font as required
@@ -914,9 +914,7 @@ void CTaskCalendarCtrl::OnSetFocus(CWnd* pFocus)
 {
 	CCalendarCtrlEx::OnSetFocus(pFocus);
 
-	// Attempt to scroll the selected task into view
-	EnsureSelectedTaskVisibleIfInSelectedCell();
-
+	UpdateCellScrollBarVisibility(TRUE); // scroll to selected task
 	Invalidate(FALSE);
 }
 
@@ -924,7 +922,7 @@ void CTaskCalendarCtrl::OnKillFocus(CWnd* pFocus)
 {
 	CCalendarCtrlEx::OnKillFocus(pFocus);
 
-	UpdateCellScrollBarVisibility();
+	UpdateCellScrollBarVisibility(FALSE); // don't scroll to selected task
 	Invalidate(FALSE);
 }
 
@@ -934,7 +932,7 @@ void CTaskCalendarCtrl::DrawCellFocus(CDC* /*pDC*/, const CCalendarCell* /*pCell
 	// CCalendarCtrlEx::DrawCellFocus(pDC, pCell, rCell);
 }
 
-BOOL CTaskCalendarCtrl::UpdateCellScrollBarVisibility()
+BOOL CTaskCalendarCtrl::UpdateCellScrollBarVisibility(BOOL bEnsureSelVisible)
 {
 	// First determine if we need to show a vertical scrollbar
 	int nRow = -1, nCol = -1;
@@ -965,6 +963,15 @@ BOOL CTaskCalendarCtrl::UpdateCellScrollBarVisibility()
 
 				nNumItems = (nMaxPos + 1);
 				bShowScrollbar = ((nNumItems * GetTaskHeight()) > rCell.Height());
+
+				// And scroll selected task into view
+				if (bEnsureSelVisible && m_dwSelectedTaskID)
+				{
+					int nFind = pTasks->FindItem(m_dwSelectedTaskID);
+
+					if (nFind != -1)
+						m_nCellVScrollPos = GetTaskVertPos(m_dwSelectedTaskID, nFind, pCell, FALSE);
+				}
 			}
 			else
 			{
@@ -1133,7 +1140,7 @@ void CTaskCalendarCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBa
 		// Notify Parent
 		GetParent()->SendMessage(WM_VSCROLL, nPos, (LPARAM)GetSafeHwnd());
 
-		UpdateCellScrollBarVisibility();
+		UpdateCellScrollBarVisibility(TRUE);
 	}
 }
 
@@ -1496,7 +1503,7 @@ BOOL CTaskCalendarCtrl::EnsureSelectionVisible()
 
 		if (pTasks && (pTasks->FindItem(m_dwSelectedTaskID) != -1))
 		{ 
-			EnsureSelectedTaskVisibleIfInSelectedCell();
+			UpdateCellScrollBarVisibility(TRUE); // scroll to selected task
 			return TRUE;
 		}
 	}
@@ -1555,8 +1562,7 @@ BOOL CTaskCalendarCtrl::EnsureSelectionVisible()
 		ASSERT(GetGridCell(m_dwSelectedTaskID, nRow, nCol));
 	}
 	
-	// Now ensure it is visible vertically
-	EnsureSelectedTaskVisibleIfInSelectedCell();
+	UpdateCellScrollBarVisibility(TRUE); // scroll to selected task
 	return TRUE;
 }
 
@@ -1565,39 +1571,7 @@ void CTaskCalendarCtrl::OnVisibleDateRangeChanged()
 	if (RebuildCellTasks() == 0)
 		return;
 
-	EnsureSelectedTaskVisibleIfInSelectedCell();
-}
-
-void CTaskCalendarCtrl::EnsureSelectedTaskVisibleIfInSelectedCell()
-{
-	// If the currently selected cell contains the currently
-	// selected task then scroll it into view
-	if (m_mapData.GetCount() && m_dwSelectedTaskID)
-	{
-		int nRow, nCol;
-
-		if (GetLastSelectedGridCell(nRow, nCol))
-		{
-			const CCalendarCell* pCell = GetCell(nRow, nCol);
-			ASSERT(pCell);
-
-			if (pCell)
-			{
-				const CTaskCalItemArray* pTasks = GetCellTasks(pCell);
-				ASSERT(pTasks);
-
-				if (pTasks)
-				{
-					int nTask = pTasks->FindItem(m_dwSelectedTaskID);
-
-					if (nTask != -1)
-						m_nCellVScrollPos = GetTaskVertPos(m_dwSelectedTaskID, nTask, pCell, FALSE);
-				}
-			}
-		}
-
-		UpdateCellScrollBarVisibility();
-	}
+	UpdateCellScrollBarVisibility(TRUE);// scroll to selected task
 }
 
 bool CTaskCalendarCtrl::SelectGridCell(int nRow, int nCol)
@@ -1693,7 +1667,7 @@ BOOL CTaskCalendarCtrl::CalcTaskCellRect(int nTask, const CCalendarCell* pCell, 
 		return FALSE;
 
 	// check vertical (pos) intersection next
-	int nPos = GetTaskVertPos(pTCI->GetTaskID(), nTask, pCell, TRUE);
+	int nPos = GetTaskVertPos(pTCI->GetTaskID(), nTask, pCell, IsCellScrollBarActive());
 
 	if (nPos < 0)
 	{
