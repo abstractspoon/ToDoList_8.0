@@ -115,7 +115,7 @@ namespace HTMLReportExporter
 
 		public String HeightAsText
 		{
-			get { return Height.ToString(".0"); }
+			get { return Height.ToString(".0######"); } // show at least one decimal
 			set
 			{
 				float height = 0;
