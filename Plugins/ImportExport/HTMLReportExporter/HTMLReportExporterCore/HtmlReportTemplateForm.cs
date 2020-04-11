@@ -298,7 +298,7 @@ namespace HTMLReportExporter
 
 			this.headerEnabledCheckbox.Checked = m_Template.Header.Enabled;
 			this.headerDividerCheckbox.Checked = m_Template.Header.WantDivider;
-			this.headerHeightCombobox.Text = m_Template.Header.PixelHeightText;
+			this.headerHeightCombobox.Text = m_Template.Header.HeightAsText;
 
 			// ----------
 
@@ -328,7 +328,7 @@ namespace HTMLReportExporter
 
 			this.footerEnabledCheckbox.Checked = m_Template.Footer.Enabled;
 			this.footerDividerCheckbox.Checked = m_Template.Footer.WantDivider;
-			this.footerHeightCombobox.Text = m_Template.Footer.PixelHeightText;
+			this.footerHeightCombobox.Text = m_Template.Footer.HeightAsText;
 
 			// Refresh enable states
 			// Note: 'Task' control always enabled
@@ -441,7 +441,7 @@ namespace HTMLReportExporter
 					m_Template.Header.Enabled = headerEnabledCheckbox.Checked;
 					m_Template.Header.WantDivider = headerDividerCheckbox.Checked;
 					m_Template.Header.BackColor = this.htmlReportHeaderControl.BackColor;
-					m_Template.Header.PixelHeightText = this.headerHeightCombobox.Text;
+					m_Template.Header.HeightAsText = this.headerHeightCombobox.Text;
 					break;
 
 				case PageType.Title:
@@ -466,7 +466,7 @@ namespace HTMLReportExporter
 					m_Template.Footer.Enabled = footerEnabledCheckbox.Checked;
 					m_Template.Footer.WantDivider = footerDividerCheckbox.Checked;
 					m_Template.Footer.BackColor = this.htmlReportFooterControl.BackColor;
-					m_Template.Footer.PixelHeightText = this.footerHeightCombobox.Text;
+					m_Template.Footer.HeightAsText = this.footerHeightCombobox.Text;
 					break;
 			}
 
