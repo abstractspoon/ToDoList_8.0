@@ -307,7 +307,14 @@ namespace DayViewUIExtension
 			if (hilight)
 			{
 				// Draw selection rect
-				UIExtension.SelectionRect.Draw(m_hWnd, g, rect.X, rect.Y, rect.Width, rect.Height, false, true); // not focused, transparent
+				UIExtension.SelectionRect.Draw(m_hWnd, 
+												g, 
+												rect.X, 
+												rect.Y, 
+												rect.Width, 
+												rect.Height, 
+												false, // not focused
+												true); // transparent
 			}
 			else
 			{
@@ -333,26 +340,29 @@ namespace DayViewUIExtension
             if (rect.Width != 0 && rect.Height != 0)
             {
 				CalendarItem taskItem = (appointment as CalendarItem);
-				bool longAppt = taskItem.IsLongAppt();
+				bool isLongAppt = taskItem.IsLongAppt();
+
 
 				// Recalculate colours
 				Color textColor = taskItem.TaskTextColor;
-				Color borderColor = taskItem.TaskTextColor;
-				Color fillColor = DrawingColor.SetLuminance(taskItem.TaskTextColor, 0.95f);
-				Color barColor = taskItem.TaskTextColor;
+				Color fillColor = DrawingColor.SetLuminance(textColor, 0.95f);
+
+				Color borderColor = textColor;
+				Color barColor = textColor;
 
 				if (taskItem.HasTaskTextColor)
 				{
 					if (isSelected)
 					{
-						textColor = DrawingColor.SetLuminance(taskItem.TaskTextColor, 0.3f);
+						textColor = DrawingColor.SetLuminance(textColor, 0.3f);
 					}
 					else if (TaskColorIsBackground && !taskItem.IsDoneOrGoodAsDone)
 					{
-						textColor = DrawingColor.GetBestTextColor(taskItem.TaskTextColor);
-						borderColor = DrawingColor.AdjustLighting(taskItem.TaskTextColor, -0.5f, true);
-						barColor = taskItem.TaskTextColor;
-						fillColor = taskItem.TaskTextColor;
+						barColor = textColor;
+						fillColor = textColor;
+
+						borderColor = DrawingColor.AdjustLighting(textColor, -0.5f, true);
+						textColor = DrawingColor.GetBestTextColor(textColor);
 					}
 				}
 
@@ -361,10 +371,17 @@ namespace DayViewUIExtension
 
                 if (isSelected)
                 {
-                    if (longAppt)
+                    if (isLongAppt)
                         rect.Height++;
 
-                    UIExtension.SelectionRect.Draw(m_hWnd, g, rect.Left, rect.Top, rect.Width, rect.Height, false); // opaque
+					UIExtension.SelectionRect.Draw(m_hWnd,
+													g,
+													rect.Left,
+													rect.Top,
+													rect.Width,
+													rect.Height,
+													false); // opaque
+
                 }
                 else
                 {
@@ -373,7 +390,7 @@ namespace DayViewUIExtension
 
                     if (taskItem.DrawBorder)
                     {
-						if (!longAppt)
+						if (!isLongAppt)
 						{
 							rect.Height--; // drawing with pen adds 1 to height
 							rect.Width--;
@@ -393,7 +410,7 @@ namespace DayViewUIExtension
                     Rectangle rectIcon;
                     int imageSize = DPIScaling.Scale(16);
 
-                    if (taskItem.IsLongAppt())
+                    if (isLongAppt)
                     {
                         int yCentre = ((rect.Top + rect.Bottom + 1) / 2);
                         rectIcon = new Rectangle((rect.Left + TextPadding), (yCentre - (imageSize / 2)), imageSize, imageSize);
@@ -405,7 +422,7 @@ namespace DayViewUIExtension
 
                     if (g.IsVisible(rectIcon) && m_TaskIcons.Get(taskItem.Id))
                     {
-                        if (longAppt)
+                        if (isLongAppt)
                         {
                             rectIcon.X = (gripRect.Right + TextPadding);
                         }
@@ -438,7 +455,7 @@ namespace DayViewUIExtension
                     using (SolidBrush brush = new SolidBrush(barColor))
                         g.FillRectangle(brush, gripRect);
 
-                    if (!longAppt)
+                    if (!isLongAppt)
                         gripRect.Height--; // drawing with pen adds 1 to height
 
                     // Draw gripper border
@@ -456,11 +473,11 @@ namespace DayViewUIExtension
                 using (StringFormat format = new StringFormat())
                 {
                     format.Alignment = StringAlignment.Near;
-                    format.LineAlignment = (longAppt ? StringAlignment.Center : StringAlignment.Near);
+                    format.LineAlignment = (isLongAppt ? StringAlignment.Center : StringAlignment.Near);
 
                     rect.Y += 3;
 
-					if (longAppt)
+					if (isLongAppt)
 						rect.Height = m_BaseFont.Height;
 					else
 						rect.Height -= 3;

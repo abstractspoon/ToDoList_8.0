@@ -405,8 +405,13 @@ namespace DayViewUIExtension
 			return 0;
 		}
 
-		public bool GetItemLabelRect(Calendar.Appointment appointment, ref Rectangle rect)
+		public bool GetSelectedItemLabelRect(ref Rectangle rect)
 		{
+			var appointment = SelectedAppointment;
+
+			EnsureVisible(appointment, false);
+			Update(); // make sure draw rects are updated
+
 			if (GetAppointmentRect(appointment, ref rect))
 			{
 				CalendarItem item = (appointment as CalendarItem);
@@ -448,11 +453,6 @@ namespace DayViewUIExtension
 			}
 
 			return false;
-		}
-
-		public bool GetSelectedItemLabelRect(ref Rectangle rect)
-		{
-			return GetItemLabelRect(SelectedAppointment, ref rect);
 		}
 
 		public bool IsItemDisplayable(CalendarItem item)
@@ -741,6 +741,10 @@ namespace DayViewUIExtension
 
 		protected override void DrawAppointment(Graphics g, Rectangle rect, Calendar.Appointment appointment, bool isSelected, Rectangle gripRect)
 		{
+			// Allow selection to be drawn even when a
+			// selection rect is active
+			isSelected = (appointment.Id == m_SelectedTaskID);
+
 			// Our custom gripper bar
 			gripRect = rect;
 			gripRect.Inflate(-2, -2);

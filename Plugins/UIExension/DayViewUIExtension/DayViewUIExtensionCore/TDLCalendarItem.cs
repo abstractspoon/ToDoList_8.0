@@ -25,6 +25,27 @@ namespace DayViewUIExtension
 
 		// --------------------
 
+		protected CalendarItem(CalendarItem item) : base(item)
+		{
+			AllocTo = item.AllocTo;
+			HasIcon = item.HasIcon;
+			IsParent = item.IsParent;
+			TaskTextColor = item.TaskTextColor;
+			HasDependencies = item.HasDependencies;
+			IsDone = item.IsDone;
+			IsGoodAsDone = item.IsGoodAsDone;
+			StartDate = item.StartDate;
+			EndDate = item.EndDate;
+			TimeEstimate = item.TimeEstimate;
+			TimeEstUnits = item.TimeEstUnits;
+		}
+
+		// --------------------
+
+		public CalendarItem()
+		{
+		}
+
 		public Boolean HasTaskTextColor
 		{
 			get { return !m_TaskTextColor.IsEmpty; }
