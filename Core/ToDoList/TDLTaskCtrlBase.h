@@ -178,7 +178,7 @@ public:
 	BOOL GetTaskTextColors(DWORD dwTaskID, COLORREF& crText, COLORREF& crBack, BOOL bRef = -1) const;
 	int GetTaskIconIndex(DWORD dwTaskID) const;
 	int GetTaskIconIndex(const TODOITEM* pTDI, const TODOSTRUCTURE* pTDS) const;
-	
+
 	TDC_HITTEST HitTest(const CPoint& ptScreen) const;
 	TDC_COLUMN HitTestColumn(const CPoint& ptScreen) const;
 	DWORD HitTestTask(const CPoint& ptScreen, BOOL bTitleColumnOnly) const;

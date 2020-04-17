@@ -1867,7 +1867,7 @@ void CTabbedToDoCtrl::RebuildCustomAttributeUI()
 
 void CTabbedToDoCtrl::ReposTaskTree(CDeferWndMove* pDWM, const CRect& rPos)
 {
-	// Tab control takes care of active view including tree
+	// Tab control takes care of active view including tree/list
 	m_tabViews.Resize(rPos, pDWM);
 }
 

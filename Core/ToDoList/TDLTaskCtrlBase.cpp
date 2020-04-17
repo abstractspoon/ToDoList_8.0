@@ -516,9 +516,6 @@ void CTDLTaskCtrlBase::OnSize(UINT nType, int cx, int cy)
 
 		if (m_bAutoFitSplitter)
 			AdjustSplitterToFitAttributeColumns();
-
-		// Delay-loaded to avoid resource leaks
-		//VERIFY(m_ilFileRef.Initialize());
 	}
 }
 
