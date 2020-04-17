@@ -242,7 +242,6 @@ protected:
 	virtual HTREEITEM LoadTasksState(const CPreferences& prefs, BOOL bRebuildTree = FALSE);
 
 	virtual void Resize(int cx = 0, int cy = 0, BOOL bSplitting = FALSE);
-	virtual BOOL IsResortAllowed() const;
 	virtual void OnStylesUpdated(const CTDCStyleMap& styles);
 	virtual void OnTaskIconsChanged();
 	virtual DWORD HitTestTask(const CPoint& ptScreen, BOOL bTitleColumnOnly) const;
