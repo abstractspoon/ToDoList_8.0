@@ -1922,11 +1922,6 @@ BOOL CTabbedToDoCtrl::OnEraseBkgnd(CDC* pDC)
 	return CToDoCtrl::OnEraseBkgnd(pDC);
 }
 
-void CTabbedToDoCtrl::Resize(int cx, int cy, BOOL bSplitting)
-{
-	CToDoCtrl::Resize(cx, cy, bSplitting);
-}
-
 void CTabbedToDoCtrl::SetMaximizeState(TDC_MAXSTATE nState)
 {
 	TDC_MAXSTATE nPrevState = m_nMaxState;

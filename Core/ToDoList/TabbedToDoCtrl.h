@@ -241,7 +241,6 @@ protected:
 	virtual void SaveTasksState(CPreferences& prefs, BOOL bRebuildTree = FALSE) const; 
 	virtual HTREEITEM LoadTasksState(const CPreferences& prefs, BOOL bRebuildTree = FALSE);
 
-	virtual void Resize(int cx = 0, int cy = 0, BOOL bSplitting = FALSE);
 	virtual void OnStylesUpdated(const CTDCStyleMap& styles);
 	virtual void OnTaskIconsChanged();
 	virtual DWORD HitTestTask(const CPoint& ptScreen, BOOL bTitleColumnOnly) const;
