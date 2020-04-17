@@ -8137,12 +8137,11 @@ void CToDoListWnd::CheckResizeFilterBar()
 
 	// GetFilterBarRect() adds 1 pixel to the top
 	if (rFilter.Height() != (nReqHeight + 1))
-	{
 		Resize();
 
-		rFilter.bottom = (rFilter.top + nReqHeight);
-		InvalidateRect(rFilter, TRUE);
-	}
+	// Always redraw
+	rFilter.bottom = (rFilter.top + nReqHeight);
+	InvalidateRect(rFilter, TRUE);
 }
 
 void CToDoListWnd::RefreshFindTasksListData(TDC_ATTRIBUTE nAttribID)
