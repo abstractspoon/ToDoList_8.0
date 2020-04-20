@@ -3108,7 +3108,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Insert &Date",                ID_EDIT_INSERTDATE
         MENUITEM "Insert Ti&me",                ID_EDIT_INSERTTIME
-        MENUITEM "&Insert Date && Time",        ID_EDIT_INSERTDATETIME
+        MENUITEM "&Insert Date and Time",       ID_EDIT_INSERTDATETIME
         MENUITEM SEPARATOR
         POPUP "Spell Chec&k"
         BEGIN
