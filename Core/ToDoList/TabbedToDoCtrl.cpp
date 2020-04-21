@@ -1778,7 +1778,10 @@ LRESULT CTabbedToDoCtrl::OnUIExtModifySelectedTask(WPARAM wParam, LPARAM lParam)
 			if (!GetExtensionWnd(GetTaskView(), pExtWnd, pVData))
 				return FALSE;
 
-			// update all tasks
+			// Mark all extensions needing an update
+			SetExtensionsNeedTaskUpdate(TRUE);
+
+			// update all tasks on the active view
 			CWaitCursor cursor;
 			CTaskFile tasks;
 
