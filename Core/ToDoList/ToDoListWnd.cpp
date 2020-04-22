@@ -5372,7 +5372,9 @@ BOOL CToDoListWnd::ProcessStartupOptions(const CTDCStartupOptions& startup, BOOL
 
 		return TRUE;
 	}
-	else if (startup.HasFlag(TLD_NEWTASK))
+
+	// New tasks
+	if (startup.HasFlag(TLD_NEWTASK))
 	{
 		CEnString sNewTask;
 		BOOL bEditTask = FALSE;
@@ -5419,9 +5421,11 @@ BOOL CToDoListWnd::ProcessStartupOptions(const CTDCStartupOptions& startup, BOOL
 		bRes = (tdc.GetSelectedCount() > 0);
 	}
 
-	// rest of task attributes
+	// Attribute modifications
 	if (bRes)
 	{
+		tdc.BeginSelectedTaskEdit();
+
 		CStringArray aItems;
 		CString sItem;
 		int nItem;
@@ -5595,6 +5599,8 @@ BOOL CToDoListWnd::ProcessStartupOptions(const CTDCStartupOptions& startup, BOOL
 		{
 			tdc.CopySelectedTaskAttributeData(sFrom, sTo);
 		}
+		
+		tdc.EndSelectedTaskEdit();
 	}
 
 	return bRes;

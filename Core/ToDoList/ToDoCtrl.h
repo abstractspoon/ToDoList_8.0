@@ -322,6 +322,9 @@ public:
 	BOOL IncrementSelectedTaskPriority(BOOL bUp = TRUE); // +ve or -ve
 	void SetPercentDoneIncrement(int nAmount);
 
+	void BeginSelectedTaskEdit();
+	void EndSelectedTaskEdit();
+
 	// time tracking
 	void PauseTimeTracking(BOOL bPause = TRUE);
 	BOOL TimeTrackSelectedTask();
@@ -559,6 +562,7 @@ protected:
 	BOOL m_bDragDropSubtasksAtTop;
 	BOOL m_bDelayLoaded;
 	BOOL m_bDeletingTasks;
+	BOOL m_bInSelectedTaskEdit;
 
 // Overrides
 	// ClassWizard generated virtual function overrides

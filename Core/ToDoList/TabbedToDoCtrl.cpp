@@ -308,6 +308,14 @@ void CTabbedToDoCtrl::SetUITheme(const CUIThemeFile& theme)
 	}
 }
 
+void CTabbedToDoCtrl::EndSelectedTaskEdit()
+{
+	CToDoCtrl::EndSelectedTaskEdit();
+
+	if (InExtensionView())
+		SyncExtensionSelectionToTree(GetTaskView());
+}
+
 BOOL CTabbedToDoCtrl::LoadTasks(const CTaskFile& tasks)
 {
 	if (!CToDoCtrl::LoadTasks(tasks))
@@ -5828,6 +5836,10 @@ void CTabbedToDoCtrl::SyncExtensionSelectionToTree(FTC_VIEW nView)
 		return;
 	}
 	else if (!ViewSupportsTaskSelection(nView))
+	{
+		return;
+	}
+	else if (m_bInSelectedTaskEdit)
 	{
 		return;
 	}
