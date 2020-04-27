@@ -7323,6 +7323,8 @@ void CToDoListWnd::OnFileSaveToUserStorage(UINT nCmdID)
 	if (sTDCFile.IsEmpty())
 	{
 		sTDCFile = CEnString(IDS_TDC_UNTITLEDFILE);
+		Misc::Trim(sTDCFile);
+
 		sTDCExt = GetDefaultFileExt(FALSE);
 	}
 
@@ -10187,6 +10189,7 @@ BOOL CToDoListWnd::LogIntermediateTaskList(CTaskFile& tasks, LPCTSTR szRefPath)
 CString CToDoListWnd::GetIntermediateTaskListPath(LPCTSTR szRefPath)
 {
 	CEnString sRefName(IDS_TDC_UNTITLEDFILE);
+	Misc::Trim(sRefName);
 
 	if (szRefPath && FileMisc::IsPath(szRefPath))
 		sRefName = FileMisc::RemoveExtension(FileMisc::GetFileNameFromPath(szRefPath));
@@ -13002,9 +13005,14 @@ void CToDoListWnd::OnViewSaveToImage()
 	CString sFilePath(tdc.GetFilePath());
 
 	if (sFilePath.IsEmpty())
+	{
 		sFilePath = CEnString(IDS_TDC_UNTITLEDFILE);
+		Misc::Trim(sFilePath);
+	}
 	else
+	{
 		FileMisc::RemoveExtension(sFilePath);
+	}
 
 	sFilePath += '.';
 	sFilePath += tdc.GetTaskViewName();

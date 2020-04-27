@@ -7789,6 +7789,7 @@ CString CToDoCtrl::GetFriendlyProjectName(int nUntitledIndex) const
 		else
 		{
 			sProjectName = CEnString(IDS_TDC_UNTITLEDFILE);
+			Misc::Trim(sProjectName);
 
 			if (nUntitledIndex > 0)
 				sProjectName += Misc::Format(nUntitledIndex);
