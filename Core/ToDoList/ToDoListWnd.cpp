@@ -845,7 +845,7 @@ int CToDoListWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (!InitMainToolbar())
 		return -1;
 
-	// Toolbars are delay loaded to avoid memory leaks
+	// Custom toolbar is delay loaded to avoid memory leaks
 	
 	if (!InitStatusbar())
 		return -1;
@@ -5097,7 +5097,7 @@ BOOL CToDoListWnd::DoPreferences(int nInitPage)
 		m_mgrContent.LoadPreferences(CPreferences(), _T("ContentControls"), TRUE);
 
 		// UDTs in toolbar
-		BOOL bUDTChange = bCustomToolbarChange;
+		BOOL bUDTChange = (bCustomToolbarChange || (oldPrefs.GetUITheme() != newPrefs.GetUITheme()));
 
 		if (!bUDTChange)
 		{
