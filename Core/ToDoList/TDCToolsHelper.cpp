@@ -324,6 +324,7 @@ CString CTDCToolsHelper::EscapeCharacters(const CString& sValue, BOOL bWebTool)
 
 void CTDCToolsHelper::RemoveToolsFromToolbar(CEnToolBar& toolbar, UINT nCmdAfter)
 {
+	ASSERT(toolbar.GetSafeHwnd());
 	int nRemoved = 0;
 	
 	TBBUTTON tbb;
@@ -359,6 +360,8 @@ void CTDCToolsHelper::RemoveToolsFromToolbar(CEnToolBar& toolbar, UINT nCmdAfter
 
 void CTDCToolsHelper::AppendToolsToToolbar(const CUserToolArray& aTools, CEnToolBar& toolbar, UINT nCmdAfter)
 {
+	ASSERT(toolbar.GetSafeHwnd());
+
 	// remove tools first
 	RemoveToolsFromToolbar(toolbar, nCmdAfter);
 	
