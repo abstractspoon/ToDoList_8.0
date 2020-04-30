@@ -98,6 +98,7 @@ namespace Abstractspoon
 				Drawing::Color m_PressedFillColor;
 				Drawing::Color m_BkgndLightColor;
 				Drawing::Color m_BkgndDarkColor;
+				Drawing::Color m_MenuBkgndColor;
 
 				UITheme::RenderStyle m_Style;
 

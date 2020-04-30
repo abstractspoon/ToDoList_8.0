@@ -197,6 +197,7 @@ UIThemeToolbarRenderer::UIThemeToolbarRenderer()
 	m_PressedFillColor = Drawing::Color::Transparent;
 	m_BkgndLightColor = Drawing::Color::Transparent;
 	m_BkgndDarkColor = Drawing::Color::Transparent;
+	m_MenuBkgndColor = Drawing::Color::Transparent;
 
 	m_Style = UITheme::RenderStyle::Gradient;
 }
@@ -206,6 +207,7 @@ void UIThemeToolbarRenderer::SetUITheme(UITheme^ theme)
 	m_BkgndLightColor = theme->GetAppDrawingColor(UITheme::AppColor::ToolbarLight);
 	m_BkgndDarkColor = theme->GetAppDrawingColor(UITheme::AppColor::ToolbarDark);
 	m_HotFillColor = theme->GetAppDrawingColor(UITheme::AppColor::ToolbarHot);
+	m_MenuBkgndColor = theme->GetAppDrawingColor(UITheme::AppColor::MenuBack);
 
 	m_HotBorderColor = ColorUtil::DrawingColor::AdjustLighting(m_HotFillColor, -0.3f, false);
 	m_PressedFillColor = ColorUtil::DrawingColor::AdjustLighting(m_HotFillColor, -0.15f, false);
@@ -255,7 +257,17 @@ void UIThemeToolbarRenderer::OnRenderButtonBackground(ToolStripItemRenderEventAr
 void UIThemeToolbarRenderer::OnRenderMenuItemBackground(ToolStripItemRenderEventArgs^ e)
 {
 	if (!RenderButtonBackground(e))
-		BaseToolbarRenderer::OnRenderMenuItemBackground(e);
+	{
+		if (m_MenuBkgndColor != Color::Transparent)
+		{
+			Drawing::Rectangle itemRect(Drawing::Point(0, 0), e->Item->Bounds.Size);
+			e->Graphics->FillRectangle(gcnew SolidBrush(m_MenuBkgndColor), itemRect);
+		}
+		else
+		{
+			BaseToolbarRenderer::OnRenderMenuItemBackground(e);
+		}
+	}
 }
 
 void UIThemeToolbarRenderer::OnRenderDropDownButtonBackground(ToolStripItemRenderEventArgs^ e)
