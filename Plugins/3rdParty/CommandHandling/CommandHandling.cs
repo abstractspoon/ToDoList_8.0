@@ -9,7 +9,7 @@ namespace Command.Handling
 {
 	public class CommandHandling
 	{
-		public static bool HideCommand(String commandId, ToolStripItemCollection items)
+		public static bool RemoveCommand(String commandId, ToolStripItemCollection items)
 		{
 			ToolStripItem cmd = GetCommandItem(commandId, ref items);
 
