@@ -1070,8 +1070,9 @@ BOOL CKanbanColumnCtrl::DeleteAll()
 	return CTreeCtrl::DeleteAllItems();
 }
 
-void CKanbanColumnCtrl::RemoveDeletedTasks(const CDWordSet& mapCurIDs)
+int CKanbanColumnCtrl::RemoveDeletedTasks(const CDWordSet& mapCurIDs)
 {
+	int nNumDeleted = 0;
 	HTREEITEM hti = GetChildItem(NULL);
 
 	while (hti)
@@ -1082,12 +1083,17 @@ void CKanbanColumnCtrl::RemoveDeletedTasks(const CDWordSet& mapCurIDs)
 		HTREEITEM htiNext = GetNextItem(hti, TVGN_NEXT);
 
 		if (!mapCurIDs.Has(dwTaskID) && CTreeCtrl::DeleteItem(hti))
+		{	
 			m_mapItems.RemoveKey(dwTaskID);
+			nNumDeleted++;
+		}
 
 		hti = htiNext;
 	}
 
 	ASSERT(m_mapItems.GetCount() == (int)GetCount());
+
+	return nNumDeleted;
 }
 
 int CALLBACK CKanbanColumnCtrl::SortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)

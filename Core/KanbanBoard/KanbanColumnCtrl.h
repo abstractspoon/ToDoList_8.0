@@ -55,7 +55,7 @@ public:
 	HTREEITEM AddTask(const KANBANITEM& ki, BOOL bSelect);
 	BOOL DeleteTask(DWORD dwTaskID);
 	BOOL DeleteAll();
-	void RemoveDeletedTasks(const CDWordSet& mapCurIDs);
+	int RemoveDeletedTasks(const CDWordSet& mapCurIDs);
 
 	void Sort(TDC_ATTRIBUTE nBy, BOOL bAscending);
 	
