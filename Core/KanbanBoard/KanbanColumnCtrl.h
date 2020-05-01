@@ -144,6 +144,7 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg LRESULT OnThemeChanged(WPARAM wp, LPARAM lp);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
@@ -163,7 +164,7 @@ protected:
 	int CalcItemTitleTextHeight() const;
 	void RecalcItemLineHeight();
 	void RefreshBkgndColor();
-	BOOL HandleLButtonClick(CPoint point, BOOL bDblClk);
+	BOOL HandleButtonClick(CPoint point, HTREEITEM& htiHit);
 	BOOL GetItemCheckboxRect(HTREEITEM hti, CRect& rItem, const KANBANITEM* pKI) const;
 	BOOL GetItemCheckboxRect(CRect& rItem) const;
 	BOOL GetItemLabelTextRect(HTREEITEM hti, CRect& rItem, BOOL bEdit = FALSE, const KANBANITEM* pKI = NULL) const;

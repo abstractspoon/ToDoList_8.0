@@ -122,6 +122,7 @@ BEGIN_MESSAGE_MAP(CKanbanColumnCtrl, CTreeCtrl)
 	ON_MESSAGE(WM_THEMECHANGED, OnThemeChanged)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONDBLCLK()
+	ON_WM_RBUTTONDOWN()
 	ON_WM_SIZE()
 	ON_WM_SETCURSOR()
 	ON_NOTIFY(TTN_SHOW, 0, OnTooltipShow)
@@ -1266,84 +1267,32 @@ void CKanbanColumnCtrl::Sort(TDC_ATTRIBUTE nBy, BOOL bAscending)
 	SortChildrenCB(&tvs);
 }
 
+void CKanbanColumnCtrl::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	HTREEITEM htiUnused = NULL;
+	HandleButtonClick(point, htiUnused);
+	
+	CTreeCtrl::OnRButtonDown(nFlags, point);
+}
+
 void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	if (HandleLButtonClick(point, FALSE))
-		return;
+	HTREEITEM htiHit = NULL;
+	BOOL bHandled = HandleButtonClick(point, htiHit);
 
-	HTREEITEM hti = HitTest(point);
-
-	if (hti)
-	{
-		// Adjust 'point' to compensate for the indent
-		CRect rTreeItem, rIndentedItem;
-
-		CTreeCtrl::GetItemRect(hti, rTreeItem, FALSE);
-		GetItemLabelTextRect(hti, rIndentedItem, FALSE);
-
-		if (rTreeItem.left != rIndentedItem.left)
-		{
-			point.x -= (rIndentedItem.left - rTreeItem.left);
-			DefWindowProc(WM_LBUTTONDOWN, nFlags, MAKELPARAM(point.x, point.y));
-			return;
-		}
-	}
-	
-	//else
-	CTreeCtrl::OnLButtonDown(nFlags, point);
-}
-
-void CKanbanColumnCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
-{
-	if (HandleLButtonClick(point, TRUE))
-		return;
-
-	// else
-	CTreeCtrl::OnLButtonDblClk(nFlags, point);
-}
-
-BOOL CKanbanColumnCtrl::HandleLButtonClick(CPoint point, BOOL bDblClk)
-{
-	// Ignore clicks not hitting an item
-	HTREEITEM hti = HitTest(point);
-
-	if (!hti)
-	{
-		if (m_bSelected)
-			SetFocus();
-
-		return TRUE;
-	}
-
-	BOOL bHandled = FALSE;
-
-	if (!m_bSelected)
-	{
-		CTreeCtrl::Default();
-		bHandled = TRUE;
-	}
-
-	if (hti != GetSelectedItem())
-		SelectItem(hti, TRUE);
-
-	if (bDblClk)
-	{
-		bHandled = TRUE;
-		EditLabel(hti);
-	}
-	else
+	if (htiHit)
 	{
 		UINT nMsgID = 0;
 
-		if (HitTestCheckbox(hti, point))
+		if (HitTestCheckbox(htiHit, point))
 		{
 			nMsgID = WM_KLCN_TOGGLETASKDONE;
 		}
-		else if (HitTestIcon(hti, point))
+		else if (HitTestIcon(htiHit, point))
 		{
 			nMsgID = WM_KLCN_EDITTASKICON;
 		}
-		else if (HitTestFlag(hti, point))
+		else if (HitTestFlag(htiHit, point))
 		{
 			nMsgID = WM_KLCN_TOGGLETASKFLAG;
 		}
@@ -1351,9 +1300,72 @@ BOOL CKanbanColumnCtrl::HandleLButtonClick(CPoint point, BOOL bDblClk)
 		if (nMsgID)
 		{
 			// Post message to let mouse-click time to complete
-			GetParent()->PostMessage(nMsgID, (WPARAM)GetSafeHwnd(), GetTaskID(hti));
+			GetParent()->PostMessage(nMsgID, (WPARAM)GetSafeHwnd(), GetTaskID(htiHit));
 			bHandled = TRUE;
 		}
+	}
+
+	// If not handled second click should cause label edit
+	if (!bHandled && htiHit)
+	{
+		// Adjust 'point' to compensate for the indent
+		CRect rTreeItem, rIndentedItem;
+
+		CTreeCtrl::GetItemRect(htiHit, rTreeItem, FALSE);
+		GetItemLabelTextRect(htiHit, rIndentedItem, FALSE);
+
+		if (rTreeItem.left != rIndentedItem.left)
+		{
+			point.x -= (rIndentedItem.left - rTreeItem.left);
+			DefWindowProc(WM_LBUTTONDOWN, nFlags, MAKELPARAM(point.x, point.y));
+		
+			bHandled = TRUE;
+		}
+	}
+	
+	if (!bHandled)
+		CTreeCtrl::OnLButtonDown(nFlags, point);
+}
+
+void CKanbanColumnCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	HTREEITEM htiHit = NULL;
+	BOOL bHandled = HandleButtonClick(point, htiHit);
+
+	if (htiHit)
+	{
+		bHandled = TRUE;
+		EditLabel(htiHit);
+	}
+
+	if (!bHandled)
+		CTreeCtrl::OnLButtonDblClk(nFlags, point);
+}
+
+BOOL CKanbanColumnCtrl::HandleButtonClick(CPoint point, HTREEITEM& htiHit)
+{
+	BOOL bHandled = FALSE;
+
+	// Ignore clicks not hitting an item
+	htiHit = HitTest(point);
+
+	if (!htiHit)
+	{
+		if (m_bSelected)
+			SetFocus();
+
+		bHandled = TRUE;
+	}
+	else
+	{
+		if (!m_bSelected)
+		{
+			SetFocus();
+			bHandled = TRUE;
+		}
+
+		if (htiHit != GetSelectedItem())
+			SelectItem(htiHit, TRUE);
 	}
 
 	return bHandled;
