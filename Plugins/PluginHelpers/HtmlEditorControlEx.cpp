@@ -61,7 +61,10 @@ void HtmlEditorControlEx::InitializeComponentEx()
 	ToolBar->Renderer = m_toolbarRenderer;
 
 	if (m_ControlsFont != nullptr)
+	{
 		ToolBar->Font = m_ControlsFont;
+		ContextMenu->Font = m_ControlsFont;
+	}
 
 	if (DPIScaling::WantScaling())
 	{
