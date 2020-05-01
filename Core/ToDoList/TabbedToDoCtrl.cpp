@@ -3366,7 +3366,7 @@ void CTabbedToDoCtrl::UpdateExtensionViewsTasks(const CTDCAttributeMap& mapAttri
 			// Special case: we've just deleted the last task or
 			// just undone the first new task
 			if (!bUpdateView)
-				bUpdateView = (!m_taskTree.Tree().GetCount() && (mapAttribIDs.Has(TDCA_DELETE) || mapAttribIDs.Has(TDCA_UNDO)));
+				bUpdateView = (!m_taskTree.GetItemCount() && (mapAttribIDs.Has(TDCA_DELETE) || mapAttribIDs.Has(TDCA_UNDO)));
 
 			if (bUpdateView)
 			{
@@ -3380,7 +3380,7 @@ void CTabbedToDoCtrl::UpdateExtensionViewsTasks(const CTDCAttributeMap& mapAttri
 				// The only reason we DON't resync the selection is if we've just deleted
 				// a task, resulting in no selection, but we know that another task selection
 				// is pending because there are still tasks in the tree
-				if (mapAttribIDs.Has(TDCA_DELETE) && !GetSelectedTaskID() && m_taskTree.Tree().GetCount())
+				if (mapAttribIDs.Has(TDCA_DELETE) && !GetSelectedTaskID() && m_taskTree.GetItemCount())
 				{
 					// do nothing
 				}
