@@ -1302,7 +1302,12 @@ BOOL CKanbanColumnCtrl::HandleLButtonClick(CPoint point, BOOL bDblClk)
 	HTREEITEM hti = HitTest(point);
 
 	if (!hti)
+	{
+		if (m_bSelected)
+			SetFocus();
+
 		return TRUE;
+	}
 
 	BOOL bHandled = FALSE;
 
