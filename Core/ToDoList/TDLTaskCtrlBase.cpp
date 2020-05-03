@@ -4025,6 +4025,23 @@ void CTDLTaskCtrlBase::RepackageAndSendToParent(UINT msg, WPARAM /*wp*/, LPARAM 
 	}
 }
 
+void CTDLTaskCtrlBase::HandleTabKey(HWND hWnd)
+{
+	// If the next/prev item is still a child of 'ours'
+	// then get the control after that and then stop
+	BOOL bPrevItem = Misc::IsKeyPressed(VK_SHIFT);
+	CWnd* pWndNext = CWnd::GetParent()->GetNextDlgTabItem(CWnd::FromHandle(hWnd), bPrevItem);
+
+	if (pWndNext)
+	{
+		if (IsChild(pWndNext))
+			pWndNext = CWnd::GetParent()->GetNextDlgTabItem(pWndNext, bPrevItem);
+
+		if (pWndNext && (pWndNext->GetSafeHwnd() != hWnd))
+			pWndNext->SetFocus();
+	}
+}
+
 LRESULT CTDLTaskCtrlBase::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	if (!IsResyncEnabled())
@@ -4034,6 +4051,17 @@ LRESULT CTDLTaskCtrlBase::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARA
 	{
 		switch (msg)
 		{
+		case WM_GETDLGCODE:
+			return DLGC_WANTTAB;
+
+		case WM_KEYDOWN:
+			if (wp == VK_TAB)
+			{
+				HandleTabKey(hRealWnd);
+				return 0L; // eat
+			}
+			break;
+
 		case WM_PRINT:
 			if (!m_lcColumns.GetItemCount() && !m_sTasksWndPrompt.IsEmpty())
 			{
@@ -4074,6 +4102,17 @@ LRESULT CTDLTaskCtrlBase::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARA
 	{
 		switch (msg)
 		{
+		case WM_GETDLGCODE:
+			return DLGC_WANTTAB;
+
+		case WM_KEYDOWN:
+			if (wp == VK_TAB)
+			{
+				HandleTabKey(hRealWnd);
+				return 0L; // eat
+			}
+			break;
+
 		case WM_TIMER:
 			{
 				switch (wp)
