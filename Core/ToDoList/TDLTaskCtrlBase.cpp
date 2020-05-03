@@ -206,7 +206,6 @@ ON_WM_CREATE()
 ON_WM_SETCURSOR()
 ON_WM_TIMER()
 ON_WM_HELPINFO()
-
 END_MESSAGE_MAP()
 
 ///////////////////////////////////////////////////////////////////////////
@@ -224,14 +223,15 @@ int CTDLTaskCtrlBase::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
+	// Create primary task view control
 	CRect rect(0, 0, lpCreateStruct->cx, lpCreateStruct->cy);
 	
 	if (!CreateTasksWnd(this, rect, TRUE))
 		return -1;
 
+	// Tasks Header ---------------------------------------------------------------------
 	DWORD dwStyle = (WS_CHILD | WS_VISIBLE);
 
-	// Tasks Header ---------------------------------------------------------------------
 	if (!m_hdrTasks.Create((dwStyle | HDS_BUTTONS), rect, this, IDC_TASKTREEHEADER))
 		return FALSE;
 
