@@ -11,6 +11,7 @@
 #include "TDCToDoCtrlPreferenceHelper.h"
 
 #include "..\shared\DialogHelper.h"
+#include "..\shared\holdredraw.h"
 
 #include "..\Interfaces\ContentMgr.h"
 #include "..\Interfaces\uiextensionmgr.h"
@@ -78,6 +79,7 @@ BEGIN_MESSAGE_MAP(CTDLTasklistImportDlg, CDialog)
 	//{{AFX_MSG_MAP(CTDLTasklistImportDlg)
 	ON_BN_CLICKED(IDC_SELECTALL, OnSelectall)
 	ON_BN_CLICKED(IDC_SELECTNONE, OnSelectnone)
+	ON_BN_CLICKED(IDC_EXPANDALL, OnExpandAll)
 	//}}AFX_MSG_MAP
 	ON_REGISTERED_MESSAGE(WM_TDCN_SELECTIONCHANGE, OnTDCNotifySelectionChange)
 END_MESSAGE_MAP()
@@ -112,13 +114,11 @@ BOOL CTDLTasklistImportDlg::OnInitDialog()
 			m_tdc.ShowAllColumns();
 			m_tdc.ResizeAttributeColumnsToFit();
 			m_tdc.SetGridlineColor(RGB(200, 200, 200));
-			m_tdc.ExpandTasks(TDCEC_ALL);
 			m_tdc.ShowWindow(SW_SHOW);
 
 			// Select All
 			PostMessage(WM_COMMAND, MAKEWPARAM(IDC_SELECTALL, BN_CLICKED), (LPARAM)::GetDlgItem(*this, IDC_SELECTALL));
 		}
-
 	}
 	
 	return FALSE;  // return TRUE unless you set the focus to a control
@@ -127,13 +127,18 @@ BOOL CTDLTasklistImportDlg::OnInitDialog()
 
 void CTDLTasklistImportDlg::OnSelectall() 
 {
+	CWaitCursor wait;
+	CHoldRedraw hr(m_tdc);
+
 	m_tdc.SelectAll();
 }
 
 void CTDLTasklistImportDlg::OnSelectnone() 
 {
+	CWaitCursor wait;
+	CHoldRedraw hr(m_tdc);
+
 	m_tdc.DeselectAll();
-	m_tdc.Invalidate();
 }
 
 LRESULT CTDLTasklistImportDlg::OnTDCNotifySelectionChange(WPARAM, LPARAM)
@@ -218,4 +223,11 @@ void CTDLTasklistImportDlg::ResetSelectedTaskCreationDate(HTASKITEM hTask, BOOL 
 			}
 		}
 	}
+}
+
+void CTDLTasklistImportDlg::OnExpandAll() 
+{
+	CWaitCursor wait;
+
+	m_tdc.ExpandTasks(TDCEC_ALL);
 }
