@@ -243,6 +243,10 @@ int CHMXChartEx::HitTest(const CPoint& ptClient) const
 		return -1;
 
 	int nNumData = m_datasets[0].GetDatasetSize();
+
+	if (nNumData == 0)
+		return -1;
+
 	int nXOffset = (ptClient.x - m_rectData.left);
 
 	return ((nXOffset * nNumData) / m_rectData.Width());
