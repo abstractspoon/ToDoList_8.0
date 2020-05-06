@@ -295,7 +295,7 @@ namespace DayViewUIExtension
 			return true;
 		}
 
-		public void FixupSelection(bool scrollToTask, bool allowNotify)
+		public Calendar.Appointment FixupSelection(bool scrollToTask, bool allowNotify)
         {
 			// Our base class clears the selected appointment whenever
 			// the week changes so we can't rely on 'SelectedAppointmentId'
@@ -343,6 +343,8 @@ namespace DayViewUIExtension
 
 				RaiseSelectionChanged(item);
 			}
+
+			return SelectedAppointment;
 		}
 
 		public bool SelectTask(UInt32 dwTaskID)
@@ -407,7 +409,8 @@ namespace DayViewUIExtension
 
 		public bool GetSelectedItemLabelRect(ref Rectangle rect)
 		{
-			var appointment = SelectedAppointment;
+			// Scroll selection into view
+			var appointment = FixupSelection(true, false);
 
 			EnsureVisible(appointment, false);
 			Update(); // make sure draw rects are updated
