@@ -215,6 +215,13 @@ BOOL CTDCMainMenu::HandleInitMenuPopup(CMenu* pPopupMenu,
 	return FALSE;
 }
 
+void CTDCMainMenu::HandleTaskContextPopup(CMenu* pMenu,
+										  const CFilteredToDoCtrl& tdc,
+										  const CPreferencesDlg& prefs) const
+{
+	PrepareEditMenu(pMenu, tdc, prefs);
+}
+
 void CTDCMainMenu::PrepareFileMenu(CMenu* pMenu, const CPreferencesDlg& prefs)
 {
 	ASSERT(pMenu);

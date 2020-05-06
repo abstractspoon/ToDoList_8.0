@@ -49,11 +49,14 @@ public:
 							 const CUIExtensionMgr& mgrUIExt,
 							 CMenuIconMgr& mgrMenuIcons); // not const
 
+	void HandleTaskContextPopup(CMenu* pMenu, 
+								const CFilteredToDoCtrl& tdc, 
+								const CPreferencesDlg& prefs) const;
+
 	BOOL HandleDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
 	BOOL HandleMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	BOOL HandlePostTranslateMenu(HMENU hMenu);
 
-	void PrepareEditMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, const CPreferencesDlg& prefs) const;
 
 protected:
 	UITHEME m_theme;
@@ -62,6 +65,7 @@ protected:
 	void LoadMenuCommon();
 
 	void PrepareFileMenu(CMenu* pMenu, const CPreferencesDlg& prefs);
+	void PrepareEditMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, const CPreferencesDlg& prefs) const;
 	void PrepareSortMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, const CPreferencesDlg& prefs) const;
 	void PrepareToolsMenu(CMenu* pMenu, const CPreferencesDlg& prefs, CMenuIconMgr& mgrMenuIcons);
 
