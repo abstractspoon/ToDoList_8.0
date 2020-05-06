@@ -170,6 +170,7 @@ BOOL CTDCMainMenu::HandleInitMenuPopup(CMenu* pPopupMenu,
 {
 	if (GetSubMenu(AM_FILE) == pPopupMenu)
 	{
+		PrepareFileMenu(pPopupMenu, prefs);
 		return TRUE;
 	}
 	else if (GetSubMenu(AM_EDIT) == pPopupMenu)
