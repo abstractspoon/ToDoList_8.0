@@ -86,7 +86,7 @@ BOOL CTDCMainMenu::LoadMenu()
 
 	LoadMenuCommon();
 
-	TranslateDynamicMenuItems(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, _T("Recent Tasklist %d"));
+	TranslateDynamicMenuItems(ID_FILE_MRU1, ID_FILE_MRU16, _T("Recent Tasklist %d"));
 	TranslateDynamicMenuItems(ID_WINDOW1, ID_WINDOW16, _T("Window %d"));
 	TranslateDynamicMenuItems(ID_TOOLS_USERTOOL1, ID_TOOLS_USERTOOL50, _T("User Defined Tool %d"));
 	TranslateDynamicMenuItems(ID_FILE_OPEN_USERSTORAGE1, ID_FILE_OPEN_USERSTORAGE16, _T("3rd Party Storage %d"));
