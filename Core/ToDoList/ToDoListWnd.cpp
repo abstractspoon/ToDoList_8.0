@@ -7103,18 +7103,14 @@ void CToDoListWnd::OnNeedTooltipText(NMHDR* pNMHDR, LRESULT* pResult)
 	static CString sTipText;
 	sTipText.Empty();
 
-	if ((pNMHDR->idFrom >= ID_TOOLS_USERTOOL1) && (pNMHDR->idFrom <= ID_TOOLS_USERTOOL50))
-	{
-		USERTOOL tool;
-
-		if (Prefs().GetUserTool(pNMHDR->idFrom - ID_TOOLS_USERTOOL1, tool))
-			sTipText = tool.sToolName;
-	}
-	else if ((pNMHDR->idFrom >= 0) && (pNMHDR->idFrom < (UINT)m_mgrToDoCtrls.GetCount()))
-	{
-		// tab control popups
-		sTipText = m_mgrToDoCtrls.GetTabItemTooltip(pNMHDR->idFrom);
-	}
+	// Handle items having dynamic menu text
+	sTipText = m_menubar.GetDynamicItemTooltip(pNMHDR->idFrom,
+											   m_mruList,
+											   m_mgrToDoCtrls,
+											   Prefs(),
+											   m_filterBar,
+											   m_mgrStorage,
+											   m_mgrUIExtensions);
 
 	if (!sTipText.IsEmpty())
 	{

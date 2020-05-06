@@ -16,6 +16,9 @@
 
 //////////////////////////////////////////////////////////////////////
 
+class CRecentFileList;
+
+class CToDoCtrlMgr;
 class CFilteredToDoCtrl;
 class CPreferencesDlg;
 class CTDLFilterBar;
@@ -44,7 +47,7 @@ public:
 	BOOL HandleInitMenuPopup(CMenu* pPopupMenu, 
 							 const CFilteredToDoCtrl& tdc, 
 							 const CPreferencesDlg& prefs,
-							 const CTDLFilterBar& barFilter,
+							 const CTDLFilterBar& filterBar,
 							 const CTDLTasklistStorageMgr& mgrStorage,
 							 const CUIExtensionMgr& mgrUIExt,
 							 CMenuIconMgr& mgrMenuIcons); // not const
@@ -57,6 +60,16 @@ public:
 	BOOL HandleMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	BOOL HandlePostTranslateMenu(HMENU hMenu);
 
+	// Helpers
+	CString GetDynamicItemTooltip(UINT nMenuID,
+								  const CRecentFileList& mru,
+								  const CToDoCtrlMgr& mgrToDoCtrl,
+								  const CPreferencesDlg& prefs,
+								  const CTDLFilterBar& filterBar,
+								  const CTDLTasklistStorageMgr& mgrStorage,
+								  const CUIExtensionMgr& mgrUIExt) const;
+
+	static BOOL IsDynamicItem(UINT nMenuID);
 
 protected:
 	UITHEME m_theme;
@@ -74,6 +87,7 @@ protected:
 	void AddTaskViewVisibilityToMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, const CUIExtensionMgr& mgrUIExt);
 	void AddTaskViewActivationToMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, const CUIExtensionMgr& mgrUIExt);
 
+	static BOOL IsInRange(UINT nItem, UINT nStart, UINT nEnd);
 };
 
 #endif // !defined(AFX_TDCMAINMENU_H__5AB11CC8_CCF5_4D52_ADC7_27FDC151F3FE__INCLUDED_)
