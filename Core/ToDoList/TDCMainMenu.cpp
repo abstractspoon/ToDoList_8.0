@@ -327,7 +327,7 @@ BOOL CTDCMainMenu::HandleInitMenuPopup(CMenu* pPopupMenu,
 	return FALSE;
 }
 
-void CTDCMainMenu::HandleTaskContextPopup(CMenu* pMenu,
+void CTDCMainMenu::PrepareTaskContextMenu(CMenu* pMenu,
 										  const CFilteredToDoCtrl& tdc,
 										  const CPreferencesDlg& prefs) const
 {

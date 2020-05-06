@@ -52,13 +52,13 @@ public:
 							 const CUIExtensionMgr& mgrUIExt,
 							 CMenuIconMgr& mgrMenuIcons); // not const
 
-	void HandleTaskContextPopup(CMenu* pMenu, 
-								const CFilteredToDoCtrl& tdc, 
-								const CPreferencesDlg& prefs) const;
-
 	BOOL HandleDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
 	BOOL HandleMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	BOOL HandlePostTranslateMenu(HMENU hMenu);
+
+	void PrepareTaskContextMenu(CMenu* pMenu, 
+								const CFilteredToDoCtrl& tdc, 
+								const CPreferencesDlg& prefs) const;
 
 	// Helpers
 	CString GetDynamicItemTooltip(UINT nMenuID,

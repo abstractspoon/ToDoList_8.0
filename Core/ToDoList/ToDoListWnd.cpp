@@ -3959,7 +3959,7 @@ void CToDoListWnd::OnContextMenu(CWnd* pWnd, CPoint point)
 				switch (nMenuID)
 				{
 				case MM_TASKCONTEXT:
-					m_menubar.HandleTaskContextPopup(pPopup, tdc, Prefs());
+					m_menubar.PrepareTaskContextMenu(pPopup, tdc, Prefs());
 					break;
 				}
 				
