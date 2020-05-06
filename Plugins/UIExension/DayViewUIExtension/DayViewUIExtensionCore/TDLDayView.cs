@@ -533,7 +533,7 @@ namespace DayViewUIExtension
 
 			// Scroll to the selected item if it was modified and is 'visible'
 			if (tasks.HasTask(m_SelectedTaskID) && IsTaskDisplayable(m_SelectedTaskID))
-                EnsureVisible(SelectedAppointment, true);
+				FixupSelection(false, false);
 
 			SelectionStart = SelectionEnd;
 
