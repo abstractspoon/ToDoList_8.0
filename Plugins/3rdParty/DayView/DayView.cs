@@ -1628,33 +1628,67 @@ namespace Calendar
             if (numLayers == 0)
                 return;
 
-            int layerWidth = (rect.Width / numLayers);
-            int leftOverWidth = (rect.Width - (layerWidth * numLayers));
+            // Sort them into buckets of independent tasks
+            groupAppts.SortByStartDate();
 
-            foreach (var appointment in groupAppts)
+            var buckets = new List<AppointmentList>();
+
+            if (numLayers == 1)
             {
-                Rectangle apptRect = rect;
-                apptRect.X += (appointment.Layer * layerWidth);
-                apptRect.Width = (layerWidth - ((numLayers > 1) ? appointmentSpacing : 0));
+                buckets.Add(groupAppts);
+            }
+            else
+            {
+                AppointmentList currentBucket = null;
+                DateTime maxBucketDate = DateTime.MinValue;
 
-                // Last column picks up the slack
-                if (appointment.Layer == (numLayers - 1))
-                    apptRect.Width += leftOverWidth;
+                foreach (var appt in groupAppts)
+                {
+                    if (appt.StartDate >= maxBucketDate)
+                    {
+                        currentBucket = new AppointmentList();
+                        buckets.Add(currentBucket);
+                    }
 
-                DateTime apptStart, apptEnd;
-                GetAppointmentDrawTimes(appointment, out apptStart, out apptEnd);
+                    currentBucket.Add(appt);
 
-                apptRect = GetHourRangeRectangle(apptStart, apptEnd, apptRect);
-                appointmentViews[appointment] = new AppointmentView(appointment, apptRect);
+                    if (appt.EndDate > maxBucketDate)
+                        maxBucketDate = appt.EndDate;
+                }
+            }
 
-                if (this.DrawAllAppBorder)
-                    appointment.DrawBorder = true;
+            // Draw each bucket's contents as an independent list
+            foreach (var bucket in buckets)
+            {
+                int numBucketLayers = Math.Min(numLayers, bucket.Count);
+                int layerWidth = (rect.Width / numBucketLayers);
+                int leftOverWidth = (rect.Width - (layerWidth * numBucketLayers));
 
-                Rectangle gripRect = GetHourRangeRectangle(appointment.StartDate, appointment.EndDate, apptRect);
-                gripRect.Width = appointmentGripWidth;
+                foreach (var appt in bucket)
+                {
+                    Rectangle apptRect = rect;
+                    apptRect.X += (appt.Layer * layerWidth);
+                    apptRect.Width = (layerWidth - ((numBucketLayers > 1) ? appointmentSpacing : 0));
 
-                bool isSelected = ((activeTool != drawTool) && (appointment == selectedAppointment));
-                DrawAppointment(e.Graphics, apptRect, appointment, isSelected, gripRect);
+                    // Last column picks up the slack
+                    if (appt.Layer == (numBucketLayers - 1))
+                        apptRect.Width += leftOverWidth;
+
+                    DateTime apptStart, apptEnd;
+                    GetAppointmentDrawTimes(appt, out apptStart, out apptEnd);
+
+                    apptRect = GetHourRangeRectangle(apptStart, apptEnd, apptRect);
+                    appointmentViews[appt] = new AppointmentView(appt, apptRect);
+
+                    if (this.DrawAllAppBorder)
+                        appt.DrawBorder = true;
+
+                    Rectangle gripRect = GetHourRangeRectangle(appt.StartDate, appt.EndDate, apptRect);
+                    gripRect.Width = appointmentGripWidth;
+
+                    bool isSelected = ((activeTool != drawTool) && (appt == selectedAppointment));
+                    DrawAppointment(e.Graphics, apptRect, appt, isSelected, gripRect);
+                }
             }
         }
 
@@ -1764,57 +1798,47 @@ namespace Calendar
             if ((appointments == null) || (appointments.Count == 0))
                 return 0;
 
-            AppointmentList processed = new AppointmentList();
-            List<int> layers = new List<int>();
+            var processed = new AppointmentList();
+            var layers = new SortedSet<int>();
 
-            foreach (Appointment appointment in appointments)
+            foreach (var appt in appointments)
             {
-                appointment.Layer = 0;
+                appt.Layer = 0;
 
                 if (processed.Count != 0)
                 {
-                    bool intersect = false;
-
-                    foreach (Appointment appt in processed)
+					// Look through the previously processed 
+					// appointments, one layer at a time, for 
+					// any which intersect this appointment
+					foreach (int lay in layers)
                     {
-                        if (!layers.Contains(appt.Layer))
-                            layers.Add(appt.Layer);
-                    }
+						bool intersect = false;
 
-                    foreach (int lay in layers)
-                    {
-                        foreach (Appointment app in processed)
+						foreach (var processedAppt in processed)
                         {
-                            if (app.Layer == lay)
+                            if ((processedAppt.Layer == lay) && appt.IntersectsWith(processedAppt))
                             {
-                                if (appointment.StartDate >= app.EndDate || appointment.EndDate <= app.StartDate)
-                                {
-                                    intersect = false;
-                                }
-                                else
-                                {
-                                    intersect = true;
-                                    break;
-                                }
-                            }
+								// If we find an intersection we update the current
+								// appointment's layer and move on to the next layer
+								// looking for a further intersection
+								appt.Layer = (lay + 1);
+								intersect = true;
 
-                            appointment.Layer = lay;
+                                break;
+                            }
                         }
 
+						// If we looked through all the previously processed 
+						// appointments within this layer without finding
+						// an intersection then we can stop looking
                         if (!intersect)
                             break;
                     }
-
-                    if (intersect)
-                        appointment.Layer = layers.Count;
                 }
 
-                processed.Add(appointment);
-            }
-
-            foreach (Appointment app in processed)
-                if (!layers.Contains(app.Layer))
-                    layers.Add(app.Layer);
+                processed.Add(appt);
+				layers.Add(appt.Layer);
+			}
 
             return layers.Count;
         }
@@ -1913,6 +1937,13 @@ namespace Calendar
         {
             public AppointmentList() : base() { }
             public AppointmentList(IEnumerable<Appointment> appts) : base(appts) { }
+
+            public void SortByStartDate()
+            {
+                // If two tasks sort the same, attempt to keep things stable 
+                // by retaining their existing layer order
+                Sort((x, y) => ((x.StartDate < y.StartDate) ? -1 : ((x.StartDate > y.StartDate) ? 1 : (x.Layer - y.Layer))));
+            }
         }
 
         #endregion
