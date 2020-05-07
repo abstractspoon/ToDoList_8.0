@@ -241,8 +241,7 @@ BOOL CToDoCtrlUndo::IsValidElementOperation(TDC_UNDOELMOP nOp) const
 		
 	case TDCUAT_ADD:
 		return (nOp == TDCUEO_ADD || 
-				nOp == TDCUEO_EDIT ||
-				nOp == TDCUEO_DELETE);
+				nOp == TDCUEO_EDIT);
 
 	case TDCUAT_DELETE:
 		return (nOp == TDCUEO_DELETE || 
