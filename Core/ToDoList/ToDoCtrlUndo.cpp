@@ -264,7 +264,8 @@ BOOL CToDoCtrlUndo::IsValidElementOperation(TDC_UNDOELMOP nOp) const
 	}
 
 	// all else
-	return TRUE;
+	ASSERT(0);
+	return FALSE;
 }
 
 int CToDoCtrlUndo::GetLastUndoActionTaskIDs(CDWordArray& aIDs) const
