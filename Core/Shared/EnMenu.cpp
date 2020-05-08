@@ -862,3 +862,12 @@ BOOL CEnMenu::IsPopop(HMENU hMenu, int nPos)
 {
 	return (::GetMenuItemID(hMenu, nPos) == (UINT)-1);
 }
+
+BOOL CEnMenu::RebaseMenuID(UINT nFromCmdIDStart, UINT nFromCmdIDEnd, UINT nToCmdIDStart, UINT& nCmdID)
+{
+	if ((nCmdID < nFromCmdIDStart) || (nCmdID > nFromCmdIDEnd))
+		return FALSE;
+
+	nCmdID = (nToCmdIDStart + (nCmdID - nFromCmdIDStart));
+	return TRUE;
+}

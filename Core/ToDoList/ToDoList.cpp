@@ -1212,13 +1212,10 @@ void CToDoListApp::UpgradePreferences(CPreferences& prefs, LPCTSTR szPrevVer)
 		for (int nBtn = 1; nBtn <= nBtnCount; nBtn++)
 		{
 			CString sKey = Misc::MakeKey(_T("CustomToolbar\\Button%d"), nBtn);
-			int nMenuID = prefs.GetProfileInt(sKey, _T("MenuID"));
+			UINT nMenuID = prefs.GetProfileInt(sKey, _T("MenuID"));
 
-			if (nMenuID >= ID_FILE_MRU_FILE1 && nMenuID <= ID_FILE_MRU_FILE16)
-			{
-				nMenuID = (ID_FILE_MRU1 + (nMenuID - ID_FILE_MRU_FILE1));
+			if (CEnMenu::RebaseMenuID(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, ID_FILE_MRU1, nMenuID))
 				prefs.WriteProfileInt(sKey, _T("MenuID"), nMenuID);
-			}
 		}
 
 		int nItem = prefs.GetProfileInt(_T("KeyboardShortcuts"), _T("NumItems"), 0);
@@ -1226,13 +1223,10 @@ void CToDoListApp::UpgradePreferences(CPreferences& prefs, LPCTSTR szPrevVer)
 		while (nItem--)
 		{
 			CString sKey = Misc::MakeKey(_T("KeyboardShortcuts\\Item%02d"), nItem);
-			int nMenuID = prefs.GetProfileInt(sKey, _T("CmdID"));
+			UINT nMenuID = prefs.GetProfileInt(sKey, _T("CmdID"));
 
-			if (nMenuID >= ID_FILE_MRU_FILE1 && nMenuID <= ID_FILE_MRU_FILE16)
-			{
-				nMenuID = (ID_FILE_MRU1 + (nMenuID - ID_FILE_MRU_FILE1));
+			if (CEnMenu::RebaseMenuID(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, ID_FILE_MRU1, nMenuID))
 				prefs.WriteProfileInt(sKey, _T("CmdID"), nMenuID);
-			}
 		}
 	}
 }
