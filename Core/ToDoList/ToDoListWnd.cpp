@@ -436,6 +436,7 @@ BEGIN_MESSAGE_MAP(CToDoListWnd, CFrameWnd)
 	ON_COMMAND_RANGE(ID_VIEW_TOGGLEALLTASKEXPANDED, ID_VIEW_TOGGLEALLTASKEXPANDED, OnViewExpandTasks)
 	ON_COMMAND_RANGE(ID_VIEW_TOGGLETASKEXPANDED, ID_VIEW_TOGGLETASKEXPANDED, OnViewExpandTasks)
 	ON_COMMAND_RANGE(ID_VIEW_ACTIVATEFILTER1, ID_VIEW_ACTIVATEFILTER24, OnViewActivateFilter)
+	ON_COMMAND_RANGE(ID_VIEW_ACTIVATEADVANCEDFILTER1, ID_VIEW_ACTIVATEADVANCEDFILTER24, OnViewActivateAdvancedFilter)
 	ON_COMMAND_RANGE(ID_WINDOW1, ID_WINDOW16, OnWindow)
 	ON_MESSAGE(WM_UPDATEUDTSINTOOLBAR, OnUpdateUDTsInToolbar)
 	ON_MESSAGE(WM_APPRESTOREFOCUS, OnAppRestoreFocus)
@@ -1229,7 +1230,7 @@ BOOL CToDoListWnd::InitFilterbar()
 		return FALSE;
 
 	m_filterBar.EnableMultiSelection(Prefs().GetMultiSelFilters());
-	m_filterBar.ShowDefaultFilters(Prefs().GetShowDefaultFilters());
+	m_filterBar.ShowDefaultFilters(Prefs().GetShowDefaultFiltersInFilterBar());
 	m_filterBar.SetTitleFilterOption(Prefs().GetTitleFilterOption());
 
 	RefreshFilterBarAdvancedFilterNames();
@@ -5028,7 +5029,7 @@ BOOL CToDoListWnd::DoPreferences(int nInitPage)
 		if (m_bShowFilterBar)
 			bResizeDlg = TRUE;
 
-		m_filterBar.ShowDefaultFilters(newPrefs.GetShowDefaultFilters());
+		m_filterBar.ShowDefaultFilters(newPrefs.GetShowDefaultFiltersInFilterBar());
 
 		BOOL bEnableMultiSel = newPrefs.GetMultiSelFilters();
 		BOOL bPrevMultiSel = oldPrefs.GetMultiSelFilters();
@@ -7115,7 +7116,7 @@ void CToDoListWnd::OnNeedTooltipText(NMHDR* pNMHDR, LRESULT* pResult)
 											   m_mruList,
 											   m_mgrToDoCtrls,
 											   Prefs(),
-											   m_filterBar,
+											   m_filterBar.GetAdvancedFilterNames(),
 											   m_mgrStorage,
 											   m_mgrUIExtensions);
 
@@ -7199,6 +7200,21 @@ void CToDoListWnd::OnViewActivateFilter(UINT nCmdID)
 	}
 
 	VERIFY(m_filterBar.SelectFilter(nFilter));
+}
+
+void CToDoListWnd::OnViewActivateAdvancedFilter(UINT nCmdID)
+{
+	int nCustomFilter = (nCmdID - ID_VIEW_ACTIVATEADVANCEDFILTER1);
+
+	if ((nCustomFilter < 0) || (nCustomFilter >= 24))
+	{
+		ASSERT(0);
+		return;
+	}
+
+	int nNumDefaultFilters = (Prefs().GetShowDefaultFiltersInFilterBar() ? NUM_SHOWFILTER : 1);
+
+	VERIFY(m_filterBar.SelectFilter(nNumDefaultFilters + nCustomFilter));
 }
 
 void CToDoListWnd::OnShowTaskView(UINT nCmdID) 
@@ -7383,7 +7399,7 @@ void CToDoListWnd::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu
 		m_menubar.HandleInitMenuPopup(pPopupMenu,
 									  GetToDoCtrl(),
 									  Prefs(),
-									  m_filterBar,
+									  m_filterBar.GetAdvancedFilterNames(),
 									  m_mgrStorage,
 									  m_mgrUIExtensions,
 									  m_mgrMenuIcons);
@@ -11361,19 +11377,16 @@ void CToDoListWnd::OnChangeFilter(TDCFILTER& filter, const CString& sCustom, DWO
 
 void CToDoListWnd::OnViewFilter() 
 {
-	CStringArray aCustom;
-	m_filterBar.GetAdvancedFilterNames(aCustom);
-	
 	const CPreferencesDlg& prefs = Prefs();
 
 	CDWordArray aPriorityColors;
 	prefs.GetPriorityColors(aPriorityColors);
 	
-	CTDLFilterDlg dialog(prefs.GetTitleFilterOption(), 
-						prefs.GetMultiSelFilters(),
-						aCustom, 
-						GetToDoCtrl(), 
-						aPriorityColors);
+	CTDLFilterDlg dialog(prefs.GetTitleFilterOption(),
+						 prefs.GetMultiSelFilters(),
+						 m_filterBar.GetAdvancedFilterNames(),
+						 GetToDoCtrl(),
+						 aPriorityColors);
 
 	if (dialog.DoModal() == IDOK)
 	{

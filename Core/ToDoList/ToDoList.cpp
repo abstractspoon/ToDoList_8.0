@@ -1207,6 +1207,7 @@ void CToDoListApp::UpgradePreferences(CPreferences& prefs, LPCTSTR szPrevVer)
 		prefs.DeleteProfileSection(_T("Importers"));
 
 		// Replace MFC MRU command IDs with our own
+		// And split apart 'Default'/'Find Tasks' filter activation
 		int nBtnCount = prefs.GetProfileInt(_T("CustomToolbar"), _T("ButtonCount"), 0);
 
 		for (int nBtn = 1; nBtn <= nBtnCount; nBtn++)
@@ -1214,8 +1215,11 @@ void CToDoListApp::UpgradePreferences(CPreferences& prefs, LPCTSTR szPrevVer)
 			CString sKey = Misc::MakeKey(_T("CustomToolbar\\Button%d"), nBtn);
 			UINT nMenuID = prefs.GetProfileInt(sKey, _T("MenuID"));
 
-			if (CEnMenu::RebaseMenuID(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, ID_FILE_MRU1, nMenuID))
+			if (CEnMenu::RebaseMenuID(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, ID_FILE_MRU1, nMenuID) ||
+				CEnMenu::RebaseMenuID(ID_VIEW_ACTIVATEFILTER8, ID_VIEW_ACTIVATEFILTER24, ID_VIEW_ACTIVATEADVANCEDFILTER1, nMenuID))
+			{
 				prefs.WriteProfileInt(sKey, _T("MenuID"), nMenuID);
+			}
 		}
 
 		int nItem = prefs.GetProfileInt(_T("KeyboardShortcuts"), _T("NumItems"), 0);
@@ -1225,8 +1229,11 @@ void CToDoListApp::UpgradePreferences(CPreferences& prefs, LPCTSTR szPrevVer)
 			CString sKey = Misc::MakeKey(_T("KeyboardShortcuts\\Item%02d"), nItem);
 			UINT nMenuID = prefs.GetProfileInt(sKey, _T("CmdID"));
 
-			if (CEnMenu::RebaseMenuID(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, ID_FILE_MRU1, nMenuID))
+			if (CEnMenu::RebaseMenuID(ID_FILE_MRU_FILE1, ID_FILE_MRU_FILE16, ID_FILE_MRU1, nMenuID) ||
+				CEnMenu::RebaseMenuID(ID_VIEW_ACTIVATEFILTER8, ID_VIEW_ACTIVATEFILTER24, ID_VIEW_ACTIVATEADVANCEDFILTER1, nMenuID))
+			{
 				prefs.WriteProfileInt(sKey, _T("CmdID"), nMenuID);
+			}
 		}
 	}
 }
