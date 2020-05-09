@@ -7116,7 +7116,7 @@ void CToDoListWnd::OnNeedTooltipText(NMHDR* pNMHDR, LRESULT* pResult)
 											   m_mruList,
 											   m_mgrToDoCtrls,
 											   Prefs(),
-											   m_filterBar.GetAdvancedFilterNames(),
+											   m_filterBar,
 											   m_mgrStorage,
 											   m_mgrUIExtensions);
 
@@ -7399,7 +7399,7 @@ void CToDoListWnd::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu
 		m_menubar.HandleInitMenuPopup(pPopupMenu,
 									  GetToDoCtrl(),
 									  Prefs(),
-									  m_filterBar.GetAdvancedFilterNames(),
+									  m_filterBar,
 									  m_mgrStorage,
 									  m_mgrUIExtensions,
 									  m_mgrMenuIcons);

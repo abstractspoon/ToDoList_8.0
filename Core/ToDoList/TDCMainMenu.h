@@ -47,7 +47,7 @@ public:
 	BOOL HandleInitMenuPopup(CMenu* pPopupMenu, 
 							 const CFilteredToDoCtrl& tdc, 
 							 const CPreferencesDlg& prefs,
-							 const CStringArray& aAdvancedFilters,
+							 const CTDLFilterBar& filterBar,
 							 const CTDLTasklistStorageMgr& mgrStorage,
 							 const CUIExtensionMgr& mgrUIExt,
 							 CMenuIconMgr& mgrMenuIcons); // not const
@@ -65,7 +65,7 @@ public:
 								  const CRecentFileList& mru,
 								  const CToDoCtrlMgr& mgrToDoCtrl,
 								  const CPreferencesDlg& prefs,
-								  const CStringArray& aAdvancedFilters,
+								  const CTDLFilterBar& filterBar,
 								  const CTDLTasklistStorageMgr& mgrStorage,
 								  const CUIExtensionMgr& mgrUIExt) const;
 
@@ -88,7 +88,6 @@ protected:
 	void AddTaskViewActivationToMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, const CUIExtensionMgr& mgrUIExt);
 
 	static BOOL IsInRange(UINT nItem, UINT nStart, UINT nEnd);
-	static int GetDefaultFilterNames(CStringArray& aFilters);
 };
 
 #endif // !defined(AFX_TDCMAINMENU_H__5AB11CC8_CCF5_4D52_ADC7_27FDC151F3FE__INCLUDED_)

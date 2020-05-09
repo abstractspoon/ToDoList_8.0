@@ -131,7 +131,7 @@ CString CTDCMainMenu::GetDynamicItemTooltip(UINT nMenuID,
 											const CRecentFileList& mru,
 											const CToDoCtrlMgr& mgrToDoCtrl,
 											const CPreferencesDlg& prefs,
-											const CStringArray& aAdvancedFilters,
+											const CTDLFilterBar& filterBar,
 											const CTDLTasklistStorageMgr& mgrStorage,
 											const CUIExtensionMgr& mgrUIExt) const
 {
@@ -189,7 +189,6 @@ CString CTDCMainMenu::GetDynamicItemTooltip(UINT nMenuID,
 	}
 	else if (IsInRange(nMenuID, ID_VIEW_ACTIVATEFILTER1, ID_VIEW_ACTIVATEFILTER24))
 	{
-		CStringArray aFilters;
 		int nFilter = (nMenuID - ID_VIEW_ACTIVATEFILTER1);
 
 		if (nFilter < NUM_SHOWFILTER)
@@ -197,11 +196,10 @@ CString CTDCMainMenu::GetDynamicItemTooltip(UINT nMenuID,
 	}
 	else if (IsInRange(nMenuID, ID_VIEW_ACTIVATEADVANCEDFILTER1, ID_VIEW_ACTIVATEADVANCEDFILTER24))
 	{
-		CStringArray aCustomFilters;
 		int nFilter = (nMenuID - ID_VIEW_ACTIVATEADVANCEDFILTER1);
 
-		if (nFilter < aAdvancedFilters.GetSize())
-			sTipText = aAdvancedFilters[nFilter];
+		if (nFilter < filterBar.GetAdvancedFilterNames().GetSize())
+			sTipText = filterBar.GetAdvancedFilterNames().GetAt(nFilter);
 	}
 	else
 	{
@@ -285,7 +283,7 @@ void CTDCMainMenu::UpdateBackgroundColor()
 BOOL CTDCMainMenu::HandleInitMenuPopup(CMenu* pPopupMenu,  
 									   const CFilteredToDoCtrl& tdc, 
 									   const CPreferencesDlg& prefs,
-									   const CStringArray& aAdvancedFilters, 
+									   const CTDLFilterBar& filterBar,
 									   const CTDLTasklistStorageMgr& mgrStorage,
 									   const CUIExtensionMgr& mgrUIExt,
 									   CMenuIconMgr& mgrMenuIcons)
@@ -322,14 +320,8 @@ BOOL CTDCMainMenu::HandleInitMenuPopup(CMenu* pPopupMenu,
 
 		case ID_VIEW_ACTIVATEFILTER1:
 			{
-				// Default Filters
-				CStringArray aFilters;
-				GetDefaultFilterNames(aFilters);
-				
-				AddFiltersToMenu(pPopupMenu, ID_VIEW_ACTIVATEFILTER1, ID_VIEW_ACTIVATEFILTER24, aFilters, IDS_FILTERPLACEHOLDER);
-
-				// Advanced filters
-				AddFiltersToMenu(pPopupMenu, ID_VIEW_ACTIVATEADVANCEDFILTER1, ID_VIEW_ACTIVATEADVANCEDFILTER24, aAdvancedFilters, IDS_ADVANCEDFILTERPLACEHOLDER);
+				AddFiltersToMenu(pPopupMenu, ID_VIEW_ACTIVATEFILTER1, ID_VIEW_ACTIVATEFILTER24, CTDCFilter::GetDefaultFilterNames(), IDS_FILTERPLACEHOLDER);
+				AddFiltersToMenu(pPopupMenu, ID_VIEW_ACTIVATEADVANCEDFILTER1, ID_VIEW_ACTIVATEADVANCEDFILTER24, filterBar.GetAdvancedFilterNames(), IDS_ADVANCEDFILTERPLACEHOLDER);
 			}
 			return TRUE;
 
@@ -733,16 +725,6 @@ void CTDCMainMenu::PrepareSortMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, c
 		if (!CLocalizer::IsInitialized())
 			CEnMenu::SortMenuStrings(*pMenu, ID_SORTBY_DEFAULTCOLUMNS_FIRST, ID_SORTBY_CUSTOMCOLUMN_LAST);
 	}
-}
-
-int CTDCMainMenu::GetDefaultFilterNames(CStringArray& aFilters)
-{
-	aFilters.RemoveAll();
-
-	for (int nFilter = 0; nFilter < NUM_SHOWFILTER; nFilter++)
-		aFilters.Add(CEnString(SHOW_FILTERS[nFilter][0]));
-
-	return NUM_SHOWFILTER;
 }
 
 void CTDCMainMenu::AddFiltersToMenu(CMenu* pMenu, UINT nStart, UINT nEnd, const CStringArray& aFilters, UINT nPlaceholderStrID)

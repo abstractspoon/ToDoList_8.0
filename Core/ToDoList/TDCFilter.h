@@ -44,6 +44,8 @@ public:
 	CTDCFilter& operator=(const CTDCFilter& filter);
 	BOOL operator==(const CTDCFilter& filter) const;
 
+	static const CStringArray& GetDefaultFilterNames();
+
 protected:
 	TDCFILTER m_filter;
 	TDCADVANCEDFILTER m_advFilter;
