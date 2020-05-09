@@ -319,10 +319,7 @@ BOOL CTDCMainMenu::HandleInitMenuPopup(CMenu* pPopupMenu,
 			return TRUE;
 
 		case ID_VIEW_ACTIVATEFILTER1:
-			{
-				AddFiltersToMenu(pPopupMenu, ID_VIEW_ACTIVATEFILTER1, ID_VIEW_ACTIVATEFILTER24, CTDCFilter::GetDefaultFilterNames(), IDS_FILTERPLACEHOLDER);
-				AddFiltersToMenu(pPopupMenu, ID_VIEW_ACTIVATEADVANCEDFILTER1, ID_VIEW_ACTIVATEADVANCEDFILTER24, filterBar.GetAdvancedFilterNames(), IDS_ADVANCEDFILTERPLACEHOLDER);
-			}
+			AddFiltersToMenu(pPopupMenu, filterBar);
 			return TRUE;
 
 		case ID_ACTIVATEVIEW_TASKTREE:
@@ -725,6 +722,29 @@ void CTDCMainMenu::PrepareSortMenu(CMenu* pMenu, const CFilteredToDoCtrl& tdc, c
 		if (!CLocalizer::IsInitialized())
 			CEnMenu::SortMenuStrings(*pMenu, ID_SORTBY_DEFAULTCOLUMNS_FIRST, ID_SORTBY_CUSTOMCOLUMN_LAST);
 	}
+}
+
+void CTDCMainMenu::AddFiltersToMenu(CMenu* pMenu, const CTDLFilterBar& filterBar)
+{
+	AddFiltersToMenu(pMenu, ID_VIEW_ACTIVATEFILTER1, ID_VIEW_ACTIVATEFILTER24, CTDCFilter::GetDefaultFilterNames(), IDS_FILTERPLACEHOLDER);
+	AddFiltersToMenu(pMenu, ID_VIEW_ACTIVATEADVANCEDFILTER1, ID_VIEW_ACTIVATEADVANCEDFILTER24, filterBar.GetAdvancedFilterNames(), IDS_ADVANCEDFILTERPLACEHOLDER);
+
+	// Restore selection
+	int nSelFilter = filterBar.GetSelectedFilter();
+
+	if (filterBar.GetFilter() == FS_ADVANCED)
+	{
+		CString sFilter;
+		VERIFY((filterBar.GetFilter(sFilter) == FS_ADVANCED) && !sFilter.IsEmpty());
+
+		int nFilter = Misc::Find(sFilter, filterBar.GetAdvancedFilterNames(), FALSE, TRUE);
+		ASSERT(nFilter != -1);
+
+		nSelFilter = (NUM_SHOWFILTER + 1 + nFilter); // +1 for separator
+	}
+
+	if (nSelFilter != -1)
+		pMenu->CheckMenuRadioItem(0, pMenu->GetMenuItemCount(), nSelFilter, MF_BYPOSITION);
 }
 
 void CTDCMainMenu::AddFiltersToMenu(CMenu* pMenu, UINT nStart, UINT nEnd, const CStringArray& aFilters, UINT nPlaceholderStrID)

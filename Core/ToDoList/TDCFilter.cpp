@@ -1044,3 +1044,17 @@ const CStringArray& CTDCFilter::GetDefaultFilterNames()
 
 	return aFilters;
 }
+
+CString CTDCFilter::GetDefaultFilterName(FILTER_SHOW nShow)
+{
+	int nFilter = NUM_SHOWFILTER;
+
+	while (nFilter--)
+	{
+		if (SHOW_FILTERS[nFilter][1] == (UINT)nShow)
+			return CEnString(SHOW_FILTERS[nFilter][0]);
+	}
+
+	ASSERT(0);
+	return _T("");
+}

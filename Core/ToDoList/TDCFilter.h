@@ -45,6 +45,7 @@ public:
 	BOOL operator==(const CTDCFilter& filter) const;
 
 	static const CStringArray& GetDefaultFilterNames();
+	static CString GetDefaultFilterName(FILTER_SHOW nFilter);;
 
 protected:
 	TDCFILTER m_filter;
