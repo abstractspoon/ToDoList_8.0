@@ -37,11 +37,14 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CTDLCustomToolbar message handlers
 
-BOOL CTDLCustomToolbar::SetButtons(const CToolbarButtonArray& aButtons, 
+BOOL CTDLCustomToolbar::InitialiseButtons(const CToolbarButtonArray& aButtons, 
 								   const CTDCMainMenu& mainMenu,
 								   const CShortcutManager& mgrShortcuts)
 {
-	if (!GetSafeHwnd())
+	if (!GetSafeHwnd() || 
+		GetButtonCount() || 
+		m_tbHelper.IsInitialized() ||
+		m_ilNormal.GetSafeHandle())
 	{
 		ASSERT(0);
 		return FALSE;
@@ -85,22 +88,35 @@ BOOL CTDLCustomToolbar::SetButtons(const CToolbarButtonArray& aButtons,
 	for (int nTip = 0; nTip < aButtons.GetSize(); nTip++)
 	{
 		const TOOLBARBUTTON& tb = aButtons[nTip];
-		
-		// Only handle static non-separator items
-		if (tb.nMenuID && !mainMenu.IsDynamicItem(tb.nMenuID))
-		{
-			HMENU hItemMenu = NULL;
-			int nPos = CEnMenu::FindMenuItem(mainMenu, tb.nMenuID, hItemMenu);
-			ASSERT((nPos != -1) && (hItemMenu != NULL));
-
-			CString sTooltip = CEnMenu::GetMenuString(hItemMenu, nPos, MF_BYPOSITION);
+		CString sTooltip;
+				
+		if (GetItemTooltip(tb.nMenuID, mainMenu, sTooltip))
 			m_tbHelper.SetTooltip(tb.nMenuID, sTooltip);
-		}
 	}
 
 	RefreshDisabledImageList();
 
 	return TRUE;
+}
+
+BOOL CTDLCustomToolbar::GetItemTooltip(UINT nMenuID, const CTDCMainMenu& mainMenu, CString& sTooltip)
+{
+	// Only handle static non-separator items
+	if (nMenuID && !mainMenu.IsDynamicItem(nMenuID))
+	{
+		HMENU hItemMenu = NULL;
+		int nPos = CEnMenu::FindMenuItem(mainMenu, nMenuID, hItemMenu);
+
+		ASSERT((nPos != -1) && (hItemMenu != NULL));
+
+		sTooltip = CEnMenu::GetMenuString(hItemMenu, nPos, MF_BYPOSITION);
+	}
+	else
+	{
+		sTooltip.Empty();
+	}
+
+	return !sTooltip.IsEmpty();
 }
 
 void CTDLCustomToolbar::OnDestroy() 

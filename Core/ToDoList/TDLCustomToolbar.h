@@ -55,9 +55,10 @@ public:
 
 // Operations
 public:
-	BOOL SetButtons(const CToolbarButtonArray& aButtons,
-					const CTDCMainMenu& mainMenu, 
-					const CShortcutManager& mgrShortcuts);
+	BOOL InitialiseButtons(const CToolbarButtonArray& aButtons,
+						   const CTDCMainMenu& mainMenu,
+						   const CShortcutManager& mgrShortcuts);
+
 
 protected:
 	CToolbarHelper m_tbHelper;
@@ -79,6 +80,9 @@ protected:
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()
+
+protected:
+	static BOOL GetItemTooltip(UINT nMenuID, const CTDCMainMenu& mainMenu, CString& sTooltip);
 };
 
 /////////////////////////////////////////////////////////////////////////////
