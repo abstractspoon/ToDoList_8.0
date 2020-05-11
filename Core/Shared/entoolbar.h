@@ -48,6 +48,8 @@ public:
 	BOOL SetItemWidth(int nPos, int nWidth, CRect& rect);
 	BOOL SetItemWidth(int nPos, int nWidth);
 	int GetItemWidth(int nPos) const;
+	int GetItemImage(int nPos) const;
+	BOOL SetItemImage(int nPos, int iImage);
 
 	// Attributes
 protected:

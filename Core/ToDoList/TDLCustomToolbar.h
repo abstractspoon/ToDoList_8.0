@@ -58,7 +58,13 @@ public:
 	BOOL InitialiseButtons(const CToolbarButtonArray& aButtons,
 						   const CTDCMainMenu& mainMenu,
 						   const CShortcutManager& mgrShortcuts);
+	
+	// Must have arrangement of buttons and separators
+	BOOL ModifyButtonAttributes(const CToolbarButtonArray& aButtons,
+								const CTDCMainMenu& mainMenu);
 
+	static BOOL RemapMenuItemIDs(const CMap<UINT, UINT, UINT, UINT&>& mapCmdIDs,
+								 CToolbarButtonArray& aButtons);
 
 protected:
 	CToolbarHelper m_tbHelper;

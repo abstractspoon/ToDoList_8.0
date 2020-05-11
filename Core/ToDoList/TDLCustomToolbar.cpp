@@ -125,3 +125,113 @@ void CTDLCustomToolbar::OnDestroy()
 
 	CEnToolBar::OnDestroy();
 }
+
+BOOL CTDLCustomToolbar::ModifyButtonAttributes(const CToolbarButtonArray& aButtons,
+												const CTDCMainMenu& mainMenu)
+{
+	int nNumBtns = GetButtonCount();
+
+	if (!nNumBtns || (aButtons.GetSize() != nNumBtns))
+	{
+		ASSERT(0);
+		return FALSE;
+	}
+
+	// Cache the old tooltips and remove them because
+	// we will be updating in-situ
+	int nBtn = nNumBtns;
+
+	CStringArray aOldTips;
+	aOldTips.SetSize(nNumBtns);
+
+	while (nBtn--)
+	{
+		UINT nOldCmdID = GetItemID(nBtn);
+
+		if (nOldCmdID != ID_SEPARATOR)
+		{
+			aOldTips[nBtn] = m_tbHelper.GetTooltip(nOldCmdID);
+			m_tbHelper.ClearTooltip(nOldCmdID);
+		}
+	}
+
+	CTDCImageList ilButtons;
+	VERIFY(ilButtons.LoadDefaultImages(TRUE));
+
+	BOOL bRemapped = FALSE;
+
+	for (nBtn = 0; nBtn < nNumBtns; nBtn++)
+	{
+		// Skip over existing separators
+		// but allow buttons to be given a menu ID of 0
+		if (IsItemSeparator(nBtn))
+			continue;
+
+		const TOOLBARBUTTON& tbNew = aButtons[nBtn];
+
+		// Update commandl ID
+		UINT nOldCmdID = GetItemID(nBtn);
+		UINT nNewCmdID = tbNew.nMenuID;
+
+		if (nNewCmdID != nOldCmdID)
+		{
+			GetToolBarCtrl().SetCmdID(nBtn, nNewCmdID);
+			bRemapped = TRUE;
+		}
+
+		// Update Image
+		TBBUTTONINFO tbiOld = { sizeof(TBBUTTONINFO), TBIF_IMAGE, 0 };
+		VERIFY(GetToolBarCtrl().GetButtonInfo(nBtn, &tbiOld));
+
+		TBBUTTONINFO tbiNew = tbiOld;
+		tbiNew.iImage = ilButtons.GetImageIndex(tbNew.sImageID);
+
+		if (tbiNew.iImage != tbiOld.iImage)
+		{
+			VERIFY(GetToolBarCtrl().SetButtonInfo(nNewCmdID, &tbiNew));
+			bRemapped = TRUE;
+		}
+
+		// Update tooltip
+		CString sOldTip = aOldTips[nBtn], sNewTip;
+		GetItemTooltip(nNewCmdID, mainMenu, sNewTip);
+
+		// Always set the tip because we cleared them at the start
+		m_tbHelper.SetTooltip(nNewCmdID, sNewTip);
+
+		if (sNewTip != sOldTip)
+			bRemapped = TRUE;
+	}
+
+	return bRemapped;
+}
+
+BOOL CTDLCustomToolbar::RemapMenuItemIDs(const CMap<UINT, UINT, UINT, UINT&>& mapCmdIDs,
+										 CToolbarButtonArray& aButtons)
+{
+	// Work through the buttons updating as we go
+	BOOL bRemapped = FALSE;
+	int nBtn = aButtons.GetSize();
+
+	while (nBtn--)
+	{
+		TOOLBARBUTTON& tb = aButtons[nBtn];
+
+		// Ignore separators
+		if (tb.nMenuID == 0)
+			continue;
+
+		UINT nNewMenuID;
+
+		if (!mapCmdIDs.Lookup(tb.nMenuID, nNewMenuID))
+			continue;
+
+		if (nNewMenuID != tb.nMenuID)
+		{
+			tb.nMenuID = nNewMenuID;
+			bRemapped = TRUE;
+		}
+	}
+
+	return bRemapped;
+}

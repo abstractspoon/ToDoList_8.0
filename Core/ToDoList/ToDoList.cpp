@@ -1200,7 +1200,7 @@ void CToDoListApp::UpgradePreferences(CPreferences& prefs, LPCTSTR szPrevVer)
 		}
 	}
 
-	if (FileMisc::CompareVersions(szPrevVer, _T("8.0")) < 0)
+	if (FileMisc::CompareVersions(szPrevVer, _T("7.999.999.7")) < 0)
 	{
 		// Each importer and exporter now gets its own preference section
 		prefs.DeleteProfileSection(_T("Exporters"));
