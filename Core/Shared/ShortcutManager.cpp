@@ -471,15 +471,60 @@ int CShortcutManager::BuildMapping(const CMenu* pMenu, LPCTSTR szParentName,
 	return aMapping.GetSize();
 }
 
-int CShortcutManager::CopyShortcuts(CMap<UINT, UINT, DWORD, DWORD&>& mapShortcuts) const
+BOOL CShortcutManager::RemapMenuItemIDs(const CMap<UINT, UINT, UINT, UINT&>& mapCmdIDs)
 {
-	return Misc::CopyT<UINT, DWORD>(m_mapID2Shortcut, mapShortcuts);
+	// Cache and clear the affected shortcuts so we can
+	// make in-situ changes which must be unique at all times
+	CMap<UINT, UINT, DWORD, DWORD&> mapOldShortcuts;
+
+	POSITION pos = mapCmdIDs.GetStartPosition();
+	UINT nOldCmdID, nNewCmdID;
+	DWORD dwShortcut;
+	BOOL bRemapped = FALSE;
+
+	while (pos)
+	{
+		mapCmdIDs.GetNextAssoc(pos, nOldCmdID, nNewCmdID);
+
+		if (nNewCmdID == nOldCmdID)
+			continue;
+		
+		dwShortcut = GetShortcut(nOldCmdID);
+
+		if (dwShortcut)
+		{
+			DeleteShortcut(nOldCmdID);
+			mapOldShortcuts[nOldCmdID] = dwShortcut;
+
+			bRemapped = TRUE;
+		}
+	}
+
+	// Do the remapping
+	pos = mapCmdIDs.GetStartPosition();
+
+	while (pos)
+	{
+		mapCmdIDs.GetNextAssoc(pos, nOldCmdID, nNewCmdID);
+
+		if (nNewCmdID == nOldCmdID)
+			continue;
+		
+		if (mapOldShortcuts.Lookup(nOldCmdID, dwShortcut))
+		{
+			ASSERT(dwShortcut);
+
+			SetShortcut(nNewCmdID, dwShortcut);
+			bRemapped = TRUE;
+		}
+	}
+
+	return bRemapped;
 }
 
 UINT CShortcutManager::GetCommandID(DWORD dwShortcut) const
 {
 	UINT nCmdID = 0;
-
 	m_mapShortcut2ID.Lookup(dwShortcut, nCmdID);
 
 	return nCmdID;
@@ -488,7 +533,6 @@ UINT CShortcutManager::GetCommandID(DWORD dwShortcut) const
 DWORD CShortcutManager::GetShortcut(UINT nCmdID) const
 {
 	DWORD dwShortcut = 0;
-
 	m_mapID2Shortcut.Lookup(nCmdID, dwShortcut);
 	
 	return (dwShortcut == NO_SHORTCUT) ? 0 : dwShortcut;
@@ -505,6 +549,12 @@ void CShortcutManager::DeleteShortcut(UINT nCmdID)
 		// remove reverse mapping too
 		m_mapShortcut2ID.RemoveKey(dwShortcut);
 	}
+}
+
+void CShortcutManager::DeleteAllShortcuts()
+{
+	m_mapShortcut2ID.RemoveAll();
+	m_mapID2Shortcut.RemoveAll();
 }
 
 CString CShortcutManager::GetShortcutTextByCmd(UINT nCmdID) const 
