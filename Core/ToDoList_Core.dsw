@@ -417,7 +417,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "ToDoListLib"=.\ToDoList\ToDoListLib.dsp - Package Owner=<4>
+Project: "ToDoListLib"=.\ToDoListLib\ToDoListLib.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

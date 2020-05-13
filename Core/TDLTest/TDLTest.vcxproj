@@ -79,7 +79,8 @@
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>..\ToDoList\Unicode_Release\ToDoListLib.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <OutputFile>.\Unicode_Release/TDLTest.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Unicode_Release/TDLTest.pdb</ProgramDatabaseFile>
@@ -127,7 +128,8 @@ copy unicode_release\TDLTest.exe ..\todolist\unicode_release /y
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>..\ToDoList\Unicode_Debug/ToDoListLib.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <OutputFile>.\Unicode_Debug/TDLTest.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -214,6 +216,9 @@ copy unicode_debug\TDLTest.exe ..\todolist\unicode_debug /y
     </ProjectReference>
     <ProjectReference Include="..\Shared\Shared.vcxproj">
       <Project>{95605899-9c90-40d8-8774-d1da1fce7464}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ToDoListLib\ToDoListLib.vcxproj">
+      <Project>{940be78e-1486-7f9b-02b3-6f0113741a6a}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
