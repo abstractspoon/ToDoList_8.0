@@ -83,9 +83,12 @@ void CTDLWebUpdateProgressDlg::SetProgressStatus(TDL_WEBUPDATE_PROGRESS nStatus)
 	switch (nStatus)
 	{
 	case TDLWP_COPY:
-		{
-			GetDlgItem(IDCANCEL)->EnableWindow(FALSE);
-		}
+		GetDlgItem(IDCANCEL)->EnableWindow(FALSE);
+		break;
+
+	case TDLWP_COMPLETE:
+		// Pause for a moment
+		Sleep(1000);
 		break;
 	}
 
@@ -456,6 +459,8 @@ void CTDLWebUpdateProgressPage::SetProgressStatus(TDL_WEBUPDATE_PROGRESS nStatus
 
 	if (nNewItem == 0)
 		m_lcProgress.SetItemText(nNewItem, STATUS_COL, _T("0%"));
+
+	m_lcProgress.UpdateWindow();
 }
 
 BOOL CTDLWebUpdateProgressPage::SetDownloadPercent(int nPercent)
