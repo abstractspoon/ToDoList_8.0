@@ -16,19 +16,34 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-class CTDLTasklistImportCtrl : public CFilteredToDoCtrl
+class CTDLTaskTreeImportCtrl : public CTDLTaskTreeCtrl
 {
 public:
-	CTDLTasklistImportCtrl();
+	CTDLTaskTreeImportCtrl();
 
-	void DeselectAll();
-	void ShowAllColumns();
+	BOOL BuildTree(const CString& sFilePath);
+	int GetSelectedTasks(CTaskFile& tasks, BOOL bWantAllSubtasks);
+
+protected:
+	CToDoCtrlData m_data;
+	CTDCImageList m_ilIcons;
+	TDCAUTOLISTDATA m_tld;
+	CTDCStyleMap m_styles;
+	TDCCOLEDITVISIBILITY m_visibleCols;
+	CTDCCustomAttribDefinitionArray m_aCustAttribDefs;
+	CContentMgr m_mgrContent;
+	CTDCTaskExporter m_exporter;
+	CFont m_font;
+
+protected:
+	void AddTasksToTree(const TODOSTRUCTURE* pTDSParent, HTREEITEM htiParent);
+	void AddTreeItemToTasks(HTREEITEM htiParent, CTaskFile& tasks, BOOL bWantAllSubtasks);
 };
 
 /////////////////////////////////////////////////////////////////////////////
 // CTDLTasklistImportDlg dialog
 
-class CTDLTasklistImportDlg : public CDialog
+class CTDLTasklistImportDlg : public CTDLDialog
 {
 // Construction
 public:
@@ -46,9 +61,10 @@ protected:
 	//}}AFX_DATA
 
 	CFileEdit	m_eFilePath;
-	CTDLTasklistImportCtrl m_tdc;
+	CTDLTaskTreeImportCtrl m_taskTree;
 	CTaskFile m_tasksSelected;
 	TDC_FILE m_nLoadRes;
+	BOOL m_bFirstShow;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -61,14 +77,16 @@ protected:
 protected:
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
+	virtual void OnRepositionControls(int dx, int dy);
 
 	// Generated message map functions
 	//{{AFX_MSG(CTDLTasklistImportDlg)
 	afx_msg void OnSelectall();
 	afx_msg void OnSelectnone();
-	afx_msg void OnExpandAll();
 	//}}AFX_MSG
-	afx_msg LRESULT OnTDCNotifySelectionChange(WPARAM, LPARAM);
+	afx_msg LRESULT OnTDCNotifySelectionChange(WPARAM wp, LPARAM lp);
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+
 	DECLARE_MESSAGE_MAP()
 
 	void ResetSelectedTaskCreationDate(HTASKITEM hTask, BOOL bAndSiblings);
