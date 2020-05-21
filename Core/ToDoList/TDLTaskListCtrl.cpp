@@ -232,6 +232,14 @@ void CTDLTaskListCtrl::RemoveDeletedItems()
 		m_lcColumns.SetItemData(nItem, nItem);
 }
 
+DWORD CTDLTaskListCtrl::GetColumnItemTaskID(int nItem) const
+{
+	if ((nItem < 0) || (nItem >= m_lcTasks.GetItemCount()))
+		return 0;
+
+	return GetTaskID((int)m_lcColumns.GetItemData(nItem));
+}
+
 LRESULT CTDLTaskListCtrl::OnListCustomDraw(NMLVCUSTOMDRAW* pLVCD)
 {
 	HWND hwndList = pLVCD->nmcd.hdr.hwndFrom;
@@ -266,7 +274,13 @@ LRESULT CTDLTaskListCtrl::OnListCustomDraw(NMLVCUSTOMDRAW* pLVCD)
 
 	case CDDS_ITEMPOSTPAINT:
 		{
-			dwRes = OnPostPaintTaskTitle(pLVCD->nmcd);
+			// XP fails to initialise NMCUSTOMDRAW::rc so we have to do it ourselves
+			CRect rRow(pLVCD->nmcd.rc);
+
+			if (OsIsXP() || OsIsLinux())
+				m_lcTasks.GetItemRect(nItem, rRow, LVIR_BOUNDS);
+
+			dwRes = OnPostPaintTaskTitle(pLVCD->nmcd, rRow);
 			
 			// restore default back colour set in CDDS_ITEMPREPAINT
 			ListView_SetBkColor(m_lcTasks, GetSysColor(COLOR_WINDOW));
@@ -604,7 +618,7 @@ LRESULT CTDLTaskListCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARA
 	case WM_RBUTTONDOWN:
 		// Don't let the selection to be set to -1 when clicking below the last item
 		// BUT NOT ON Linux because it interferes with context menu handling
-		if ((hRealWnd == m_lcTasks) && (COSVersion() != OSV_LINUX))
+		if ((hRealWnd == m_lcTasks) && !OsIsLinux())
 		{
 			// let parent handle any focus changes first
 			m_lcTasks.SetFocus();
@@ -906,7 +920,7 @@ BOOL CTDLTaskListCtrl::HandleClientColumnClick(const CPoint& pt, BOOL bDblClk)
 		{
 			ASSERT(IsListItemSelected(m_lcTasks, nItem)); 
 
-			DWORD dwTaskID = GetColumnItemTaskID(nItem);
+			DWORD dwTaskID = GetTaskID(nItem);
 			TDC_COLUMN nClickCol = TDCC_NONE;
 
 			if (!bDblClk)
@@ -1143,9 +1157,7 @@ BOOL CTDLTaskListCtrl::EnsureSelectionVisible()
 {
 	if (GetSelectedCount())
 	{
-		OSVERSION nOSVer = COSVersion();
-		
-		if ((nOSVer == OSV_LINUX) || (nOSVer < OSV_VISTA))
+		if (OsIsLinux() || OsIsXP())
 		{
 			m_lcTasks.PostMessage(LVM_ENSUREVISIBLE, GetSelectedItem());
 		}
@@ -1183,7 +1195,7 @@ BOOL CTDLTaskListCtrl::IsTaskSelected(DWORD dwTaskID, BOOL bSingly) const
 
 DWORD CTDLTaskListCtrl::GetTaskID(int nItem) const 
 { 
-	if ((nItem == -1) || (nItem >= m_lcTasks.GetItemCount()))
+	if ((nItem < 0) || (nItem >= m_lcTasks.GetItemCount()))
 		return 0;
 
 	return m_lcTasks.GetItemData(nItem); 
@@ -1466,11 +1478,7 @@ DWORD CTDLTaskListCtrl::GetFocusedListTaskID() const
 	if (nItem == -1)
 		nItem = GetSelectedItem();
 
-	if (nItem != -1)
-		return m_lcTasks.GetItemData(nItem);
-	
-	// else
-	return 0;
+	return GetTaskID(nItem);
 }
 
 int CTDLTaskListCtrl::GetFocusedListItem() const
