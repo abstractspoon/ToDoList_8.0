@@ -216,7 +216,7 @@ BOOL CTDLCommentsCtrl::OnEraseBkgnd(CDC* pDC)
 {
 	if (m_theme.crAppBackLight != CLR_NONE)
 	{
-		ExcludeCtrl(this, IDC_COMBO, pDC);
+		ExcludeCtrl(this, IDC_COMBO, pDC, TRUE);
 		ExcludeCtrl(this, IDC_CTRL, pDC);
 
 		if (m_bShowingLabel)
