@@ -1047,8 +1047,8 @@ void CTDLFilterBar::OnPaint()
 
 		while (nCtrl--)
 		{
-			ExcludeCtrl(this, FILTERCTRLS[nCtrl].nLabelID, &dc, TRUE);
-			ExcludeCtrl(this, FILTERCTRLS[nCtrl].nCtrlID, &dc, TRUE);
+			ExcludeCtrl(this, FILTERCTRLS[nCtrl].nLabelID, &dc);
+			ExcludeCtrl(this, FILTERCTRLS[nCtrl].nCtrlID, &dc);
 		}
 
 		// Custom
@@ -1056,8 +1056,8 @@ void CTDLFilterBar::OnPaint()
 
 		while (nCtrl--)
 		{
-			ExcludeCtrl(this, m_aCustomControls[nCtrl].nLabelID, &dc, TRUE);
-			ExcludeCtrl(this, m_aCustomControls[nCtrl].nCtrlID, &dc, TRUE);
+			ExcludeCtrl(this, m_aCustomControls[nCtrl].nLabelID, &dc);
+			ExcludeCtrl(this, m_aCustomControls[nCtrl].nCtrlID, &dc);
 		}
 
 		CRect rect;

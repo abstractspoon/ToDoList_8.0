@@ -12,6 +12,7 @@
 #include "runtimedlg.h"
 #include "enstring.h"
 #include "AcceleratorString.h"
+#include "OSVersion.h"
 
 #include <afxpriv.h>
 #include <afxtempl.h>
@@ -1888,15 +1889,15 @@ void CDialogHelper::ResizeButtonStaticTextToFit(CWnd* pParent, CWnd* pCtrl, CDC*
 	}
 }
 
-void CDialogHelper::ExcludeCtrls(const CWnd* pParent, CDC* pDC, UINT nCtrlIDFrom, UINT nCtrlIDTo, BOOL bIgnoreCorners)
+void CDialogHelper::ExcludeCtrls(const CWnd* pParent, CDC* pDC, UINT nCtrlIDFrom, UINT nCtrlIDTo)
 {
 	ASSERT (pParent);
 	
 	for (UINT nID = nCtrlIDFrom; nID <= nCtrlIDTo; nID++)
-		ExcludeCtrl(pParent, nID, pDC, bIgnoreCorners);
+		ExcludeCtrl(pParent, nID, pDC);
 }
 
-void CDialogHelper::ExcludeCtrls(const CWnd* pParent, CDC* pDC, BOOL bIgnoreCorners)
+void CDialogHelper::ExcludeCtrls(const CWnd* pParent, CDC* pDC)
 {
 	ASSERT (pParent);
 
@@ -1904,12 +1905,12 @@ void CDialogHelper::ExcludeCtrls(const CWnd* pParent, CDC* pDC, BOOL bIgnoreCorn
 	
 	while (pChild)
 	{
-		ExcludeChild(pChild, pDC, bIgnoreCorners);
+		ExcludeChild(pChild, pDC);
 		pChild = pChild->GetWindow(GW_HWNDNEXT);
 	}
 }
 
-void CDialogHelper::ExcludeChild(const CWnd* pChild, CDC* pDC, BOOL bIgnoreCorners)
+void CDialogHelper::ExcludeChild(const CWnd* pChild, CDC* pDC)
 {
 	if (!pChild || !pChild->GetSafeHwnd())
 		return;
@@ -1920,8 +1921,9 @@ void CDialogHelper::ExcludeChild(const CWnd* pChild, CDC* pDC, BOOL bIgnoreCorne
 	if (pChild->IsWindowVisible() && !(dwExStyle & WS_EX_TRANSPARENT))
 	{
 		CRect rClip = GetChildRect(pChild);
+		static BOOL bRoundCorners = (COSVersion() < OSV_WIN8);
 
-		if (bIgnoreCorners)
+		if (bRoundCorners)
 		{
 			rClip.DeflateRect(1, 0);
 			pDC->ExcludeClipRect(rClip);
@@ -1933,9 +1935,9 @@ void CDialogHelper::ExcludeChild(const CWnd* pChild, CDC* pDC, BOOL bIgnoreCorne
     }
 }
 
-void CDialogHelper::ExcludeCtrl(const CWnd* pParent, UINT nCtrlID, CDC* pDC, BOOL bIgnoreCorners)
+void CDialogHelper::ExcludeCtrl(const CWnd* pParent, UINT nCtrlID, CDC* pDC)
 {
-	ExcludeChild(pParent->GetDlgItem(nCtrlID), pDC, bIgnoreCorners);
+	ExcludeChild(pParent->GetDlgItem(nCtrlID), pDC);
 }
 
 HWND CDialogHelper::GetWindowFromPoint(HWND hwndParent, POINT ptScreen)
