@@ -385,6 +385,8 @@ namespace MindMapUIExtension
 			EnsureItemVisible(SelectedItem);
 
 			var labelRect = base.GetSelectedItemLabelRect();
+
+			labelRect.X -= LabelPadding;
 			labelRect.X += GetExtraWidth(SelectedNode);
 
 			return labelRect;
@@ -957,18 +959,29 @@ namespace MindMapUIExtension
 			switch (nodeState)
 			{
 				case NodeDrawState.Selected:
-                    UIExtension.SelectionRect.Draw(this.Handle, graphics, rect.X, rect.Y, rect.Width, rect.Height, this.Focused, false); // opaque
+                    UIExtension.SelectionRect.Draw(this.Handle, 
+													graphics, 
+													rect.X, 
+													rect.Y, 
+													rect.Width, 
+													rect.Height, 
+													false); // opaque
 					break;
 
 				case NodeDrawState.DropTarget:
-                    UIExtension.SelectionRect.Draw(this.Handle, graphics, rect.X, rect.Y, rect.Width, rect.Height, false, false); // opaque
+                    UIExtension.SelectionRect.Draw(this.Handle, 
+													graphics, 
+													rect.X, 
+													rect.Y, 
+													rect.Width, 
+													rect.Height,
+													UIExtension.SelectionRect.Style.DropHighlighted,
+													false); // opaque
 					break;
-
-                case NodeDrawState.None:
-                    if (DebugMode())
-                        graphics.DrawRectangle(new Pen(Color.Green), rect);
-                    break;
 			}
+
+			if (DebugMode())
+               graphics.DrawRectangle(new Pen(Color.Green), rect);
 
 			// Text
 			var format = DefaultLabelFormat(nodePos, isSelected);

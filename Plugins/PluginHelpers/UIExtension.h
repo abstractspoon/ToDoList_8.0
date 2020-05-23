@@ -30,6 +30,8 @@ namespace Abstractspoon
 			public ref class UIExtension
 			{
 			public: 
+				// -----------------------------------------------
+
 				enum class UpdateType
 				{
 					Unknown = -1,
@@ -41,6 +43,8 @@ namespace Abstractspoon
 					All = 0xffff
 				};
 
+				// -----------------------------------------------
+
 				enum class ExpandTask
 				{ 
 					ExpandAllTasks,
@@ -48,6 +52,8 @@ namespace Abstractspoon
 					ExpandSelectedTasks,
 					CollapseSelectedTasks,
 				};
+
+				// -----------------------------------------------
 
 				enum class GetTask
 				{ 
@@ -59,6 +65,8 @@ namespace Abstractspoon
 					GetPrevTopLevelTask,
 				};
 
+				// -----------------------------------------------
+
 				enum class SelectTask
 				{ 
 					SelectFirstTask,			
@@ -68,6 +76,8 @@ namespace Abstractspoon
 					SelectLastTask,				
 				};
 
+				// -----------------------------------------------
+
 				enum class HitResult
 				{
 					Nowhere,
@@ -76,11 +86,15 @@ namespace Abstractspoon
 					Task,
 				};
 
+				// -----------------------------------------------
+
 				enum class AppCursorType
 				{
 					LockedTask,
 					NoDrag,
 				};
+
+				// -----------------------------------------------
 
 				static UpdateType Map(IUI_UPDATETYPE type);
 				static IUI_HITTEST Map(HitResult test);
@@ -90,6 +104,8 @@ namespace Abstractspoon
 
 				static bool SaveImageToFile(Drawing::Bitmap^ image, String^ filepath);
 				static bool IsHighContrastActive();
+
+				// -----------------------------------------------
 
 				ref class ParentNotify
 				{
@@ -188,6 +204,8 @@ namespace Abstractspoon
 					bool DoNotify(const IUITASKMOVE* pMove);
 				};
 
+				// -----------------------------------------------
+
 				ref class TaskIcon
 				{
 				public:
@@ -202,21 +220,35 @@ namespace Abstractspoon
 					int m_iImage;
 				};
 
+				// -----------------------------------------------
+
 				ref class ShortcutOverlay
 				{
 				public:
 					static bool Draw(Drawing::Graphics^ dc, Int32 x, Int32 y, Int32 cx, Int32 cy);
 				};
 
+				// -----------------------------------------------
+
 				ref class SelectionRect
 				{
 				public:
+					enum class Style
+					{
+						Selected,
+						SelectedNotFocused,
+						DropHighlighted,
+					};
+
+				public:
 					static bool Draw(IntPtr hwnd, Drawing::Graphics^ dc, Int32 x, Int32 y, Int32 cx, Int32 cy, bool transparent);
-					static bool Draw(IntPtr hwnd, Drawing::Graphics^ dc, Int32 x, Int32 y, Int32 cx, Int32 cy, bool focused, bool transparent);
+					static bool Draw(IntPtr hwnd, Drawing::Graphics^ dc, Int32 x, Int32 y, Int32 cx, Int32 cy, Style style, bool transparent);
 
 				private:
 					Windows::Forms::VisualStyles::VisualStyleRenderer^ m_visExplorerSelected;
 				};
+
+				// -----------------------------------------------
 			};
 
 			public interface class IUIExtension

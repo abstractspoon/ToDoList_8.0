@@ -313,7 +313,7 @@ namespace DayViewUIExtension
 												rect.Y, 
 												rect.Width, 
 												rect.Height, 
-												false, // not focused
+												UIExtension.SelectionRect.Style.SelectedNotFocused, 
 												true); // transparent
 			}
 			else
