@@ -28,7 +28,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 7,999,999,7
+ FILEVERSION 7,999,999,8
  PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -47,7 +47,7 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "AbstractSpoon Software\0"
             VALUE "FileDescription", "ToDoList\0"
-            VALUE "FileVersion", "7, 999, 999, 7\0"
+            VALUE "FileVersion", "7, 999, 999, 8\0"
             VALUE "InternalName", "ToDoList\0"
             VALUE "LegalCopyright", "Copyright (c) AbstractSpoon 2003-20\0"
             VALUE "LegalTrademarks", "\0"
@@ -1509,7 +1509,7 @@ END
 IDD_TDLIMPORTEXPORT_DIALOG DIALOGEX 0, 0, 400, 289
 STYLE WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Import Tasks from Tasklist"
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,289,268,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,344,268,50,14
