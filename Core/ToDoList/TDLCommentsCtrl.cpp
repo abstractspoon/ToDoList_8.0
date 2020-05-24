@@ -38,11 +38,12 @@ CTDLCommentsCtrl::CTDLCommentsCtrl(BOOL bShowLabel, int nComboLenDLU, const CTDL
 	m_cbCommentsFmt(pMgrContent, IDI_NULL),
 	m_hContentFont(NULL),
 	m_bReadOnly(FALSE),
-	m_bShowingLabel(bShowLabel)
+	m_bShowLabel(bShowLabel)
+
 {
 	int nComboOffsetDLU = 0;
 
-	if (m_bShowingLabel)
+	if (m_bShowLabel)
 	{
 		CString sLabel;
 		sLabel.LoadString(IDS_TDC_FIELD_COMMENTS);
@@ -175,7 +176,7 @@ void CTDLCommentsCtrl::OnSize(UINT nType, int cx, int cy)
 
 	if (m_ctrlComments.GetSafeHwnd())
 	{
-		if (m_bShowingLabel)
+		if (m_bShowLabel)
 		{
 			// Use the combo to position its label
 			CRect rCombo = CDialogHelper::GetChildRect(&m_cbCommentsFmt);
@@ -198,7 +199,7 @@ HBRUSH CTDLCommentsCtrl::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	HBRUSH hbr = CRuntimeDlg::OnCtlColor(pDC, pWnd, nCtlColor);
 
-	if (m_bShowingLabel && (nCtlColor == CTLCOLOR_STATIC))
+	if (m_bShowLabel && (nCtlColor == CTLCOLOR_STATIC))
 	{
 		pDC->SetTextColor(m_theme.crAppText);
 
@@ -219,7 +220,7 @@ BOOL CTDLCommentsCtrl::OnEraseBkgnd(CDC* pDC)
 		ExcludeCtrl(this, IDC_COMBO, pDC);
 		ExcludeCtrl(this, IDC_CTRL, pDC);
 
-		if (m_bShowingLabel)
+		if (m_bShowLabel)
 			ExcludeCtrl(this, IDC_COMBOLABEL, pDC);
 
 		CRect rClient;
@@ -413,7 +414,7 @@ void CTDLCommentsCtrl::SetUITheme(const CUIThemeFile& theme)
 
 	m_theme = theme;
 
-	if (m_bShowingLabel)
+	if (m_bShowLabel)
 	{
 		GraphicsMisc::VerifyDeleteObject(m_brBack);
 

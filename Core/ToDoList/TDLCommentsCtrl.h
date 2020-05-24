@@ -71,7 +71,7 @@ protected:
 
 	CString m_sPrefsFilePath;
 	BOOL m_bReadOnly;
-	BOOL m_bShowingLabel;
+	BOOL m_bShowLabel;
 
 	CONTENTFORMAT m_cfLastCustom;
 	CBinaryData m_LastCustomComments;
