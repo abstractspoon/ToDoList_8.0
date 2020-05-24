@@ -22,6 +22,10 @@ static char THIS_FILE[] = __FILE__;
 
 #define PSH_WIZARD97_EX 0x01000000
 
+#ifndef LVS_EX_DOUBLEBUFFER
+#	define LVS_EX_DOUBLEBUFFER  0x00010000
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef BINDSTATUS_ACCEPTRANGES
@@ -412,6 +416,8 @@ BOOL CTDLWebUpdateProgressPage::OnInitDialog()
 
 	if (dc.GetTextExtent(sMaxStatus).cx < dc.GetTextExtent(m_sDone).cx)
 		sMaxStatus = m_sDone;
+	
+	dc.SelectObject(hOldFont);
 
 	// Create progress columns
 	m_lcProgress.InsertColumn(ITEM_COL, sMaxItem);
@@ -423,7 +429,8 @@ BOOL CTDLWebUpdateProgressPage::OnInitDialog()
 	m_lcProgress.SetColumnWidth(DESCRIPTION_COL, LVSCW_AUTOSIZE_USEHEADER);
 	m_lcProgress.SetColumnWidth(STATUS_COL, LVSCW_AUTOSIZE_USEHEADER);
 
-	dc.SelectObject(hOldFont);
+	// Reduce flicker during % updates
+	ListView_SetExtendedListViewStyleEx(m_lcProgress, LVS_EX_DOUBLEBUFFER, LVS_EX_DOUBLEBUFFER);
 
 	return TRUE;
 }
