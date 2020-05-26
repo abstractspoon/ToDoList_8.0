@@ -23,7 +23,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CMenuIconMgr::CMenuIconMgr()
+CMenuIconMgr::CMenuIconMgr() : m_bVistaPlus(FALSE)
 {
 	// Vista and above assigns ARGB bitmaps to menu items
 	// and lets the menu do the drawing.
