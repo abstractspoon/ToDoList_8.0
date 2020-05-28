@@ -20,6 +20,8 @@
 #include "..\shared\winclasses.h"
 #include "..\shared\wclassdefines.h"
 #include "..\Shared\enimagelist.h"
+#include "..\Shared\osversion.h"
+#include "..\Shared\themed.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -197,8 +199,13 @@ void CKanbanColumnCtrl::RefreshBkgndColor()
 		crBack = m_columnDef.crBackground;
 
 	if (m_bDropTarget)
-		crBack = GraphicsMisc::Darker(crBack, 0.1);
-
+	{
+		if ((COSVersion() < OSV_VISTA) || !CThemed::IsAppThemed() || (m_columnDef.crBackground != CLR_NONE))
+			crBack = GraphicsMisc::Darker(crBack, 0.1);
+		else
+			crBack = RGB(215, 240, 255);
+	}
+	
 	TreeView_SetBkColor(*this, crBack);
 }
 
