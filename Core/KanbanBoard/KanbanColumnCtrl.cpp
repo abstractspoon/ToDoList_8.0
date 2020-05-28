@@ -1303,6 +1303,23 @@ void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 			GetParent()->PostMessage(nMsgID, (WPARAM)GetSafeHwnd(), GetTaskID(htiHit));
 			bHandled = TRUE;
 		}
+		else if (bHandled)
+		{
+			// Handle item drag because we WON'T be calling base class
+			CPoint ptScreen(point);
+			ClientToScreen(&ptScreen);
+
+			if (::DragDetect(*this, ptScreen))
+			{
+				NMTREEVIEW nmtv = { *this, (UINT)GetDlgCtrlID(), TVN_BEGINDRAG, 0 };
+
+				nmtv.itemNew.hItem = htiHit;
+				nmtv.itemNew.lParam = GetTaskID(htiHit);
+				nmtv.ptDrag = point;
+
+				GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nmtv);
+			}
+		}
 	}
 
 	// If not handled second click should cause label edit

@@ -2854,28 +2854,15 @@ void CKanbanCtrl::OnBeginDragColumnItem(NMHDR* pNMHDR, LRESULT* pResult)
 		{
 			NMTREEVIEW* pNMTV = (NMTREEVIEW*)pNMHDR;
 			ASSERT(pNMTV->itemNew.hItem);
+			ASSERT(pNMTV->itemNew.lParam);
 		
 			CKanbanColumnCtrl* pCol = (CKanbanColumnCtrl*)CWnd::FromHandle(pNMHDR->hwndFrom);
+			ASSERT(pCol == m_pSelectedColumn);
 
 			if (!pCol->SelectionHasLockedTasks())
 			{
-				DWORD dwDragID = pNMTV->itemNew.lParam;
-
-				if (dwDragID)
-				{
-					// If the 'drag-from' list is not currently selected
-					// we select it and then reset the selection to the
-					// items we have just copied
-					if (pCol != m_pSelectedColumn)
-					{
-						VERIFY(pCol->SelectTask(dwDragID));
-						SelectColumn(pCol);
-
-					}
-
-					SetCapture();
-					TRACE(_T("CKanbanCtrlEx::OnBeginDragColItem(start drag)\n"));
-				}
+				SetCapture();
+				TRACE(_T("CKanbanCtrlEx::OnBeginDragColItem(start drag)\n"));
 			}
 		}
 		else
