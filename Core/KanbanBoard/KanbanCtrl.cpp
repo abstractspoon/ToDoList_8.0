@@ -2260,6 +2260,9 @@ void CKanbanCtrl::Resize(int cx, int cy)
 
 void CKanbanCtrl::ResizeHeader(CDeferWndMove& dwm, CRect& rAvail)
 {
+	if (rAvail.IsRectEmpty())
+		return;
+
 	CAutoFlag af(m_bResizingHeader, TRUE);
 
 	ASSERT(m_header.GetSafeHwnd());
@@ -2268,30 +2271,40 @@ void CKanbanCtrl::ResizeHeader(CDeferWndMove& dwm, CRect& rAvail)
 	ASSERT(nNumCols == GetVisibleColumnCount());
 
 	CRect rNewHeader(rAvail);
-	rNewHeader.bottom = (rNewHeader.top + HEADER_HEIGHT);
+	rAvail.top = rNewHeader.bottom = (rNewHeader.top + HEADER_HEIGHT);
 
 	dwm.MoveWindow(&m_header, rNewHeader, TRUE);
 		
-	int nTotalColWidth = m_header.CalcTotalItemWidth();
+	// -1 to compensate for the +1 to hide the last divider
+	int nCurTotalWidth = (m_header.CalcTotalItemWidth() - 1);
+	int nNewTotalWidth = rAvail.Width();
+
+	BOOL bHasTrackedCols = m_header.HasTrackedItems();
 
 	for (int nCol = 0, nColStart = 0; nCol < nNumCols; nCol++)
 	{
-		if (nCol < (nNumCols - 1))
-		{
-			int nCurWidth = m_header.GetItemWidth(nCol);
-			int nNewWidth = MulDiv(nCurWidth, rNewHeader.Width(), nTotalColWidth);
+		// Preserve tracking
+		BOOL bTrackedCol = m_header.IsItemTracked(nCol);
 
-			m_header.SetItemWidth(nCol, nNewWidth);
-			nColStart += nNewWidth;
-		}
-		else // last column
+		// Default equal width
+		int nNewWidth = (nNewTotalWidth / nNumCols);
+
+		if (nCol == (nNumCols - 1)) 
 		{
-			int nNewWidth = (rNewHeader.Width() - nColStart);
-			m_header.SetItemWidth(nCol, nNewWidth + 1); // +1 hides the divider
+			// last column takes up any slack
+			nNewWidth = (rNewHeader.Width() - nColStart) + 1; // +1 hides the divider
 		}
+		else if (bHasTrackedCols)
+		{
+			// Preserve column proportions
+			nNewWidth = MulDiv(m_header.GetItemWidth(nCol), nNewTotalWidth, nCurTotalWidth);
+		}
+
+		m_header.SetItemWidth(nCol, nNewWidth);
+		m_header.SetItemTracked(nCol, bTrackedCol);
+
+		nColStart += nNewWidth;
 	}
-
-	rAvail.top = rNewHeader.bottom;
 }
 
 float CKanbanCtrl::GetAverageColumnCharWidth()
