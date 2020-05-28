@@ -1311,6 +1311,8 @@ void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 
 			if (::DragDetect(*this, ptScreen))
 			{
+				TRACE(_T("CKanbanColumnCtrl::OnLButtonDown(Faking drag start)\n"));
+
 				NMTREEVIEW nmtv = { *this, (UINT)GetDlgCtrlID(), TVN_BEGINDRAG, 0 };
 
 				nmtv.itemNew.hItem = htiHit;

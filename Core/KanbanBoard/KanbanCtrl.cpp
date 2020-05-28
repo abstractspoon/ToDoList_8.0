@@ -112,7 +112,7 @@ CKanbanCtrl::~CKanbanCtrl()
 }
 
 BEGIN_MESSAGE_MAP(CKanbanCtrl, CWnd)
-	//{{AFX_MSG_MAP(CKanbanCtrlEx)
+	//{{AFX_MSG_MAP(CKanbanCtrl)
 	//}}AFX_MSG_MAP
 	ON_WM_SIZE()
 	ON_WM_ERASEBKGND()
@@ -2862,13 +2862,13 @@ void CKanbanCtrl::OnBeginDragColumnItem(NMHDR* pNMHDR, LRESULT* pResult)
 			if (!pCol->SelectionHasLockedTasks())
 			{
 				SetCapture();
-				TRACE(_T("CKanbanCtrlEx::OnBeginDragColItem(start drag)\n"));
+				TRACE(_T("CKanbanCtrl::OnBeginDragColItem(start drag)\n"));
 			}
 		}
 		else
 		{
 			// Mouse button already released
-			TRACE(_T("CKanbanCtrlEx::OnBeginDragColItem(cancel drag)\n"));
+			TRACE(_T("CKanbanCtrl::OnBeginDragColItem(cancel drag)\n"));
 		}
 	}
 	
@@ -2889,11 +2889,11 @@ BOOL CKanbanCtrl::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 
 void CKanbanCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	TRACE(_T("CKanbanCtrlEx::OnLButtonUp()\n"));
+	TRACE(_T("CKanbanCtrl::OnLButtonUp()\n"));
 
 	if (IsDragging())
 	{
-		TRACE(_T("CKanbanCtrlEx::OnLButtonUp(end drag)\n"));
+		TRACE(_T("CKanbanCtrl::OnLButtonUp(end drag)\n"));
 
 		// get the list under the mouse
 		ClientToScreen(&point);
