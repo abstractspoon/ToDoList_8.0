@@ -1284,6 +1284,11 @@ void CKanbanColumnCtrl::OnRButtonDown(UINT nFlags, CPoint point)
 
 void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
+	// Note: The complexity of this function arises out of the 
+	// indentation of subtasks, because we want clicking to the
+	// left of the task to neither initiate a drag operation
+	// nor a label edit. 
+	// My intuition tells me that it can be simplified...
 	HTREEITEM htiHit = NULL;
 	BOOL bHandled = HandleButtonClick(point, htiHit);
 
