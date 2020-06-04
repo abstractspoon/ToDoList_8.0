@@ -124,6 +124,7 @@ protected:
 	DWORD m_dwDisplay, m_dwOptions;
 	int m_nItemTextHeight, m_nItemTextBorder;
 	KBC_ATTRIBLABELS m_nAttribLabelVisiability;
+	HTREEITEM m_htiHot;
 	
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -143,14 +144,17 @@ protected:
 	//}}AFX_MSG
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg LRESULT OnThemeChanged(WPARAM wp, LPARAM lp);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	afx_msg LRESULT OnSetFont(WPARAM wp, LPARAM lp);
 	afx_msg void OnTooltipShow(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
+	afx_msg LRESULT OnThemeChanged(WPARAM wp, LPARAM lp);
+	afx_msg LRESULT OnSetFont(WPARAM wp, LPARAM lp);
+	afx_msg LRESULT OnMouseWheel(WPARAM wp, LPARAM lp);
+	afx_msg LRESULT OnMouseLeave(WPARAM wp, LPARAM lp);
 
 	DECLARE_MESSAGE_MAP()
 
@@ -176,11 +180,14 @@ protected:
 	BOOL HitTestCheckbox(HTREEITEM hti, CPoint point) const;
 	BOOL HitTestIcon(HTREEITEM hti, CPoint point) const;
 	BOOL HitTestFlag(HTREEITEM hti, CPoint point) const;
+	void GetIconRect(HTREEITEM hti, CRect& rIcon) const;
+	void GetFlagRect(HTREEITEM hti, CRect& rFlag) const;
 	BOOL HasOption(DWORD dwOption) const { return (m_dwOptions & dwOption); }
+	void UpdateHotItem();
 
 	void DrawItemCheckbox(CDC* pDC, const KANBANITEM* pKI, CRect& rItem);
 	void DrawItemParents(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, COLORREF crText) const;
-	void DrawItemIcons(CDC* pDC, const KANBANITEM* pKI, CRect& rItem) const;
+	void DrawItemIcons(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, BOOL bHot) const;
 	void DrawItemBar(CDC* pDC, const KANBANITEM* pKI, CRect& rItem) const;
 	void DrawAttribute(CDC* pDC, CRect& rLine, TDC_ATTRIBUTE nAttrib, const CString& sValue, int nFlags, COLORREF crText) const;
 	void FillItemBackground(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText, BOOL bSelected) const;

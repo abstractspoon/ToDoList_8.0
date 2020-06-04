@@ -104,6 +104,7 @@ CKanbanColumnCtrl::CKanbanColumnCtrl(const CKanbanItemMap& data, const KANBANCOL
 	m_bDrawTaskParents(FALSE),
 	m_dwDisplay(0),
 	m_dwOptions(0),
+	m_htiHot(NULL),
 #pragma warning (disable: 4355)
 	m_tch(*this)
 #pragma warning (default: 4355)
@@ -125,10 +126,13 @@ BEGIN_MESSAGE_MAP(CKanbanColumnCtrl, CTreeCtrl)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_RBUTTONDOWN()
+	ON_WM_MOUSEMOVE()
 	ON_WM_SIZE()
 	ON_WM_SETCURSOR()
 	ON_NOTIFY(TTN_SHOW, 0, OnTooltipShow)
 	ON_MESSAGE(WM_SETFONT, OnSetFont)
+	ON_MESSAGE(WM_MOUSEWHEEL, OnMouseWheel)
+	ON_MESSAGE(WM_MOUSELEAVE, OnMouseLeave)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -547,7 +551,7 @@ void CKanbanColumnCtrl::OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
 				// Icons don't affect attributes
 				CRect rAttributes(rItem);
 
-				DrawItemIcons(pDC, pKI, rItem);
+				DrawItemIcons(pDC, pKI, rItem, (hti == m_htiHot));
 				DrawItemTitle(pDC, pKI, rItem, crText);
 
 				rAttributes.top += CalcItemTitleTextHeight();
@@ -676,10 +680,13 @@ void CKanbanColumnCtrl::DrawItemParents(CDC* pDC, const KANBANITEM* pKI, CRect& 
 	}
 }
 
-void CKanbanColumnCtrl::DrawItemIcons(CDC* pDC, const KANBANITEM* pKI, CRect& rItem) const
+void CKanbanColumnCtrl::DrawItemIcons(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, BOOL bHot) const
 {
-	DWORD dwDrawn = 0;
-	CRect rIcon(rItem);
+	CSaveDC sdc(pDC);
+	CRect rClip(rItem), rIcon(rItem);
+
+	rClip.DeflateRect(1, 1);
+	pDC->IntersectClipRect(rClip);
 
 	rIcon.left += IMAGE_PADDING;
 	rIcon.top += IMAGE_PADDING;
@@ -693,10 +700,19 @@ void CKanbanColumnCtrl::DrawItemIcons(CDC* pDC, const KANBANITEM* pKI, CRect& rI
 			ImageList_Draw(hilTask, iImageIndex, *pDC, rIcon.left, rIcon.top, ILD_TRANSPARENT);
 	}
 
-	rIcon.top += (IMAGE_SIZE/* + IMAGE_PADDING*/);
+	rIcon.top += IMAGE_SIZE;
 
-	if (m_bDrawTaskFlags && pKI->bFlag)
-		ImageList_Draw(m_ilFlags, 0, *pDC, rIcon.left, rIcon.top, ILD_TRANSPARENT);
+	if (m_bDrawTaskFlags)
+	{
+		if (pKI->bFlag)
+		{
+			ImageList_Draw(m_ilFlags, 0, *pDC, rIcon.left, rIcon.top, ILD_TRANSPARENT);
+		}
+		else if (bHot)
+		{
+			ImageList_Draw(m_ilFlags, 1, *pDC, rIcon.left, rIcon.top, ILD_TRANSPARENT);
+		}
+	}
 
 	rItem.left = (rIcon.left + IMAGE_SIZE);
 }
@@ -1282,6 +1298,64 @@ void CKanbanColumnCtrl::OnRButtonDown(UINT nFlags, CPoint point)
 	CTreeCtrl::OnRButtonDown(nFlags, point);
 }
 
+void CKanbanColumnCtrl::OnMouseMove(UINT nFlags, CPoint point)
+{
+	CTreeCtrl::OnMouseMove(nFlags, point);
+
+	UpdateHotItem();
+}
+
+LRESULT CKanbanColumnCtrl::OnMouseWheel(WPARAM /*wp*/, LPARAM /*lp*/)
+{
+	LRESULT lr = Default();
+
+	UpdateHotItem();
+
+	return lr;
+}
+
+LRESULT CKanbanColumnCtrl::OnMouseLeave(WPARAM /*wp*/, LPARAM /*lp*/)
+{
+	LRESULT lr = Default();
+
+	UpdateHotItem();
+	CDialogHelper::TrackMouseLeave(*this, FALSE);
+
+	return lr;
+}
+
+void CKanbanColumnCtrl::UpdateHotItem()
+{
+	if (!m_bDrawTaskFlags)
+		return;
+
+	CPoint point(GetMessagePos());
+	ScreenToClient(&point);
+
+	HTREEITEM htiHot = HitTest(point);
+
+	if (htiHot != m_htiHot)
+	{
+		CRect rFlag;
+
+		if (m_htiHot)
+		{
+			GetFlagRect(m_htiHot, rFlag);
+			InvalidateRect(rFlag);
+		}
+
+		if (htiHot)
+		{
+			GetFlagRect(htiHot, rFlag);
+			InvalidateRect(rFlag);
+
+			CDialogHelper::TrackMouseLeave(*this, TRUE, FALSE);
+		}
+
+		m_htiHot = htiHot;
+	}
+}
+
 void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// Note: The complexity of this function arises out of the 
@@ -1405,11 +1479,7 @@ BOOL CKanbanColumnCtrl::HandleButtonClick(CPoint point, HTREEITEM& htiHit)
 BOOL CKanbanColumnCtrl::HitTestIcon(HTREEITEM hti, CPoint point) const
 {
 	CRect rIcon;
-	GetItemLabelTextRect(hti, rIcon);
-
-	rIcon.right = (rIcon.left - IMAGE_PADDING);
-	rIcon.left = (rIcon.right - IMAGE_SIZE);
-	rIcon.bottom = (rIcon.top + IMAGE_SIZE);
+	GetIconRect(hti, rIcon);
 
 	return rIcon.PtInRect(point);
 }
@@ -1420,14 +1490,25 @@ BOOL CKanbanColumnCtrl::HitTestFlag(HTREEITEM hti, CPoint point) const
 		return FALSE;
 
 	CRect rFlag;
-	GetItemLabelTextRect(hti, rFlag);
-
-	rFlag.right = (rFlag.left - IMAGE_PADDING);
-	rFlag.left = (rFlag.right - IMAGE_SIZE);
-	rFlag.top += (IMAGE_SIZE + IMAGE_PADDING);
-	rFlag.bottom = (rFlag.top + IMAGE_SIZE);
+	GetFlagRect(hti, rFlag);
 
 	return rFlag.PtInRect(point);
+}
+
+void CKanbanColumnCtrl::GetIconRect(HTREEITEM hti, CRect& rIcon) const
+{
+	GetItemLabelTextRect(hti, rIcon);
+
+	rIcon.right = (rIcon.left - IMAGE_PADDING);
+	rIcon.left = (rIcon.right - IMAGE_SIZE);
+	rIcon.bottom = (rIcon.top + IMAGE_SIZE);
+}
+
+void CKanbanColumnCtrl::GetFlagRect(HTREEITEM hti, CRect& rFlag) const
+{
+	GetIconRect(hti, rFlag);
+
+	rFlag.OffsetRect(0, IMAGE_SIZE);
 }
 
 BOOL CKanbanColumnCtrl::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
