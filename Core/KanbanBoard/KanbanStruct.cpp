@@ -147,7 +147,7 @@ KANBANITEM::KANBANITEM(DWORD dwID)
 	color(CLR_NONE), 
 	dwTaskID(dwID), 
 	bDone(FALSE), 
-	bFlag(FALSE), 
+	bFlagged(FALSE), 
 	bGoodAsDone(FALSE),
 	bParent(FALSE),
 	dwParentID(0),
@@ -176,7 +176,7 @@ KANBANITEM& KANBANITEM::operator=(const KANBANITEM& ki)
 	dTimeEst = ki.dTimeEst;
 	dTimeSpent = ki.dTimeSpent;
 	bDone = ki.bDone;
-	bFlag = ki.bFlag;
+	bFlagged = ki.bFlagged;
 	bGoodAsDone = ki.bGoodAsDone;
 	bParent = ki.bParent;
 	dwParentID = ki.dwParentID;
@@ -199,7 +199,7 @@ BOOL KANBANITEM::operator==(const KANBANITEM& ki) const
 			(dTimeEst == ki.dTimeEst) &&
 			(dTimeSpent == ki.dTimeSpent) &&
 			(bDone == ki.bDone) &&
-			(bFlag == ki.bFlag) &&
+			(bFlagged == ki.bFlagged) &&
 			(bGoodAsDone == ki.bGoodAsDone) &&
 			(bParent == ki.bParent) &&
 			(nLevel == ki.nLevel) &&
@@ -707,7 +707,7 @@ BOOL CKanbanItemMap::HasFlag(DWORD dwTaskID) const
 {
 	const KANBANITEM* pKI = GetItem(dwTaskID);
 
-	return (pKI && pKI->bFlag);
+	return (pKI && pKI->bFlagged);
 }
 
 KANBANITEM* CKanbanItemMap::NewItem(DWORD dwTaskID, const CString& sTitle)

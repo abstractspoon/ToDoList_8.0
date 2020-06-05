@@ -116,13 +116,13 @@ protected:
 	// For quick lookup
 	CMap<DWORD, DWORD, HTREEITEM, HTREEITEM&> m_mapItems;
 
-	CImageList m_ilCheckboxes, m_ilFlags;
+	CImageList m_ilCheckboxes, m_ilIcons;
 	CToolTipCtrlEx m_tooltip;
 	CTreeCtrlHelper m_tch;
 
 	KANBANCOLUMN m_columnDef;
 	DWORD m_dwDisplay, m_dwOptions;
-	int m_nItemTextHeight, m_nItemTextBorder;
+	int m_nItemTextHeight, m_nItemTextBorder, m_nNumTitleLines;
 	KBC_ATTRIBLABELS m_nAttribLabelVisiability;
 	HTREEITEM m_htiHot;
 	
@@ -169,25 +169,25 @@ protected:
 	void RecalcItemLineHeight();
 	void RefreshBkgndColor();
 	BOOL HandleButtonClick(CPoint point, HTREEITEM& htiHit);
-	BOOL GetItemCheckboxRect(HTREEITEM hti, CRect& rItem, const KANBANITEM* pKI) const;
-	BOOL GetItemCheckboxRect(CRect& rItem) const;
 	BOOL GetItemLabelTextRect(HTREEITEM hti, CRect& rItem, BOOL bEdit = FALSE, const KANBANITEM* pKI = NULL) const;
 	BOOL InitTooltip();
 	BOOL GetItemTooltipRect(HTREEITEM hti, CRect& rItem, const KANBANITEM* pKI) const;
 	BOOL GetItemRect(HTREEITEM hti, CRect& rItem, const KANBANITEM* pKI) const;
 	void RefreshItemLineHeights(HTREEITEM hti);
 	int GetItemDisplayAttributeCount(const KANBANITEM& ki) const;
+	BOOL GetItemCheckboxRect(HTREEITEM hti, CRect& rItem, const KANBANITEM* pKI) const;
+	BOOL GetItemCheckboxRect(CRect& rItem) const;
 	BOOL HitTestCheckbox(HTREEITEM hti, CPoint point) const;
-	BOOL HitTestIcon(HTREEITEM hti, CPoint point) const;
-	BOOL HitTestFlag(HTREEITEM hti, CPoint point) const;
-	void GetIconRect(HTREEITEM hti, CRect& rIcon) const;
-	void GetFlagRect(HTREEITEM hti, CRect& rFlag) const;
+
+	KBC_IMAGETYPE HitTestImage(HTREEITEM hti, CPoint point) const;
+	void DrawItemImage(CDC* pDC, const CRect& rImage, KBC_IMAGETYPE nType, BOOL bHover, HIMAGELIST hIL = NULL, int nIndex = -1) const;
+
 	BOOL HasOption(DWORD dwOption) const { return (m_dwOptions & dwOption); }
 	void UpdateHotItem();
 
 	void DrawItemCheckbox(CDC* pDC, const KANBANITEM* pKI, CRect& rItem);
 	void DrawItemParents(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, COLORREF crText) const;
-	void DrawItemIcons(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, BOOL bHot) const;
+	void DrawItemImages(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, BOOL bHot) const;
 	void DrawItemBar(CDC* pDC, const KANBANITEM* pKI, CRect& rItem) const;
 	void DrawAttribute(CDC* pDC, CRect& rLine, TDC_ATTRIBUTE nAttrib, const CString& sValue, int nFlags, COLORREF crText) const;
 	void FillItemBackground(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText, BOOL bSelected) const;
