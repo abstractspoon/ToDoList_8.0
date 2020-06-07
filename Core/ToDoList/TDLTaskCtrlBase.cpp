@@ -206,6 +206,7 @@ ON_WM_CREATE()
 ON_WM_SETCURSOR()
 ON_WM_TIMER()
 ON_WM_HELPINFO()
+
 END_MESSAGE_MAP()
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1828,8 +1829,7 @@ void CTDLTaskCtrlBase::Sort(TDC_COLUMN nBy, BOOL bAllowToggle)
 			}
 			else if (TDCCUSTOMATTRIBUTEDEFINITION::IsCustomColumn(nBy))
 			{
-				// TODO
-				bAscending = FALSE;//(m_ctrlTreeList.Tree().GetGutterColumnSort(nBy) != NCGSORT_DOWN);
+				bAscending = FALSE;
 			}
 		}
 		// if there's been a mod since last sorting then its reasonable to assume
@@ -3062,29 +3062,24 @@ void CTDLTaskCtrlBase::DrawColumnFileLinks(CDC* pDC, const CStringArray& aFileLi
 		if (TODOITEM::IsTaskLink(sFileRef, TRUE))
 		{
 			// draw our app icon 
-			if (m_imageIcons.HasIcon(APP_ICON) ||
-				m_imageIcons.Add(APP_ICON, GraphicsMisc::GetAppWindowIcon(FALSE)))
-			{
-				m_imageIcons.Draw(pDC, APP_ICON, rIcon.TopLeft());
-			}
+			if (!m_imageIcons.HasIcon(APP_ICON))
+				m_imageIcons.Add(APP_ICON, GraphicsMisc::GetAppWindowIcon(FALSE));
+
+			VERIFY(m_imageIcons.Draw(pDC, APP_ICON, rIcon.TopLeft()));
 		}
 		else
 		{
-			// get the associated image, failing if necessary
-			sFileRef.Remove('\"'); // remove double-quotes
-			FileMisc::MakeFullPath(sFileRef, m_sTasklistFolder);
+			FileMisc::MakeFullPath(Misc::MakeUnquoted(sFileRef, FALSE), m_sTasklistFolder);
 
-			if (m_imageIcons.HasIcon(sFileRef) ||
-				(CEnBitmap::IsSupportedImageFile(sFileRef) &&
-					FileMisc::PathExists(sFileRef) &&
-					m_imageIcons.Add(sFileRef, sFileRef)))
+			// Render the associated image if possible
+			if (!m_imageIcons.HasIcon(sFileRef))
 			{
-				m_imageIcons.Draw(pDC, sFileRef, rIcon.TopLeft());
+				if (CEnBitmap::IsSupportedImageFile(sFileRef) && FileMisc::PathExists(sFileRef))
+					VERIFY(m_imageIcons.Add(sFileRef, sFileRef));
 			}
-			else
-			{
+
+			if (!m_imageIcons.Draw(pDC, sFileRef, rIcon.TopLeft()))
 				CFileIcons::Draw(pDC, sFileRef, rIcon.TopLeft());
-			}
 		}
 	}
 }
