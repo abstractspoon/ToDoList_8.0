@@ -2028,8 +2028,7 @@ void CToDoCtrl::UpdateTask(TDC_ATTRIBUTE nAttrib, DWORD dwFlags)
 				UpdateControls(FALSE); // don't update comments
 			}
 
-			// enable done time field depending on whether the done date is valid or not
-			m_cbTimeDone.EnableWindow(CDateHelper::IsDateSet(date));
+			EnableTimeCtrl(m_cbTimeDone, date);
 		}
 		break;
 		
@@ -2043,9 +2042,7 @@ void CToDoCtrl::UpdateTask(TDC_ATTRIBUTE nAttrib, DWORD dwFlags)
 			m_dtcStart.GetTime(date);
 			
 			SetSelectedTaskDate(TDCD_STARTDATE, date, TRUE);
-
-			// enable start time field depending on whether the start date is valid or not
-			m_cbTimeStart.EnableWindow(CDateHelper::IsDateSet(date));
+			EnableTimeCtrl(m_cbTimeStart, date);
 		}
 		break;
 		
@@ -2059,9 +2056,7 @@ void CToDoCtrl::UpdateTask(TDC_ATTRIBUTE nAttrib, DWORD dwFlags)
 			m_dtcDue.GetTime(date);
 			
 			SetSelectedTaskDate(TDCD_DUEDATE, date, TRUE);
-
-			// enable due time field depending on whether the due date is valid or not
-			m_cbTimeDue.EnableWindow(CDateHelper::IsDateSet(date));
+			EnableTimeCtrl(m_cbTimeDue, date);
 		}
 		break;
 		
@@ -2178,6 +2173,21 @@ void CToDoCtrl::UpdateTask(TDC_ATTRIBUTE nAttrib, DWORD dwFlags)
 			else
 				ClearSelectedTaskCustomAttributeData(sAttribID, TRUE);
 		}
+	}
+}
+
+void CToDoCtrl::EnableTimeCtrl(CTimeComboBox& ctrl, const COleDateTime& date) const
+{
+	// enable time field if the date is valid
+	// else clear the time if it isn't
+	if (CDateHelper::IsDateSet(date))
+	{
+		ctrl.EnableWindow(TRUE);
+	}
+	else
+	{
+		ctrl.EnableWindow(FALSE);
+		ctrl.SetCurSel(CB_ERR);
 	}
 }
 
