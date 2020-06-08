@@ -1954,19 +1954,20 @@ void CToDoCtrl::UpdateTasklistVisibility()
 
 void CToDoCtrl::SetCtrlDate(CDateTimeCtrl& ctrl, const COleDateTime& date, const COleDateTime& dateMin)
 {
+	// Note: clear time component because control will 
+	// preserve it otherwise
 	if (CDateHelper::IsDateSet(date))
 	{
-		ctrl.SetTime(date);
+		ctrl.SetTime(CDateHelper::GetDateOnly(date));
 	}
-	else
+	else 
 	{
-		COleDateTime dtToday = COleDateTime::GetCurrentTime();
-		
-		if (CDateHelper::IsDateSet(dateMin))
-			ctrl.SetTime(max(dateMin, dtToday));
-		else
-			ctrl.SetTime(dtToday);
-		
+		COleDateTime dtDate = COleDateTime::GetCurrentTime();
+		VERIFY(CDateHelper::Max(dtDate, dateMin));
+
+		ctrl.SetTime(CDateHelper::GetDateOnly(dtDate));
+
+		// Clear checkbox
 		ctrl.SendMessage(DTM_SETSYSTEMTIME, GDT_NONE, 0);
 	}
 }
@@ -3111,9 +3112,7 @@ BOOL CToDoCtrl::SetSelectedTaskDate(TDC_DATE nDate, const COleDateTime& date, BO
 			// no due date has been specified
 			if (bDateEdited && CDateHelper::IsDateSet(date))
 			{
-				COleDateTime dtDue = GetSelectedTaskDate(TDCD_DUE);
-
-				if (!CDateHelper::IsDateSet(dtDue))
+				if (!CDateHelper::IsDateSet(GetSelectedTaskDate(TDCD_DUE)))
 				{
 					SetCtrlDate(m_dtcDue, 0.0, date);
 				}
@@ -3132,7 +3131,7 @@ BOOL CToDoCtrl::SetSelectedTaskDate(TDC_DATE nDate, const COleDateTime& date, BO
 			// no due date has been specified
 			if (bDateEdited && !CDateHelper::IsDateSet(date))
 			{
-				COleDateTime dtStart = GetSelectedTaskDate(TDCD_START);
+				COleDateTime dtStart = GetSelectedTaskDate(TDCD_STARTDATE);
 
 				SetCtrlDate(m_dtcDue, 0.0, dtStart);
 			}
