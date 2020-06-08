@@ -3156,7 +3156,7 @@ BOOL CToDoCtrl::SetSelectedTaskDate(TDC_DATE nDate, const COleDateTime& date, BO
 			TDCTIMEPERIOD time;
 
 			if (GetSelectedTaskTimeEstimate(time))
-				CTDCDialogHelper().UpdateDataEx(this, m_eTimeEstimate, time, FALSE, DECIMALS);
+				CTDCDialogHelper::UpdateDataEx(this, m_eTimeEstimate, time, FALSE, DECIMALS);
 		}
 	}
 	
@@ -3857,7 +3857,7 @@ BOOL CToDoCtrl::SetSelectedTaskCost(const TDCCOST& cost, BOOL bOffset)
 		if (GetSelectedTaskCost(costSel) && (m_cost != costSel))
 		{
 			m_cost = costSel;
-			CTDCDialogHelper().UpdateDataEx(this, IDC_COST, m_cost, FALSE, DECIMALS);
+			CTDCDialogHelper::UpdateDataEx(this, IDC_COST, m_cost, FALSE, DECIMALS);
 		}
 
 		SetModified(TDCA_COST, aModTaskIDs);
@@ -3968,7 +3968,7 @@ BOOL CToDoCtrl::SetSelectedTaskTimeEstimate(const TDCTIMEPERIOD& timeEst, BOOL b
 			// note: setting the time field changes m_timeEstimate.nUnits
 			// so we have to do them separately
 			m_timeEstimate = time;
-			CTDCDialogHelper().UpdateDataEx(this, m_eTimeEstimate, m_timeEstimate, FALSE, DECIMALS);
+			CTDCDialogHelper::UpdateDataEx(this, m_eTimeEstimate, m_timeEstimate, FALSE, DECIMALS);
 		}
 
 		// Recalc other attributes if only one item selected
@@ -4054,7 +4054,7 @@ BOOL CToDoCtrl::SetSelectedTaskTimeSpent(const TDCTIMEPERIOD& timeSpent, BOOL bO
 			// note: setting the time field changes m_timeSpent.nUnits
 			// so we have to do them separately
 			m_timeSpent = time;
-			CTDCDialogHelper().UpdateDataEx(this, m_eTimeSpent, m_timeSpent, FALSE, DECIMALS);
+			CTDCDialogHelper::UpdateDataEx(this, m_eTimeSpent, m_timeSpent, FALSE, DECIMALS);
 		}
 		
 		// update % complete?
@@ -4114,7 +4114,7 @@ BOOL CToDoCtrl::SetSelectedTaskTimeEstimateUnits(TDC_UNITS nUnits, BOOL bRecalcT
 			if (bRecalcTime)
 			{
 				VERIFY(GetSelectedTaskTimeEstimate(m_timeEstimate));
-				CTDCDialogHelper().UpdateDataEx(this, m_eTimeEstimate, m_timeEstimate, FALSE, DECIMALS);
+				CTDCDialogHelper::UpdateDataEx(this, m_eTimeEstimate, m_timeEstimate, FALSE, DECIMALS);
 			}
 			// update % complete?
 			else if (HasStyle(TDCS_AUTOCALCPERCENTDONE))
@@ -4182,7 +4182,7 @@ BOOL CToDoCtrl::SetSelectedTaskTimeSpentUnits(TDC_UNITS nUnits, BOOL bRecalcTime
 			if (bRecalcTime)
 			{
 				VERIFY(GetSelectedTaskTimeSpent(m_timeSpent));
-				CTDCDialogHelper().UpdateDataEx(this, m_eTimeSpent, m_timeSpent, FALSE, DECIMALS);
+				CTDCDialogHelper::UpdateDataEx(this, m_eTimeSpent, m_timeSpent, FALSE, DECIMALS);
 			}
 			// update % complete?
 			else if (HasStyle(TDCS_AUTOCALCPERCENTDONE))
