@@ -1964,13 +1964,15 @@ BOOL CTaskFile::GetTaskAttributes(HTASKITEM hTask, TODOITEM& tdi, BOOL bOverwrit
 
 			if (!sOtherTextComments.IsEmpty())
 			{
-				if (!otherCustomComments.IsEmpty())
+				BOOL bIsTextFormat = cfOtherComments.FormatIsText();
+
+				if (!otherCustomComments.IsEmpty() && !bIsTextFormat)
 				{
 					tdi.sComments = sOtherTextComments;
 					tdi.cfComments = cfOtherComments;
 					tdi.customComments = otherCustomComments;
 				}
-				else if (cfOtherComments.FormatIsText())
+				else if (bIsTextFormat)
 				{
 					tdi.sComments = sOtherTextComments;
 					tdi.cfComments = cfOtherComments;
