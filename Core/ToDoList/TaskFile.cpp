@@ -1955,15 +1955,14 @@ BOOL CTaskFile::GetTaskAttributes(HTASKITEM hTask, TODOITEM& tdi, BOOL bOverwrit
 			// To replace what we already have, the 'other' task must have 
 			// the full set of text comments, comments type and custom comments 
 			// OR
-			// it must have text comments, comments type and the comments type
-			// must of 'text' type
+			// it must have text comments and the comments type must of 'text' type
 			CString sOtherTextComments = GetTaskString(hTask, TDL_TASKCOMMENTS);
 
 			CONTENTFORMAT cfOtherComments;
 			CBinaryData otherCustomComments;
 			GetTaskCustomComments(hTask, otherCustomComments, cfOtherComments);
 
-			if (!sOtherTextComments.IsEmpty() && !cfOtherComments.IsEmpty())
+			if (!sOtherTextComments.IsEmpty())
 			{
 				if (!otherCustomComments.IsEmpty())
 				{
