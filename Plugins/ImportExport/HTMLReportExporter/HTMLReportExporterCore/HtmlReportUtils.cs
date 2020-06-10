@@ -43,7 +43,7 @@ namespace HTMLReportExporter
 			new TaskAttribute(Task.Attribute.DoneDate,          "Completion Date",          "doneDate" ),
 			new TaskAttribute(Task.Attribute.DueDate,           "Due Date",                 "dueDate" ),
 			new TaskAttribute(Task.Attribute.ExternalId,        "External ID",              "extId" ),
-			new TaskAttribute(Task.Attribute.FileReference,     "File Link",                "filelink" ),
+			new TaskAttribute(Task.Attribute.FileLink,			"File Link",                "filelink" ),
 			new TaskAttribute(Task.Attribute.Flag,              "Flag",                     "flag" ),
 			new TaskAttribute(Task.Attribute.HtmlComments,      "Comments",                 "comments" ),
 			new TaskAttribute(Task.Attribute.Id,                "Task ID",                  "id" ),

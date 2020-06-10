@@ -502,7 +502,7 @@ List<String^>^ Task::GetDependency()
 	return items;
 }
 
-List<String^>^ Task::GetFileReference()
+List<String^>^ Task::GetFileLink()
 {
 	System::Collections::Generic::List<String^>^ items = gcnew System::Collections::Generic::List<String^>;
 	int numItems = GETTASKVAL(GetTaskFileLinkCount, 0);
@@ -533,9 +533,9 @@ String^ Task::FormatDependency(String^ delimiter)
 	return FormatList(GetDependency(), delimiter);
 }
 
-String^ Task::FormatFileReference(String^ delimiter)
+String^ Task::FormatFileLink(String^ delimiter)
 {
-	return FormatList(GetFileReference(), delimiter);
+	return FormatList(GetFileLink(), delimiter);
 }
 
 String^ Task::FormatList(List<String^>^ items, String^ delimiter)
@@ -838,7 +838,7 @@ Boolean Task::AddDependency(String^ sDependency)
 	return SETTASKSTR(AddTaskDependency, sDependency);
 }
 
-Boolean Task::AddFileReference(String^ sFileLink)
+Boolean Task::AddFileLink(String^ sFileLink)
 {
 	return SETTASKSTR(AddTaskFileLink, sFileLink);
 }
@@ -1013,7 +1013,7 @@ Task::Attribute Task::MapAttribute(TDC_ATTRIBUTE attrib)
 	case TDCA_PERCENT:			return Task::Attribute::Percent;
 	case TDCA_TIMEEST:			return Task::Attribute::TimeEstimate;
 	case TDCA_TIMESPENT:		return Task::Attribute::TimeSpent;
-	case TDCA_FILEREF:			return Task::Attribute::FileReference;
+	case TDCA_FILELINK:			return Task::Attribute::FileLink;
 	case TDCA_COMMENTS:			return Task::Attribute::Comments;
 	case TDCA_FLAG:				return Task::Attribute::Flag;
 	case TDCA_CREATIONDATE:		return Task::Attribute::CreationDate;
@@ -1057,7 +1057,7 @@ TDC_ATTRIBUTE Task::MapAttribute(Task::Attribute attrib)
 	case Task::Attribute::DoneDate:			return TDCA_DONEDATE;
 	case Task::Attribute::DueDate:			return TDCA_DUEDATE;
 	case Task::Attribute::ExternalId:		return TDCA_EXTERNALID;
-	case Task::Attribute::FileReference:	return TDCA_FILEREF;
+	case Task::Attribute::FileLink:			return TDCA_FILELINK;
 	case Task::Attribute::Flag:				return TDCA_FLAG;
 	case Task::Attribute::Icon:				return TDCA_ICON;
 	case Task::Attribute::HtmlComments:		return TDCA_HTMLCOMMENTS;
