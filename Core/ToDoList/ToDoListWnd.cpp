@@ -4290,7 +4290,7 @@ TDC_FILE CToDoListWnd::DelayOpenTaskList(LPCTSTR szFilePath)
 		// and the user wants notification
 		int nNotifyDueBy = Prefs().GetNotifyDueByOnLoad();
 
-		if (nNotifyDueBy != PFP_DONTNOTIFY && CDateHelper::IsDateSet(dtEarliest.m_dt))
+		if ((nNotifyDueBy != PFP_DONTNOTIFY) && CDateHelper::IsDateSet(dtEarliest.m_dt))
 		{
 			// check the date against when the user wants notifying
 			DH_DATE nDate = DHD_TODAY;
@@ -4336,10 +4336,13 @@ TDC_FILE CToDoListWnd::DelayOpenTaskList(LPCTSTR szFilePath)
 		COleDateTime dtToday = COleDateTime::GetCurrentTime();
 
 		if (floor(dtEarliest) < floor(dtToday))
+		{
 			nStatus = TDCM_PAST;
-
+		}
 		else if (floor(dtEarliest) == floor(dtToday))
+		{
 			nStatus = TDCM_TODAY;
+		}
 
 		m_mgrToDoCtrls.SetDueItemStatus(nCtrl, nStatus);
 	}
@@ -4502,7 +4505,9 @@ TDC_FILE CToDoListWnd::OpenTaskList(CFilteredToDoCtrl* pTDC, LPCTSTR szFilePath,
 					return TDCF_CANCELLED;
 			}
 			else
+			{
 				storageInfo = *pInfo;
+			}
 
 			// else
 			sFilePath = storageInfo.szLocalFileName;
@@ -5974,7 +5979,7 @@ BOOL CToDoListWnd::ReloadTaskList(int nIndex, BOOL bNotifyDueTasks, BOOL bNotify
 	CString sFilePath = tdc.GetFilePath();
 
 	// Remove the tasklist from the time tracker because
-	// OpenTasklist will correctly want to re-add it
+	// OpenTasklist will (correctly) want to re-add it
 	m_dlgTimeTracker.RemoveTasklist(&tdc);
 	
 	TDC_FILE nRes = OpenTaskList(&tdc, sFilePath);
@@ -8332,9 +8337,10 @@ BOOL CToDoListWnd::CloseToDoCtrl(int nIndex)
 	if (ConfirmSaveTaskList(nIndex, TDLS_CLOSINGTASKLISTS) != TDCF_SUCCESS)
 		return FALSE;
 	
-	// remove any find results/tracking associated with this tasklist
+	// remove any references to this tasklist
 	m_dlgFindTasks.DeleteResults(&tdc);
 	m_dlgTimeTracker.RemoveTasklist(&tdc);
+	m_dlgReminders.RemoveToDoCtrl(&tdc);
 	
 	CWaitCursor cursor;
 
@@ -8470,7 +8476,7 @@ BOOL CToDoListWnd::SelectToDoCtrl(int nIndex, BOOL bCheckPassword, int nNotifyDu
 		// if the tasklist is not loaded and we verify its loading
 		// then we know that the password (if there is one) has been 
 		// verified and doesn't need checking again
-		if (!m_mgrToDoCtrls.IsLoaded(nIndex) )
+		if (!m_mgrToDoCtrls.IsLoaded(nIndex))
 		{
 			if (!VerifyTaskListOpen(nIndex, nNotifyDueTasksBy == -1))
 			{
