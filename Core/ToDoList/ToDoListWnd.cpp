@@ -783,8 +783,8 @@ void CToDoListWnd::SetUITheme(const CString& sThemeFile)
 		tdc.SetUITheme(m_theme);
 	}
 
-	if (m_findDlg.GetSafeHwnd())
-		m_findDlg.SetUITheme(m_theme);
+	if (m_dlgFindTasks.GetSafeHwnd())
+		m_dlgFindTasks.SetUITheme(m_theme);
 
 	m_menubar.SetUITheme(m_theme);
 
@@ -1160,7 +1160,7 @@ LRESULT CToDoListWnd::OnFocusChange(WPARAM wp, LPARAM /*lp*/)
 		}
 		else
 		{
-			if (m_findDlg.GetSafeHwnd() && m_findDlg.IsChild(pFocus))
+			if (m_dlgFindTasks.GetSafeHwnd() && m_dlgFindTasks.IsChild(pFocus))
 			{
 				m_sCurrentFocus.LoadString(IDS_FINDTASKS);
 			}
@@ -2310,8 +2310,8 @@ void CToDoListWnd::SaveSettings()
 	
 	prefs.WriteProfileString(SETTINGS_KEY, _T("TaskViewImageExt"), m_sTaskViewImageExt);
 
-	if (m_findDlg.GetSafeHwnd())
-		prefs.WriteProfileInt(SETTINGS_KEY, _T("FindTasksVisible"), m_bFindShowing && m_findDlg.IsWindowVisible());
+	if (m_dlgFindTasks.GetSafeHwnd())
+		prefs.WriteProfileInt(SETTINGS_KEY, _T("FindTasksVisible"), m_bFindShowing && m_dlgFindTasks.IsWindowVisible());
 	
 	if (Prefs().GetAddFilesToMRU())
 		m_mruList.WriteList(prefs, TRUE);
@@ -2406,14 +2406,14 @@ LRESULT CToDoListWnd::OnPostOnCreate(WPARAM /*wp*/, LPARAM /*lp*/)
 	m_mgrMenuIcons.Initialize(this); // Populated on demand
 
 	// reminders
-	m_reminders.Initialize(this);
+	m_dlgReminders.Initialize(this);
 
 	// with or without Stickies Support
 	CString sStickiesPath;
 	BOOL bShowFullTaskPathInSticky = FALSE;
 	
 	if (userPrefs.GetUseStickies(sStickiesPath, bShowFullTaskPathInSticky))
-		VERIFY(m_reminders.UseStickies(TRUE, sStickiesPath, bShowFullTaskPathInSticky));
+		VERIFY(m_dlgReminders.UseStickies(TRUE, sStickiesPath, bShowFullTaskPathInSticky));
 	
 	RestoreVisibility();
 	
@@ -2475,7 +2475,7 @@ LRESULT CToDoListWnd::OnPostOnCreate(WPARAM /*wp*/, LPARAM /*lp*/)
 				// unless the tasklist has reminders
 				BOOL bActiveTDC = (sLastFile == sLastActiveFile);
 
-				if (!bActiveTDC && bCanDelayLoad && !m_reminders.ToDoCtrlHasReminders(sLastFile))
+				if (!bActiveTDC && bCanDelayLoad && !m_dlgReminders.ToDoCtrlHasReminders(sLastFile))
 				{
 					DelayOpenTaskList(sLastFile);
 				}
@@ -2571,7 +2571,7 @@ LRESULT CToDoListWnd::OnPostOnCreate(WPARAM /*wp*/, LPARAM /*lp*/)
 		OnFindTasks();
 		
 		if (userPrefs.GetRefreshFindOnLoad())
-			m_findDlg.RefreshSearch();
+			m_dlgFindTasks.RefreshSearch();
 	}
 
 	// log the app and its dlls for debugging
@@ -3171,7 +3171,7 @@ void CToDoListWnd::CheckCreateDefaultReminder(const CFilteredToDoCtrl& tdc, DWOR
 		rem.nRelativeFromWhen = (bReminderBeforeDue ? TDCR_DUEDATE : TDCR_STARTDATE);
 		rem.bEnabled = TRUE;
 
-		m_reminders.SetReminder(rem);
+		m_dlgReminders.SetReminder(rem);
 	}
 }
 
@@ -3346,15 +3346,15 @@ void CToDoListWnd::ShowFindDialog(BOOL bShow)
 {
 	if (bShow)
 	{
-		if (m_bVisible && m_findDlg.GetSafeHwnd() && IsWindowVisible())
-			m_findDlg.Show(TRUE);
+		if (m_bVisible && m_dlgFindTasks.GetSafeHwnd() && IsWindowVisible())
+			m_dlgFindTasks.Show(TRUE);
 	}
 	else // hide
 	{
-		if (m_findDlg.GetSafeHwnd())
+		if (m_dlgFindTasks.GetSafeHwnd())
 		{
-			m_bFindShowing = m_findDlg.IsWindowVisible();
-			m_findDlg.Show(FALSE);
+			m_bFindShowing = m_dlgFindTasks.IsWindowVisible();
+			m_dlgFindTasks.Show(FALSE);
 		}
 		else
 		{
@@ -3612,27 +3612,27 @@ LRESULT CToDoListWnd::OnToDoCtrlNotifyRecreateRecurringTask(WPARAM wp, LPARAM lp
 	CFilteredToDoCtrl& tdc = GetToDoCtrl();
 	TDCREMINDER rem;
 
-	int nRem = m_reminders.FindReminder(dwTaskID, &tdc);
+	int nRem = m_dlgReminders.FindReminder(dwTaskID, &tdc);
 
 	if (nRem != -1)
 	{
 		// Transfer the original if the task id has changed
 		if (dwNewTaskID != dwTaskID)		
 		{
-			if (m_reminders.TransferReminder(dwTaskID, dwNewTaskID, &tdc))
+			if (m_dlgReminders.TransferReminder(dwTaskID, dwNewTaskID, &tdc))
 				tdc.RedrawReminders();
 		}
 		else // Update the existing reminder
 		{
 			// get the existing reminder
-			m_reminders.GetReminder(nRem, rem);
+			m_dlgReminders.GetReminder(nRem, rem);
 
 			// init for new task
 			rem.bEnabled = TRUE;
 			rem.dDaysSnooze = 0.0;
 
 			// Add
-			m_reminders.SetReminder(rem);
+			m_dlgReminders.SetReminder(rem);
 		}
 	}
 
@@ -3696,13 +3696,13 @@ LRESULT CToDoListWnd::OnToDoCtrlNotifyMod(WPARAM wp, LPARAM lp)
 		{
 			return 0L;
 		}
-		else if (m_findDlg.GetSafeHwnd())
+		else if (m_dlgFindTasks.GetSafeHwnd())
 		{
 			UpdateFindDialogActiveTasklist(&tdc);
 		}
 	}
 
-	if (m_reminders.UpdateModifiedTasks(&tdc, pMod->aTaskIDs, pMod->mapAttrib))
+	if (m_dlgReminders.UpdateModifiedTasks(&tdc, pMod->aTaskIDs, pMod->mapAttrib))
 		tdc.RedrawReminders();
 
 	// Update UI
@@ -4055,7 +4055,7 @@ void CToDoListWnd::Show(BOOL bAllowToggle)
 
 		// restore find dialog
 		if (m_bFindShowing)
-			m_findDlg.Show();
+			m_dlgFindTasks.Show();
 	}
 	else if (IsIconic())
 	{
@@ -4112,7 +4112,7 @@ void CToDoListWnd::OnDebugShowReminderDlg()
 	rem.dtAbsolute = CDateHelper::GetDate(DHD_TODAY);
 	rem.bEnabled = TRUE;
 	
-	m_reminders.SetReminder(rem, TRUE);
+	m_dlgReminders.SetReminder(rem, TRUE);
 }
 
 void CToDoListWnd::OnDebugUpdateTranslation() 
@@ -4452,7 +4452,7 @@ TDC_FILE CToDoListWnd::OpenTaskList(LPCTSTR szFilePath, BOOL bNotifyDueTasks)
 		m_mgrToDoCtrls.CheckNotifyReadonly(nTDC);
 
 		// reload any reminders
-		m_reminders.AddToDoCtrl(pTDC);
+		m_dlgReminders.AddToDoCtrl(pTDC);
 		
 		// notify user of due tasks if req
 		if (bNotifyDueTasks)
@@ -4463,8 +4463,8 @@ TDC_FILE CToDoListWnd::OpenTaskList(LPCTSTR szFilePath, BOOL bNotifyDueTasks)
 		OnTimerDueItems(nTDC);
 		
 		// update search
-		if (userPrefs.GetRefreshFindOnLoad() && m_findDlg.GetSafeHwnd())
-			m_findDlg.RefreshSearch();
+		if (userPrefs.GetRefreshFindOnLoad() && m_dlgFindTasks.GetSafeHwnd())
+			m_dlgFindTasks.RefreshSearch();
 	}
 	else if (GetTDCCount() >= 1) // only delete if there's another ctrl existing
 	{
@@ -4619,8 +4619,8 @@ void CToDoListWnd::UpdateFindDialogActiveTasklist(const CFilteredToDoCtrl* pTDC)
 	pTDC->GetCustomAttributeDefs(aTDCAttribDefs);
 
 	// do the update
-	m_findDlg.SetCustomAttributes(aTDCAttribDefs, aAllAttribDefs);
-	m_findDlg.SetActiveTasklist(pTDC->GetFilePath(), Prefs().GetShowDefaultTaskIcons());
+	m_dlgFindTasks.SetCustomAttributes(aTDCAttribDefs, aAllAttribDefs);
+	m_dlgFindTasks.SetActiveTasklist(pTDC->GetFilePath(), Prefs().GetShowDefaultTaskIcons());
 }
 
 LRESULT CToDoListWnd::OnDoInitialDueTaskNotify(WPARAM /*wp*/, LPARAM /*lp*/)
@@ -5060,8 +5060,8 @@ BOOL CToDoListWnd::DoPreferences(int nInitPage)
 		UpdateCaption();
 
 		// colours
-		if (m_findDlg.GetSafeHwnd())
-			m_findDlg.RefreshUserPreferences();
+		if (m_dlgFindTasks.GetSafeHwnd())
+			m_dlgFindTasks.RefreshUserPreferences();
 		
 		// active tasklist userPrefs
 		CheckUpdateActiveToDoCtrlPreferences();
@@ -5101,7 +5101,7 @@ BOOL CToDoListWnd::DoPreferences(int nInitPage)
 		BOOL bShowFullTaskPathInSticky = FALSE;
 		BOOL bUseStickies = newPrefs.GetUseStickies(sStickiesPath, bShowFullTaskPathInSticky);
 
-		VERIFY(m_reminders.UseStickies(bUseStickies, sStickiesPath, bShowFullTaskPathInSticky));
+		VERIFY(m_dlgReminders.UseStickies(bUseStickies, sStickiesPath, bShowFullTaskPathInSticky));
 
 		// Content controls
 		m_mgrContent.LoadPreferences(CPreferences(), _T("ContentControls"), TRUE);
@@ -8182,7 +8182,7 @@ void CToDoListWnd::RefreshFindTasksListData(TDC_ATTRIBUTE nAttribID)
 	TDCAUTOLISTDATA tldActive, tldAll;
 
 	m_mgrToDoCtrls.GetAutoListData(tldActive, tldAll, nAttribID);
-	m_findDlg.SetAttributeListData(tldActive, tldAll, nAttribID);
+	m_dlgFindTasks.SetAttributeListData(tldActive, tldAll, nAttribID);
 }
 
 void CToDoListWnd::RemapAdvancedFilterMenuItemIDs(const CStringArray& aOldFilters, const CStringArray& aNewFilters)
@@ -8216,14 +8216,14 @@ void CToDoListWnd::RefreshFilterBarAdvancedFilterNames()
 {
 	CStringArray aFilters;
 
-	m_findDlg.GetSavedSearches(aFilters);
+	m_dlgFindTasks.GetSavedSearches(aFilters);
 
 	// check for unnamed filter
-	if (m_findDlg.GetSafeHwnd())
+	if (m_dlgFindTasks.GetSafeHwnd())
 	{
 		CEnString sUnNamed(IDS_UNNAMEDFILTER);
 
-		if (m_findDlg.GetActiveSearch().IsEmpty() && !Misc::Contains(sUnNamed, aFilters, FALSE, TRUE))
+		if (m_dlgFindTasks.GetActiveSearch().IsEmpty() && !Misc::Contains(sUnNamed, aFilters, FALSE, TRUE))
 			aFilters.Add(sUnNamed);
 	}
 
@@ -8333,13 +8333,13 @@ BOOL CToDoListWnd::CloseToDoCtrl(int nIndex)
 		return FALSE;
 	
 	// remove any find results/tracking associated with this tasklist
-	m_findDlg.DeleteResults(&tdc);
+	m_dlgFindTasks.DeleteResults(&tdc);
 	m_dlgTimeTracker.RemoveTasklist(&tdc);
 	
 	CWaitCursor cursor;
 
 	// save off current reminders
-	m_reminders.CloseToDoCtrl(&tdc);
+	m_dlgReminders.RemoveToDoCtrl(&tdc);
 
 	int nNewSel = m_mgrToDoCtrls.RemoveToDoCtrl(nIndex, TRUE);
 	
@@ -8614,7 +8614,7 @@ void CToDoListWnd::OnCloseall()
 		return;
 
 	// remove tasklists
-	m_findDlg.DeleteAllResults();
+	m_dlgFindTasks.DeleteAllResults();
 	m_dlgTimeTracker.RemoveAllTasklists();
 
 	int nCtrl = GetTDCCount();
@@ -8713,8 +8713,8 @@ BOOL CToDoListWnd::DoExit(BOOL bRestart, BOOL bClosingWindows)
 	
 	if (bWasVisible)
 	{
-		if (m_findDlg.GetSafeHwnd())
-			m_findDlg.ShowWindow(SW_HIDE);
+		if (m_dlgFindTasks.GetSafeHwnd())
+			m_dlgFindTasks.ShowWindow(SW_HIDE);
 
 		ShowWindow(SW_HIDE);
 	}
@@ -8754,9 +8754,9 @@ BOOL CToDoListWnd::DoExit(BOOL bRestart, BOOL bClosingWindows)
 		CEditShortcutMgr::Release();
 
 		m_dlgTimeTracker.DestroyWindow();
-		m_reminders.DestroyWindow();
+		m_dlgReminders.DestroyWindow();
 		m_filterBar.DestroyWindow();
-		m_findDlg.DestroyWindow();
+		m_dlgFindTasks.DestroyWindow();
 		m_toolbarMain.DestroyWindow();
 		m_toolbarCustom.DestroyWindow();
 			
@@ -10320,18 +10320,18 @@ void CToDoListWnd::OnUpdateGotoNexttask(CCmdUI* pCmdUI)
 
 BOOL CToDoListWnd::InitFindDialog(BOOL bShow)
 {
-	if (!m_findDlg.GetSafeHwnd())
+	if (!m_dlgFindTasks.GetSafeHwnd())
 	{
 		UpdateFindDialogActiveTasklist();
 		
-		if (!m_findDlg.Create(this))
+		if (!m_dlgFindTasks.Create(this))
 			return FALSE;
 
 		if (CThemed::IsAppThemed())
-			m_findDlg.SetUITheme(m_theme);
+			m_dlgFindTasks.SetUITheme(m_theme);
 
 		if (bShow)
-			m_findDlg.Show(bShow);
+			m_dlgFindTasks.Show(bShow);
 	}
 
 	return TRUE;
@@ -10345,7 +10345,7 @@ void CToDoListWnd::OnFindTasks()
 	{
 		// remove results from encrypted tasklists but not from the 
 		// active tasklist
-		if (!m_findDlg.IsWindowVisible())
+		if (!m_dlgFindTasks.IsWindowVisible())
 		{
 			int nSelTDC = GetSelToDoCtrl();
 			int nTDC = GetTDCCount();
@@ -10355,10 +10355,10 @@ void CToDoListWnd::OnFindTasks()
 				const CFilteredToDoCtrl& tdc = GetToDoCtrl(nTDC);
 
 				if (nTDC != nSelTDC && tdc.IsEncrypted())
-					m_findDlg.DeleteResults(&tdc);
+					m_dlgFindTasks.DeleteResults(&tdc);
 			}
 		}
-		m_findDlg.Show();
+		m_dlgFindTasks.Show();
 	}
 	
 	m_bFindShowing = TRUE;
@@ -10375,7 +10375,7 @@ LRESULT CToDoListWnd::OnFindDlgClose(WPARAM /*wp*/, LPARAM /*lp*/)
 LRESULT CToDoListWnd::OnFindDlgFind(WPARAM /*wp*/, LPARAM /*lp*/)
 {
 	// set up the search
-	BOOL bSearchAll = m_findDlg.GetSearchAllTasklists();
+	BOOL bSearchAll = m_dlgFindTasks.GetSearchAllTasklists();
 	int nSelTaskList = GetSelToDoCtrl();
 	
 	int nFrom = bSearchAll ? 0 : nSelTaskList;
@@ -10384,7 +10384,7 @@ LRESULT CToDoListWnd::OnFindDlgFind(WPARAM /*wp*/, LPARAM /*lp*/)
 	// search params
 	SEARCHPARAMS params;
 
-	if (m_findDlg.GetSearchParams(params))
+	if (m_dlgFindTasks.GetSearchParams(params))
 	{
 		CWaitCursor cursor;
 
@@ -10406,7 +10406,7 @@ LRESULT CToDoListWnd::OnFindDlgFind(WPARAM /*wp*/, LPARAM /*lp*/)
 			}
 			
 			CFilteredToDoCtrl& tdc = GetToDoCtrl(nCtrl);
-			CHoldRedraw hr(m_bFindShowing ? m_findDlg.GetSafeHwnd() : NULL);
+			CHoldRedraw hr(m_bFindShowing ? m_dlgFindTasks.GetSafeHwnd() : NULL);
 
 			CResultArray aResults;
 			
@@ -10415,17 +10415,17 @@ LRESULT CToDoListWnd::OnFindDlgFind(WPARAM /*wp*/, LPARAM /*lp*/)
 				// use tasklist title from tabctrl
 				CString sTitle = m_mgrToDoCtrls.GetTabItemText(nCtrl);
 				
-				m_findDlg.AddHeaderRow(sTitle);
+				m_dlgFindTasks.AddHeaderRow(sTitle);
 				
 				for (int nResult = 0; nResult < aResults.GetSize(); nResult++)
 				{
-					m_findDlg.AddResult(aResults[nResult], &tdc);
+					m_dlgFindTasks.AddResult(aResults[nResult], &tdc);
 				}
 			}
 		}
 	}	
 	
-	m_findDlg.SetActiveWindow();
+	m_dlgFindTasks.SetActiveWindow();
 	
 	return 0;
 }
@@ -10482,12 +10482,12 @@ BOOL CToDoListWnd::SelectTask(CFilteredToDoCtrl& tdc, DWORD dwTaskID)
 
 LRESULT CToDoListWnd::OnFindSelectAll(WPARAM /*wp*/, LPARAM /*lp*/)
 {
-	if (!m_findDlg.GetResultCount())
+	if (!m_dlgFindTasks.GetResultCount())
 		return 0;
 	
 	// if find dialog is floating then hide it
-	if (!m_findDlg.IsDocked())
-		m_findDlg.Show(FALSE);
+	if (!m_dlgFindTasks.IsDocked())
+		m_dlgFindTasks.Show(FALSE);
 	
 	CFilteredToDoCtrl& tdc = GetToDoCtrl();
 	CHoldRedraw hr(tdc);
@@ -10498,7 +10498,7 @@ LRESULT CToDoListWnd::OnFindSelectAll(WPARAM /*wp*/, LPARAM /*lp*/)
 		CFilteredToDoCtrl& tdc = GetToDoCtrl(nTDC);
 		CDWordArray aTaskIDs;
 		
-		if (m_findDlg.GetResultIDs(&tdc, aTaskIDs))
+		if (m_dlgFindTasks.GetResultIDs(&tdc, aTaskIDs))
 			tdc.SelectTasks(aTaskIDs);
 	}
 
@@ -10510,11 +10510,11 @@ LRESULT CToDoListWnd::OnFindSelectAll(WPARAM /*wp*/, LPARAM /*lp*/)
 LRESULT CToDoListWnd::OnFindApplyAsFilter(WPARAM /*wp*/, LPARAM lp)
 {
 	// if find dialog is floating then hide it
-	if (!m_findDlg.IsDocked())
-		m_findDlg.Show(FALSE);
+	if (!m_dlgFindTasks.IsDocked())
+		m_dlgFindTasks.Show(FALSE);
 	
 	TDCADVANCEDFILTER filter((LPCTSTR)lp);
-	m_findDlg.GetSearchParams(filter);
+	m_dlgFindTasks.GetSearchParams(filter);
 
 	CFilteredToDoCtrl& tdc = GetToDoCtrl();
 	tdc.SetAdvancedFilter(filter);
@@ -10571,7 +10571,7 @@ LRESULT CToDoListWnd::OnFindSaveSearch(WPARAM /*wp*/, LPARAM lp)
 	if ((m_filterBar.GetFilter(sActive) == FS_ADVANCED) && (sActive == szSearch))
 	{
 		TDCADVANCEDFILTER filter;
-		m_findDlg.GetSearchParams(szSearch, filter);
+		m_dlgFindTasks.GetSearchParams(szSearch, filter);
 
 		GetToDoCtrl().SetAdvancedFilter(filter);
 	}
@@ -11088,7 +11088,7 @@ void CToDoListWnd::OnActivateApp(BOOL bActive, HTASK hTask)
 
 	// Don't do any further processing if the Reminder dialog is active
 	// because the two windows get into a fight for activation!
-	if (m_reminders.IsForegroundWindow())
+	if (m_dlgReminders.IsForegroundWindow())
 		return;
 
 	if (!bActive)
@@ -11422,7 +11422,7 @@ void CToDoListWnd::OnChangeFilter(TDCFILTER& filter, const CString& sCustom, DWO
 	if (!sCustom.IsEmpty())
 	{
 		TDCADVANCEDFILTER filter(sCustom, dwCustomFlags);
-		VERIFY(m_findDlg.GetSearchParams(sCustom, filter));
+		VERIFY(m_dlgFindTasks.GetSearchParams(sCustom, filter));
 
 		tdc.SetAdvancedFilter(filter);
 	}
@@ -12449,7 +12449,7 @@ void CToDoListWnd::OnCloseallbutthis()
 
 			const CFilteredToDoCtrl& tdc = GetToDoCtrl(nCtrl);
 
-			m_findDlg.DeleteResults(&tdc);
+			m_dlgFindTasks.DeleteResults(&tdc);
 			m_dlgTimeTracker.RemoveTasklist(&tdc);
 
 			m_mgrToDoCtrls.RemoveToDoCtrl(nCtrl, TRUE);
@@ -12656,14 +12656,14 @@ LRESULT CToDoListWnd::OnToDoCtrlGetTaskReminder(WPARAM wParam, LPARAM lParam)
 	}
 
 	const CFilteredToDoCtrl& tdc = GetToDoCtrl(nTDC);
-	int nRem = m_reminders.FindReminder(dwTaskID, &tdc, FALSE);
+	int nRem = m_dlgReminders.FindReminder(dwTaskID, &tdc, FALSE);
 
 	if (nRem == -1)
 		return 0;
 
 	COleDateTime dtRem;
 
-	if (!m_reminders.GetReminderDate(nRem, dtRem))
+	if (!m_dlgReminders.GetReminderDate(nRem, dtRem))
 		return -1; // means the task's start/due date has not yet been set
 
 	time_t tRem = 0;
@@ -12690,11 +12690,11 @@ BOOL CToDoListWnd::GetFirstTaskReminder(const CFilteredToDoCtrl& tdc, const CDWo
 	for (int nTask = 0; nTask < nNumSel; nTask++)
 	{
 		DWORD dwTaskID = aTaskIDs[nTask];
-		int nRem = m_reminders.FindReminder(dwTaskID, &tdc);
+		int nRem = m_dlgReminders.FindReminder(dwTaskID, &tdc);
 
 		if (nRem != -1)
 		{
-			m_reminders.GetReminder(nRem, rem);
+			m_dlgReminders.GetReminder(nRem, rem);
 			return TRUE;
 		}
 	}
@@ -12733,16 +12733,16 @@ void CToDoListWnd::OnEditSetReminder()
 		for (nTask = 0; nTask < nNumSel; nTask++)
 		{
 			rem.dwTaskID = aTaskIDs[nTask];
-			m_reminders.SetReminder(rem);
+			m_dlgReminders.SetReminder(rem);
 		}
-		m_reminders.CheckReminders();
+		m_dlgReminders.CheckReminders();
 		break;
 		
 	case IDDISMISS:
 		// clear reminder for selected tasks
 		for (nTask = 0; nTask < nNumSel; nTask++)
 		{
-			m_reminders.ClearReminder(aTaskIDs[nTask], &tdc);
+			m_dlgReminders.ClearReminder(aTaskIDs[nTask], &tdc);
 		}
 		break;
 
@@ -12783,7 +12783,7 @@ void CToDoListWnd::OnEditClearReminder()
 	while (nTask--)
 	{
 		DWORD dwTaskID = aTaskIDs[nTask];
-		m_reminders.ClearReminder(dwTaskID, &tdc);
+		m_dlgReminders.ClearReminder(dwTaskID, &tdc);
 	}
 	
 	tdc.RedrawReminders();
@@ -13329,7 +13329,7 @@ void CToDoListWnd::OnUpdateEditFindReplaceInTaskComments(CCmdUI* pCmdUI)
 
 void CToDoListWnd::OnViewShowRemindersWindow() 
 {
-	m_reminders.ShowWindow();
+	m_dlgReminders.ShowWindow();
 }
 
 void CToDoListWnd::OnUpdateViewShowRemindersWindow(CCmdUI* pCmdUI) 
