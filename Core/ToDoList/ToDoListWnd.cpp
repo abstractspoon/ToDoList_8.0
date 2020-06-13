@@ -2359,26 +2359,7 @@ TDC_PREPAREPATH CToDoListWnd::PrepareFilePath(CString& sFilePath, TSM_TASKLISTIN
 	// if it starts with a colon then we need to find the removable drive it's stored on
 	else if (!sFilePath.IsEmpty())
 	{
-		if (sFilePath[0] == ':')
-		{
-			for (int nDrive = 4; nDrive <= 26; nDrive++) // from D: upwards
-			{
-				if (CDriveInfo::GetType(nDrive) == DRIVE_REMOVABLE)
-				{
-					CString sTryPath = CDriveInfo::GetLetter(nDrive) + sFilePath;
-
-					if (FileMisc::FileExists(sTryPath))
-					{
-						sFilePath = sTryPath;
-						break; // finished
-					}
-				}
-			}
-		}
-		else
-		{
-			FileMisc::MakeFullPath(sFilePath, FileMisc::GetAppFolder()); // handle relative paths
-		}
+		FileMisc::MakeFullPath(sFilePath, FileMisc::GetAppFolder());
 
 		// check for existence
 		if (FileMisc::FileExists(sFilePath))
