@@ -44,15 +44,16 @@ public:
 	inline int GetSelToDoCtrl() const { return m_tabCtrl.GetCurSel(); }
 
 	void SetPrefs(const CPreferencesDlg* pPrefs);
+	BOOL IsPristine() const;
 
 	CFilteredToDoCtrl& GetToDoCtrl(int nIndex);
 	const CFilteredToDoCtrl& GetToDoCtrl(int nIndex) const;
 
-	int RemoveToDoCtrl(int nIndex, BOOL bDelete = FALSE); // returns new selection
-	int AddToDoCtrl(CFilteredToDoCtrl* pCtrl, const TSM_TASKLISTINFO* pInfo = NULL, BOOL bLoaded = TRUE);
 	BOOL IsPristine(int nIndex) const;
+	int DeleteToDoCtrl(int nIndex); // returns new selection
+	int AddToDoCtrl(CFilteredToDoCtrl* pCtrl, const TSM_TASKLISTINFO* pInfo = NULL);
 	BOOL IsLoaded(int nIndex) const;
-	void SetLoaded(int nIndex, BOOL bLoaded = TRUE);
+	void SetLoaded(int nIndex);
 	BOOL VerifyPassword(int nIndex) const;
 	BOOL AnyIsModified() const;
 	BOOL AnyIsSourceControlled() const;
@@ -61,7 +62,8 @@ public:
 	int FindToDoCtrl(const CFilteredToDoCtrl* pTDC) const;
 	int FindToDoCtrl(LPCTSTR szFilePath) const;
 	int FindToDoCtrl(const TSM_TASKLISTINFO& info) const;
-
+	int FindPristineToDoCtrl() const;
+	
 	CString GetFileName(int nIndex, BOOL bStrict = TRUE) const;
 	CString GetFilePath(int nIndex, BOOL bStrict = TRUE) const;
 	CString GetFolderPath(int nIndex) const;
@@ -113,7 +115,7 @@ public:
 	TDC_FILE CheckOut(int nIndex, CString& sCheckedOutTo, BOOL bForce = FALSE);
 	TDC_FILE CheckIn(int nIndex);
 	
-	void MoveToDoCtrl(int nIndex, int nNumPlaces);
+	int MoveToDoCtrl(int nIndex, int nNumPlaces);
 	BOOL CanMoveToDoCtrl(int nIndex, int nNumPlaces) const;
 
 	int SortToDoCtrlsByName();
@@ -145,11 +147,12 @@ protected:
 	{
 	public:
 		TDCITEM();
-		TDCITEM(CFilteredToDoCtrl* pCtrl, BOOL loaded, const TSM_TASKLISTINFO* pInfo = NULL);
+		TDCITEM(CFilteredToDoCtrl* pCtrl, const TSM_TASKLISTINFO* pInfo = NULL);
 		virtual ~TDCITEM();
 
 		TDCM_PATHTYPE GetPathType() const;
 		CString GetFriendlyProjectName() const;
+		BOOL HasFilePath() const;
 
 		BOOL UsesStorage() const;
 		void RefreshPathType();
@@ -167,7 +170,7 @@ protected:
 		TDCM_PATHTYPE nPathType;
 		TDCM_DUESTATUS nDueStatus;
 		BOOL bNeedPrefUpdate;
-		int nUntitled; // creation index regardless of actual position
+		int nUntitledIndex; // creation index regardless of actual position
 		BOOL bLoaded;
 		COLORREF crTab;
 
@@ -182,13 +185,11 @@ protected:
 protected:
 	TDCITEM& GetTDCItem(int nIndex);
 	const TDCITEM& GetTDCItem(int nIndex) const;
-
-	// sort function
-	static int SortProc(const void* v1, const void* v2);
-	BOOL AreToDoCtrlsSorted() const;
-
-	BOOL PathTypeSupportsSourceControl(TDCM_PATHTYPE nType) const;
 	const CPreferencesDlg& Prefs() const;
+
+	// sort functions
+	static int NameSortProc(const void* v1, const void* v2);
+	BOOL AreToDoCtrlsSortedByName() const;
 
 	int UpdateTabItemImage(int nIndex) const;
 	void BackupLogFiles(const CString& sTDLPath, const CString& sBackupFolder, int nKeepBackups) const;

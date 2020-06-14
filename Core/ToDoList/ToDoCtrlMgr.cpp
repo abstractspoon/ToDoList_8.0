@@ -74,18 +74,18 @@ CToDoCtrlMgr::TDCITEM::TDCITEM()
 	nPathType = TDCM_UNDEF;
 	nDueStatus = TDCM_NONE;
 	bNeedPrefUpdate = TRUE;
-	nUntitled = -1;
+	nUntitledIndex = -1;
 	bLoaded = TRUE;
 	crTab = CLR_NONE;
 }
 
-CToDoCtrlMgr::TDCITEM::TDCITEM(CFilteredToDoCtrl* pCtrl, BOOL loaded, const TSM_TASKLISTINFO* pInfo) 
+CToDoCtrlMgr::TDCITEM::TDCITEM(CFilteredToDoCtrl* pCtrl, const TSM_TASKLISTINFO* pInfo) 
 { 
 	static int nNextUntitledIndex = 0;
-	nUntitled = (!pCtrl->HasFilePath() ? nNextUntitledIndex++ : -1);
+	nUntitledIndex = (!pCtrl->HasFilePath() ? nNextUntitledIndex++ : -1);
 
 	pTDC = pCtrl; 
-	bLoaded = loaded;
+	bLoaded = (pCtrl->HasFilePath() && !pTDC->IsDelayLoaded());
 	bModified = FALSE; 
 	bLastStatusReadOnly = -1;
 	tLastMod = 0;
@@ -117,6 +117,11 @@ CToDoCtrlMgr::TDCITEM::TDCITEM(CFilteredToDoCtrl* pCtrl, BOOL loaded, const TSM_
 
 CToDoCtrlMgr::TDCITEM::~TDCITEM()
 {
+}
+
+BOOL CToDoCtrlMgr::TDCITEM::HasFilePath() const
+{
+	return pTDC->HasFilePath();
 }
 
 TDCM_PATHTYPE CToDoCtrlMgr::TDCITEM::GetPathType() const 
@@ -169,7 +174,7 @@ CString CToDoCtrlMgr::TDCITEM::GetFriendlyProjectName() const
 		return storageinfo.szDisplayName;
 
 	// else
-	return pTDC->GetFriendlyProjectName(nUntitled); 
+	return pTDC->GetFriendlyProjectName(nUntitledIndex); 
 }
 
 TDCM_PATHTYPE CToDoCtrlMgr::TDCITEM::TranslatePathType(int nDriveInfoType)
@@ -412,7 +417,7 @@ BOOL CToDoCtrlMgr::HasFilePath(int nIndex) const
 {
 	CHECKVALIDINDEXRET(nIndex, FALSE);
 
-	return !GetFilePath(nIndex, TRUE).IsEmpty();
+	return GetTDCItem(nIndex).HasFilePath();
 }
 
 TDCM_PATHTYPE CToDoCtrlMgr::GetFilePathType(int nIndex) const
@@ -432,11 +437,16 @@ TDCM_PATHTYPE CToDoCtrlMgr::RefreshPathType(int nIndex)
 	return tdci.nPathType;
 }
 
+BOOL CToDoCtrlMgr::IsPristine() const
+{
+	return ((GetCount() == 1) && IsPristine(0));
+}
+
 BOOL CToDoCtrlMgr::IsPristine(int nIndex) const
 {
 	CHECKVALIDINDEXRET(nIndex, FALSE);
-	
-	return (!HasFilePath(nIndex) && !IsModified(nIndex));
+
+	return GetTDCItem(nIndex).pTDC->IsPristine();
 }
 
 BOOL CToDoCtrlMgr::IsLoaded(int nIndex) const
@@ -453,16 +463,20 @@ BOOL CToDoCtrlMgr::IsModified(int nIndex) const
 	return GetToDoCtrl(nIndex).IsModified();
 }
 
-void CToDoCtrlMgr::SetLoaded(int nIndex, BOOL bLoaded)
+void CToDoCtrlMgr::SetLoaded(int nIndex)
 {
 	CHECKVALIDINDEX(nIndex);
 
 	TDCITEM& tdci = GetTDCItem(nIndex);
-
-	if (tdci.bLoaded != bLoaded)
+	
+	if (!tdci.bLoaded)
 	{
-		tdci.bLoaded = bLoaded;
+		ASSERT(!tdci.pTDC->IsDelayLoaded());
+
+		tdci.bLoaded = TRUE;
+
 		UpdateTabItemImage(nIndex);
+		UpdateTabItemText(nIndex);
 	}
 }
 
@@ -784,7 +798,7 @@ void CToDoCtrlMgr::CheckNotifyReadonly(int nIndex) const
 	}
 }
 
-int CToDoCtrlMgr::RemoveToDoCtrl(int nIndex, BOOL bDelete)
+int CToDoCtrlMgr::DeleteToDoCtrl(int nIndex)
 {
 	CHECKVALIDINDEXRET(nIndex, -1);
 
@@ -794,7 +808,7 @@ int CToDoCtrlMgr::RemoveToDoCtrl(int nIndex, BOOL bDelete)
 	CFilteredToDoCtrl& tdc = GetToDoCtrl(nIndex);
 	TDCITEM& tdci = GetTDCItem(nIndex);
 
-	if (bDelete)
+	if (tdci.HasFilePath())
 	{
 		// checkin as our final task
 		if (tdci.bLoaded && tdc.IsCheckedOut() && Prefs().GetCheckinOnClose())
@@ -805,7 +819,6 @@ int CToDoCtrlMgr::RemoveToDoCtrl(int nIndex, BOOL bDelete)
 
 		if (!sKey.IsEmpty())
 		{
-
 			if (tdci.crTab == CLR_NONE)
 				prefs.DeleteProfileEntry(sKey, _T("TabColor"));
 			else
@@ -816,7 +829,7 @@ int CToDoCtrlMgr::RemoveToDoCtrl(int nIndex, BOOL bDelete)
 	m_aToDoCtrls.RemoveAt(nIndex);
 	m_tabCtrl.DeleteItem(nIndex);
 
-	// set new selection as close to previous as possible *before* deleting the tasklist
+	// set new selection as close to previous as possible BEFORE deleting the tasklist
 	if (GetCount())
 	{
 		if (nIndex <= nSel)
@@ -842,42 +855,46 @@ int CToDoCtrlMgr::RemoveToDoCtrl(int nIndex, BOOL bDelete)
 		m_tabCtrl.SetCurSel(nNewSel);
 	}
 
-	if (bDelete) // else it's going to be re-added
+	// cleanup browser
+	CBrowserDlg* pBrowser = NULL;
+
+	if (m_mapBrowsers.Lookup(&tdc, pBrowser))
 	{
-		// cleanup browser
-		CBrowserDlg* pBrowser = NULL;
+		CPreferences prefs;
+		pBrowser->SavePosition(prefs, tdc.GetPreferencesKey(_T("DueTaskViewer")));
 
-		if (m_mapBrowsers.Lookup(&tdc, pBrowser))
-		{
-			CPreferences prefs;
-			pBrowser->SavePosition(prefs, tdc.GetPreferencesKey(_T("DueTaskViewer")));
-			
-			pBrowser->DestroyWindow();
-			delete pBrowser;
+		pBrowser->DestroyWindow();
+		delete pBrowser;
 
-			m_mapBrowsers.RemoveKey(&tdc);
+		m_mapBrowsers.RemoveKey(&tdc);
 
-			// delete any temp due task notification files
-			CString sTempFile;
-			sTempFile.Format(_T("ToDoList.due.%d"), nIndex);
-			
-			FileMisc::DeleteFile(FileMisc::GetTempFilePath(sTempFile, _T("html")), TRUE);
-			FileMisc::DeleteFile(FileMisc::GetTempFilePath(sTempFile, _T("txt")), TRUE);
-		}
+		// delete any temp due task notification files
+		CString sTempFile;
+		sTempFile.Format(_T("ToDoList.due.%d"), nIndex);
 
-		tdc.DestroyWindow();
-		delete &tdc;
+		FileMisc::DeleteFile(FileMisc::GetTempFilePath(sTempFile, _T("html")), TRUE);
+		FileMisc::DeleteFile(FileMisc::GetTempFilePath(sTempFile, _T("txt")), TRUE);
 	}
+
+	tdc.DestroyWindow();
+	delete &tdc;
 
 	return nNewSel;
 }
 
-int CToDoCtrlMgr::AddToDoCtrl(CFilteredToDoCtrl* pCtrl, const TSM_TASKLISTINFO* pInfo, BOOL bLoaded)
+int CToDoCtrlMgr::AddToDoCtrl(CFilteredToDoCtrl* pTDC, const TSM_TASKLISTINFO* pInfo)
 {
-	TDCITEM tdci(pCtrl, bLoaded, pInfo);
+	TDCITEM tdci(pTDC, pInfo);
+
+	// Sanity check - Can only be one pristine tasklist
+	if (pTDC->IsPristine() && (FindPristineToDoCtrl() != -1))
+	{
+		ASSERT(0);
+		return -1;
+	}
 
 	// Restore tasklist tab colour if any
-	CString sKey = pCtrl->GetPreferencesKey();
+	CString sKey = pTDC->GetPreferencesKey();
 	
 	if (!sKey.IsEmpty())
 		tdci.crTab = (COLORREF)CPreferences().GetProfileInt(sKey, _T("TabColor"), CLR_NONE);
@@ -891,6 +908,7 @@ int CToDoCtrlMgr::AddToDoCtrl(CFilteredToDoCtrl* pCtrl, const TSM_TASKLISTINFO* 
 
 	RefreshPathType(nSel);
 	RefreshLastCheckoutStatus(nSel);
+	CheckNotifyReadonly(nSel);
 
 	UpdateTabItemImage(nSel);
 	UpdateTabItemText(nSel);
@@ -898,30 +916,34 @@ int CToDoCtrlMgr::AddToDoCtrl(CFilteredToDoCtrl* pCtrl, const TSM_TASKLISTINFO* 
 	return nSel;
 }
 
-void CToDoCtrlMgr::MoveToDoCtrl(int nIndex, int nNumPlaces)
+int CToDoCtrlMgr::MoveToDoCtrl(int nIndex, int nNumPlaces)
 {
-	CHECKVALIDINDEX(nIndex);
+	CHECKVALIDINDEXRET(nIndex, nIndex);
 
 	if (nNumPlaces == 0)
-		return;
+		return nIndex;
 
 	int nOrgCount = m_tabCtrl.GetItemCount();
 
 	if (!CanMoveToDoCtrl(nIndex, nNumPlaces))
-		return;
+		return nIndex;
 
 	// cache selection so we can restore it afterwards
 	int nSel = GetSelToDoCtrl(), nNewSel = nSel;
 
 	// work out what the new selection should be
 	if (nIndex == nSel)
+	{
 		nNewSel = (nIndex + nNumPlaces);
-
+	}
 	else if (nIndex > nSel && (nIndex + nNumPlaces) <= nSel)
+	{
 		nNewSel++;
-
+	}
 	else if (nIndex < nSel && (nIndex + nNumPlaces) >= nSel)
+	{
 		nNewSel--;
+	}
 
 	// make copies of existing
 	TCITEM tci;
@@ -931,20 +953,22 @@ void CToDoCtrlMgr::MoveToDoCtrl(int nIndex, int nNumPlaces)
 	tci.cchTextMax = 127;
 		
 	m_tabCtrl.GetItem(nIndex, &tci);
-	TDCITEM tdci = GetTDCItem(nIndex);
+	TDCITEM tdci = GetTDCItem(nIndex); // copy
 
 	// remove and re-add
-	RemoveToDoCtrl(nIndex);
+	m_aToDoCtrls.RemoveAt(nIndex);
+	m_tabCtrl.DeleteItem(nIndex);
 
 	nIndex += nNumPlaces;
 
 	m_aToDoCtrls.InsertAt(nIndex, tdci);
 	m_tabCtrl.InsertItem(nIndex, &tci);
 
-	// set selection
-	m_tabCtrl.SetCurSel(nNewSel);
+	ASSERT(nOrgCount == m_tabCtrl.GetItemCount());
 
-	ASSERT (nOrgCount == m_tabCtrl.GetItemCount());
+	// Update selection
+	m_tabCtrl.SetCurSel(nNewSel);
+	return nNewSel;
 }
 
 BOOL CToDoCtrlMgr::CanMoveToDoCtrl(int nIndex, int nNumPlaces) const
@@ -1000,12 +1024,12 @@ int CToDoCtrlMgr::SortToDoCtrlsByName()
 {
 	int nSel = GetSelToDoCtrl();
 
-	if (!AreToDoCtrlsSorted())
+	if (!AreToDoCtrlsSortedByName())
 	{
 		// save off current selection 
 		CFilteredToDoCtrl* pTDC = &GetToDoCtrl(nSel);
 
-		qsort(m_aToDoCtrls.GetData(), m_aToDoCtrls.GetSize(), sizeof(TDCITEM), SortProc);
+		qsort(m_aToDoCtrls.GetData(), m_aToDoCtrls.GetSize(), sizeof(TDCITEM), NameSortProc);
 
 		nSel = -1;
 
@@ -1026,10 +1050,10 @@ int CToDoCtrlMgr::SortToDoCtrlsByName()
 	return nSel;
 }
 
-int CToDoCtrlMgr::SortProc(const void* v1, const void* v2)
+int CToDoCtrlMgr::NameSortProc(const void* v1, const void* v2)
 {
-	TDCITEM* pTDCI1 = (TDCITEM*)v1;
-	TDCITEM* pTDCI2 = (TDCITEM*)v2;
+	const TDCITEM* pTDCI1 = (TDCITEM*)v1;
+	const TDCITEM* pTDCI2 = (TDCITEM*)v2;
 
 	CString sName1 = pTDCI1->GetFriendlyProjectName();
 	CString sName2 = pTDCI2->GetFriendlyProjectName();
@@ -1037,7 +1061,7 @@ int CToDoCtrlMgr::SortProc(const void* v1, const void* v2)
 	return sName1.CompareNoCase(sName2);
 }
 
-BOOL CToDoCtrlMgr::AreToDoCtrlsSorted() const
+BOOL CToDoCtrlMgr::AreToDoCtrlsSortedByName() const
 {
 	if (GetCount() <= 1)
 		return TRUE;
@@ -1156,27 +1180,31 @@ int CToDoCtrlMgr::UpdateTabItemImage(int nIndex) const
 	CHECKVALIDINDEXRET(nIndex, IM_NONE);
 
 	int nImage = IM_NONE;
-	const TDCITEM& tci = GetTDCItem(nIndex);
+	const TDCITEM& tdci = GetTDCItem(nIndex);
 	
-	if (!tci.bLoaded)
+	if (!tdci.HasFilePath())
+	{
+		// IM_NONE
+	}
+	else if (!tdci.bLoaded)
 	{
 		nImage = IM_NOTLOADED;
 	}
-	else if (tci.bLastStatusReadOnly > 0)
+	else if (tdci.bLastStatusReadOnly > 0)
 	{
 		nImage = IM_READONLY;	
 	}
-	else if (tci.pTDC->CompareFileFormat() == TDCFF_NEWER)
+	else if (tdci.pTDC->CompareFileFormat() == TDCFF_NEWER)
 	{
 		nImage = IM_READONLY;	
 	}
-	else if (tci.pTDC->IsActivelyTimeTracking()) // takes priority
+	else if (tdci.pTDC->IsActivelyTimeTracking()) // takes priority
 	{
 		nImage = IM_TIMETRACKING;
 	}
-	else if ((tci.bLastStatusReadOnly == 0) && IsSourceControlled(nIndex))
+	else if ((tdci.bLastStatusReadOnly == 0) && IsSourceControlled(nIndex))
 	{
-		nImage = (tci.pTDC->IsCheckedOut() ? IM_CHECKEDOUT : IM_CHECKEDIN);	
+		nImage = (tdci.pTDC->IsCheckedOut() ? IM_CHECKEDOUT : IM_CHECKEDIN);	
 	}
 
 	// update tab array
@@ -1208,12 +1236,12 @@ CString CToDoCtrlMgr::GetTabItemTooltip(int nIndex) const
 	CHECKVALIDINDEXRET(nIndex, _T(""));
 
 	CEnString sTooltip;
-	const TDCITEM& tci = GetTDCItem(nIndex);
+	const TDCITEM& tdci = GetTDCItem(nIndex);
 
 	switch (UpdateTabItemImage(nIndex))
 	{
 	case IM_READONLY:
-		if (tci.pTDC->CompareFileFormat() == TDCFF_NEWER)
+		if (tdci.pTDC->CompareFileFormat() == TDCFF_NEWER)
 			sTooltip.LoadString(IDS_STATUSNEWERFORMAT);
 		else
 			sTooltip.LoadString(IDS_STATUSREADONLY);
@@ -1233,6 +1261,10 @@ CString CToDoCtrlMgr::GetTabItemTooltip(int nIndex) const
 		
 	case IM_TIMETRACKING:	
 		sTooltip.LoadString(IDS_TABTIP_TIMETRACKING);
+		break;
+
+	case IM_NONE:
+		sTooltip = tdci.pTDC->GetFilePath();
 		break;
 	}
 
@@ -1330,6 +1362,20 @@ int CToDoCtrlMgr::FindToDoCtrl(const TSM_TASKLISTINFO& info) const
 			if (_tcscmp(ctrlInfo.szTasklistID, info.szTasklistID) == 0)
 				return nCtrl;
 		}
+	}
+
+	// not found
+	return -1;
+}
+
+int CToDoCtrlMgr::FindPristineToDoCtrl() const
+{
+	int nCtrl = GetCount();
+	
+	while (nCtrl--)
+	{
+		if (IsPristine(nCtrl))
+			return nCtrl;
 	}
 
 	// not found
