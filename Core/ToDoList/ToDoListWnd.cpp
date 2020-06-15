@@ -1067,6 +1067,7 @@ void CToDoListWnd::PopulateMenuIconManager()
 	aCmdIDs.Add(ID_VIEW_INCREMENTTASKVIEWFONTSIZE);
 	aCmdIDs.Add(ID_VIEW_DECREMENTTASKVIEWFONTSIZE);
 	aCmdIDs.Add(ID_EXIT);
+	aCmdIDs.Add(ID_FILE_ENCRYPT);
 
 	m_mgrMenuIcons.AddImages(aCmdIDs, IDB_APP_EXTRA_STD, MAGENTA);
 
