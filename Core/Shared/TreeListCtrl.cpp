@@ -1065,21 +1065,13 @@ LRESULT CTreeListCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM l
 	case WM_MOUSEWHEEL:
 		{
 			int zDelta = GET_WHEEL_DELTA_WPARAM(wp);
+			WORD wKeys = LOWORD(wp);
 
-			if (zDelta != 0)
+			if ((zDelta != 0) && (wKeys == 0))
 			{
-				WORD wKeys = LOWORD(wp);
-				
-				if (wKeys == MK_CONTROL)
-				{
-					// TODO
-				}
-				else
-				{
-					CHoldHScroll hhs(m_tree);
+				CHoldHScroll hhs(m_tree);
 					
-					return CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
-				}
+				return CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
 			}
 		}
 		break;
