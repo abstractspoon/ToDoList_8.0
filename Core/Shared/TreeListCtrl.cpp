@@ -1615,7 +1615,12 @@ COLORREF CTreeListCtrl::DrawTreeItemBackground(CDC* pDC, HTREEITEM hti, DWORD dw
 	if (crBack == CLR_NONE)
 		crBack = CTreeListCtrl::GetTreeItemBackColor(hti, dwItemData, bSelected);
 
-	pDC->FillSolidRect(rItem, crBack);
+	CRect rBack(rItem);
+
+	if (!bSelected && HasGridlines())
+		rBack.bottom--;
+
+	pDC->FillSolidRect(rBack, crBack);
 	return crBack;
 }
 
