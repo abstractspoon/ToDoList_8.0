@@ -1061,9 +1061,32 @@ LRESULT CTreeListCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM l
 
 		case WM_HSCROLL:
 			{
-				CHoldRedraw hr(hRealWnd, NCR_PAINT | NCR_UPDATE);
+				switch (LOWORD(wp))
+				{
+				case SB_THUMBPOSITION:
+				case SB_ENDSCROLL:
+					// No need to handle this because we handled SB_THUMBTRACK
+					break;
 
-				return CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
+				case SB_THUMBTRACK:
+					// Don't do anything if nothing's changed
+					{
+						int nCurPos = ::GetScrollPos(m_tree, SB_HORZ);
+						int nNewPos = (int)HIWORD(wp);
+
+						if (nNewPos == nCurPos)
+							break;
+					}
+					// else fall thru
+
+				default:
+					{
+						CHoldRedraw hr(hRealWnd, NCR_PAINT | NCR_UPDATE);
+
+						return CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
+					}
+					break;
+				}
 			}
 			break;
 		}
@@ -1597,11 +1620,12 @@ LRESULT CTreeListCtrl::OnTreeCustomDraw(NMTVCUSTOMDRAW* pTVCD)
 				// Draw icon
 				DrawTreeItemIcon(pDC, hti, dwItemData, rItem);
 
-				// pre-draw background
-				rItem.right = rClient.right;
-
+				// Redraw the entire row background if the item is selected
+				// or just the title column if it is not
 				if (bSelected)
-					DrawTreeItemBackground(pDC, hti, dwItemData, rItem, bSelected);
+					rItem.right = rClient.right;
+
+				DrawTreeItemBackground(pDC, hti, dwItemData, rItem, bSelected);
 
 				// draw horz gridline
 				DrawHorzItemDivider(pDC, pTVCD->nmcd.rc);
