@@ -1578,7 +1578,9 @@ LRESULT CTreeListCtrl::OnTreeCustomDraw(NMTVCUSTOMDRAW* pTVCD)
 
 				// pre-draw background
 				rItem.right = rClient.right;
-				COLORREF crBack = DrawTreeItemBackground(pDC, hti, dwItemData, rItem, bSelected);
+
+				if (bSelected)
+					DrawTreeItemBackground(pDC, hti, dwItemData, rItem, bSelected);
 
 				// draw horz gridline
 				DrawHorzItemDivider(pDC, pTVCD->nmcd.rc);
