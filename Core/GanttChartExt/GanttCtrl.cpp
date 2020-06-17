@@ -2486,11 +2486,12 @@ void CGanttCtrl::DrawTreeSubItemText(CDC* pDC, HTREEITEM hti, DWORD dwItemData, 
 		else
 			rText.DeflateRect(LV_COLPADDING, 2, LV_COLPADDING, 0);
 
-		HGDIOBJ hFontOld = pDC->SelectObject(GetTreeItemFont(hti, *pGI, nColID));
-
 		// text color and alignment
 		BOOL bLighter = FALSE; 
 		UINT nFlags = (DT_LEFT | DT_VCENTER | DT_NOPREFIX | GraphicsMisc::GetRTLDrawTextFlags(m_tree));
+
+		// Must set font before calling GetTextExtent
+		HGDIOBJ hFontOld = pDC->SelectObject(GetTreeItemFont(hti, *pGI, nColID));
 
 		switch (nColID)
 		{
