@@ -179,15 +179,6 @@ namespace Calendar
                             {
                                 System.DateTime newStart = selection.StartDate.AddHours(hoursDiff);
 
-//                                 if (newStart < m_dayView.StartDate)
-//                                 {
-//                                     newStart = m_dayView.StartDate;
-//                                 }
-//                                 else if ((newStart + apptLen) >= m_dayView.EndDate)
-//                                 {
-//                                     newStart = (m_dayView.EndDate - apptLen);
-//                                 }
-
                                 if (newStart != selection.StartDate)
                                 {
                                     selection.StartDate = newStart;
@@ -214,7 +205,7 @@ namespace Calendar
 
 							if (dateAtCursor > selection.StartDate)
 							{
-								if (SameDay(selection.EndDate, dateAtCursor.Date))
+								if (SameDay(selection.EndDate, dateAtCursor))
 								{
 									selection.EndDate = dateAtCursor;
 
