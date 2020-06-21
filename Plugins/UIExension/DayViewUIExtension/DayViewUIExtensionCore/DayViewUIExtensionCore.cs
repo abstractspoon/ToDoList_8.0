@@ -404,8 +404,7 @@ namespace DayViewUIExtension
 			btn1.ToolTipText = m_Trans.Translate("Go to Today");
 			m_Toolbar.Items.Add(btn1);
 
-			var sep1 = new ToolStripSeparator();
-			m_Toolbar.Items.Add(sep1);
+			m_Toolbar.Items.Add(new ToolStripSeparator());
 
 			var btn2 = new ToolStripButton();
 			btn2.Name = "Show1DayView";
@@ -428,8 +427,7 @@ namespace DayViewUIExtension
 			btn4.ToolTipText = m_Trans.Translate("7 Day View");
 			m_Toolbar.Items.Add(btn4);
 
-			var sep2 = new ToolStripSeparator();
-			m_Toolbar.Items.Add(sep2);
+			m_Toolbar.Items.Add(new ToolStripSeparator());
 
 			var btn5 = new ToolStripButton();
 			btn5.ImageIndex = 4;
