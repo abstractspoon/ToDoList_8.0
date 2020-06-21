@@ -744,6 +744,19 @@ namespace DayViewUIExtension
 			}
 		}
 
+		public override bool EnsureVisible(Calendar.Appointment appt, bool partialOK)
+		{
+			if ((appt == null) && (m_SelectedTaskID != 0))
+			{
+				CalendarItem item;
+
+				if (m_Items.TryGetValue(m_SelectedTaskID, out item))
+					appt = item;
+			}
+
+			return base.EnsureVisible(appt, partialOK);
+		}
+
 		protected override void DrawAppointment(Graphics g, Rectangle rect, Calendar.Appointment appointment, bool isSelected, Rectangle gripRect)
 		{
 			// Allow selection to be drawn even when a

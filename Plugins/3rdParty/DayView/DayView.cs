@@ -286,27 +286,15 @@ namespace Calendar
             {
                 if ((value > 0) && (value <= 28) && (value != daysToShow))
                 {
-                    daysToShow = value; // must come first
+                    daysToShow = value; // must come before resetting start date
+					StartDate = startDate;
 
-                    if (daysToShow == 7)
-                    {
-                        HScrollTooltipText = "Change Week";
-
-                        // Move to start of week
-                        StartDate = startDate;
-                    }
-                    else if (daysToShow == 1) // day view
-                    {
-                        HScrollTooltipText = "Change Day";
-
-                        // make sure the day for the selected task is visible
-                        if (SelectedAppointment != null)
-                            StartDate = SelectedAppointment.StartDate;
-                    }
-                    else
-                    {
-                        HScrollTooltipText = "Change";
-                    }
+					switch (daysToShow)
+					{
+					case 1:	 HScrollTooltipText = "Change Day";		break;
+					case 7:	 HScrollTooltipText = "Change Week";	break;
+					default: HScrollTooltipText = "Change";			break;
+					}
 
                     EnsureVisible(SelectedAppointment, true);
                     OnDaysToShowChanged();
@@ -455,7 +443,7 @@ namespace Calendar
 			}
         }
 
-		public bool EnsureVisible(Appointment appt, bool partialOK)
+		virtual public bool EnsureVisible(Appointment appt, bool partialOK)
 		{
 			if (appt == null)
 				return false;
