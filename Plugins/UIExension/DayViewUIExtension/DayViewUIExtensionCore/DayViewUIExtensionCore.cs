@@ -717,9 +717,15 @@ namespace DayViewUIExtension
 		{
 			var move = args as Calendar.MoveAppointmentEventArgs;
 
-			// Ignore moves whilst they are occurring
-			if ((move == null) || !move.Finished)
+			if (move == null)
 				return;
+
+            // Only update selected task dates whilst move is in progress
+            if (!move.Finished)
+            {
+                UpdatedSelectedTaskDatesText();
+                return;
+            }
 
 			var item = args.Appointment as CalendarItem;
 
@@ -810,7 +816,9 @@ namespace DayViewUIExtension
 					}
 					break;
 			}
-		}
+
+            UpdatedSelectedTaskDatesText();
+        }
 
         private bool WantModifyTimeEstimate(CalendarItem item)
         {
