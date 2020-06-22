@@ -720,7 +720,7 @@ namespace DayViewUIExtension
 			if (move == null)
 				return;
 
-            // Only update selected task dates whilst move is in progress
+            // Whilst move is in progress only update selected task dates 
             if (!move.Finished)
             {
                 UpdatedSelectedTaskDatesText();
