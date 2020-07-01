@@ -1398,6 +1398,20 @@ int Misc::AddUniqueItems(const CStringArray& array, CStringArray& aTo, BOOL bCas
 	return nAdded;
 }
 
+int Misc::AddUniqueItems(const CDWordArray& aValues, CDWordArray& aTo)
+{
+	int nAdded = 0; // counter
+	int nSize = aValues.GetSize();
+	
+	for (int nItem = 0; nItem < nSize; nItem++)
+	{
+		if (AddUniqueItemT(aValues[nItem], aTo))
+			nAdded++;
+	}
+
+	return nAdded;
+}
+
 BOOL Misc::AddUniqueItem(const CString& sItem, CStringArray& aTo, BOOL bCaseSensitive)
 {
 	if (sItem.IsEmpty())
