@@ -384,6 +384,26 @@ BOOL CKanbanCtrl::SelectTasks(const CDWordArray& aTaskIDs)
 	return TRUE;
 }
 
+int CKanbanCtrl::GetSelectedCount() const
+{
+	if (m_pSelectedColumn)
+		return m_pSelectedColumn->GetSelectedCount();
+
+	return 0;
+}
+
+BOOL CKanbanCtrl::SelectAllInSelectedColumn()
+{
+	if (!GetSelectedCount())
+		return FALSE;
+
+	if (!m_pSelectedColumn->SelectAll())
+		return FALSE;
+
+	NotifyParentSelectionChange();
+	return TRUE;
+}
+
 int CKanbanCtrl::GetSelectedTaskIDs(CDWordArray& aTaskIDs) const
 {
 	const CKanbanColumnCtrl* pCol = GetSelColumn();

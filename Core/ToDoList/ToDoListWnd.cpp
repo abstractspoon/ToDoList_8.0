@@ -12422,7 +12422,7 @@ void CToDoListWnd::OnEditSelectall()
 
 void CToDoListWnd::OnUpdateEditSelectall(CCmdUI* pCmdUI) 
 {
-	pCmdUI->Enable(GetToDoCtrl().GetTaskCount());	
+	pCmdUI->Enable(GetToDoCtrl().CanSelectAll());	
 }
 
 void CToDoListWnd::OnCloseallbutthis() 
