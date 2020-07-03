@@ -83,7 +83,7 @@ protected:
 	UITHEME m_theme;
 	CString	m_sTrackedCustomAttribID;
 	TDC_ATTRIBUTE m_nTrackedAttrib;
-	DWORD m_dwSelTaskID;
+	CDWordArray m_aSelTaskIDs;
 
 // Overrides
 	// ClassWizard generated virtual function overrides

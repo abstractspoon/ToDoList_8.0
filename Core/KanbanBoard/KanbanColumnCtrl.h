@@ -16,13 +16,15 @@
 #include "..\Shared\tooltipctrlex.h"
 #include "..\Shared\mapex.h"
 #include "..\Shared\TreeCtrlHelper.h"
+#include "..\Shared\TreeSelectionHelper.h"
 
 /////////////////////////////////////////////////////////////////////////////
 
-const UINT WM_KLCN_TOGGLETASKDONE	= (WM_APP+1); // WPARAM = HWND, LPARAM = Task ID
+const UINT WM_KLCN_EDITTASKDONE		= (WM_APP+1); // WPARAM = HWND, LPARAM = TRUE/FALSE
 const UINT WM_KLCN_GETTASKICON		= (WM_APP+2); // WPARAM = TaskID, LPARAM = int* (imageIndex), return HIMAGELIST
-const UINT WM_KLCN_EDITTASKICON		= (WM_APP+3); // WPARAM = HWND, LPARAM = Task ID
-const UINT WM_KLCN_TOGGLETASKFLAG	= (WM_APP+4); // WPARAM = HWND, LPARAM = Task ID
+const UINT WM_KLCN_EDITTASKICON		= (WM_APP+3); // WPARAM = HWND, LPARAM = 
+const UINT WM_KLCN_EDITTASKFLAG		= (WM_APP+4); // WPARAM = HWND, LPARAM = TRUE/FALSE
+const UINT WM_KLCN_EDITTASKLABEL	= (WM_APP+6); // WPARAM = HWND, LPARAM = TaskID
 
 /////////////////////////////////////////////////////////////////////////////
 // CKanbanListCtrlEx window
@@ -52,7 +54,7 @@ public:
 	const KANBANCOLUMN& ColumnDefinition() const { return m_columnDef; }
 	
 	BOOL Create(UINT nID, CWnd* pParentWnd);
-	HTREEITEM AddTask(const KANBANITEM& ki, BOOL bSelect);
+	HTREEITEM AddTask(const KANBANITEM& ki);
 	BOOL DeleteTask(DWORD dwTaskID);
 	BOOL DeleteAll();
 	int RemoveDeletedTasks(const CDWordSet& mapCurIDs);
@@ -62,16 +64,22 @@ public:
 	BOOL SaveToImage(CBitmap& bmImage, const CSize& reqSize);
 	CSize CalcRequiredSizeForImage() const;
 
-	HTREEITEM FindTask(DWORD dwTaskID) const;
-	HTREEITEM FindTask(const CPoint& ptScreen) const;
-	HTREEITEM FindTask(const IUISELECTTASK& select, BOOL bNext, HTREEITEM htiStart = NULL) const;
+	HTREEITEM FindItem(DWORD dwTaskID) const;
+	HTREEITEM FindItem(const CPoint& ptScreen) const;
+	HTREEITEM FindItem(const IUISELECTTASK& select, BOOL bNext, HTREEITEM htiStart = NULL) const;
 
 	DWORD GetTaskID(HTREEITEM hti) const { return GetItemData(hti); }
 
-	DWORD GetSelectedTaskID() const;
-	BOOL SelectTasks(const CDWordArray& aTaskIDs) { return FALSE; }
-	BOOL SelectTask(DWORD dwTaskID);
+	int GetSelectedTaskIDs(CDWordArray& aTaskIDs) const;
+	DWORD GetOnlySelectedTask() const;
+	BOOL SelectTasks(const CDWordArray& aTaskIDs);
 	void ScrollToSelection();
+	BOOL HasTasks(const CDWordArray& aTaskIDs) const;
+	BOOL IsTaskSelected(DWORD dwTaskID) const;
+	int GetSelectedCount() const;
+	HTREEITEM GetFirstSelectedItem() const;
+	HTREEITEM GetLastSelectedItem() const;
+	void SetHotItem(DWORD dwTaskID);
 
 	BOOL GetLabelEditRect(LPRECT pEdit);
 	BOOL GetItemBounds(HTREEITEM hti, LPRECT lpRect) const;
@@ -114,17 +122,18 @@ protected:
 	const CKanbanAttributeArray& m_aDisplayAttrib;
 
 	// For quick lookup
-	CMap<DWORD, DWORD, HTREEITEM, HTREEITEM&> m_mapItems;
+	CHTIMap m_mapHTItems;
 
 	CImageList m_ilCheckboxes, m_ilIcons;
 	CToolTipCtrlEx m_tooltip;
 	CTreeCtrlHelper m_tch;
+	CDWordArray m_aSelTaskIDs;
 
 	KANBANCOLUMN m_columnDef;
 	DWORD m_dwDisplay, m_dwOptions;
 	int m_nItemTextHeight, m_nItemTextBorder, m_nNumTitleLines;
 	KBC_ATTRIBLABELS m_nAttribLabelVisiability;
-	HTREEITEM m_htiHot;
+	DWORD m_dwHotItem;
 	
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -146,29 +155,31 @@ protected:
 	afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
-	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnTooltipShow(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
+	afx_msg void OnKillFocus(CWnd* pNewWnd);
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 	afx_msg LRESULT OnThemeChanged(WPARAM wp, LPARAM lp);
 	afx_msg LRESULT OnSetFont(WPARAM wp, LPARAM lp);
-	afx_msg LRESULT OnMouseWheel(WPARAM wp, LPARAM lp);
-	afx_msg LRESULT OnMouseLeave(WPARAM wp, LPARAM lp);
 
 	DECLARE_MESSAGE_MAP()
 
 protected:
-	// Prevent parent calling these
-	void DeleteAllItems() {}
-	void InsertItem() {}
-	void DeleteItem() {}
+	// Prevent anyone calling these
+	void DeleteAllItems() { ASSERT(0); }
+	void InsertItem() { ASSERT(0); }
+	void DeleteItem() { ASSERT(0); }
+	HTREEITEM GetSelectedItem() const { ASSERT(0); return NULL; }
+
 	
 protected:
 	int CalcItemTitleTextHeight() const;
 	void RecalcItemLineHeight();
 	void RefreshBkgndColor();
-	BOOL HandleButtonClick(CPoint point, HTREEITEM& htiHit);
+	BOOL HandleButtonClick(CPoint point, BOOL bLeftBtn, HTREEITEM& htiHit);
+	BOOL HandleExtendedSelection(HTREEITEM htiSelected);
 	BOOL GetItemLabelTextRect(HTREEITEM hti, CRect& rItem, BOOL bEdit = FALSE, const KANBANITEM* pKI = NULL) const;
 	BOOL InitTooltip();
 	BOOL GetItemTooltipRect(HTREEITEM hti, CRect& rItem, const KANBANITEM* pKI) const;
@@ -178,21 +189,25 @@ protected:
 	BOOL GetItemCheckboxRect(HTREEITEM hti, CRect& rItem, const KANBANITEM* pKI) const;
 	BOOL GetItemCheckboxRect(CRect& rItem) const;
 	BOOL HitTestCheckbox(HTREEITEM hti, CPoint point) const;
+	void NotifyParentSelectionChange(HTREEITEM hItem, BOOL bByMouse);
+	BOOL SelectTask(DWORD dwTaskID);
+	BOOL IsOnlySelectedTask(DWORD dwTaskID);
 
 	KBC_IMAGETYPE HitTestImage(HTREEITEM hti, CPoint point) const;
 	void DrawItemImage(CDC* pDC, const CRect& rImage, KBC_IMAGETYPE nType, BOOL bHover, HIMAGELIST hIL = NULL, int nIndex = -1) const;
 
 	BOOL HasOption(DWORD dwOption) const { return (m_dwOptions & dwOption); }
-	void UpdateHotItem();
 
+	void DrawItem(CDC* pDC, DWORD dwTaskID, const CRect& rItem);
 	void DrawItemCheckbox(CDC* pDC, const KANBANITEM* pKI, CRect& rItem);
 	void DrawItemParents(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, COLORREF crText) const;
-	void DrawItemImages(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, BOOL bHot) const;
+	void DrawItemImages(CDC* pDC, const KANBANITEM* pKI, CRect& rItem) const;
 	void DrawItemBar(CDC* pDC, const KANBANITEM* pKI, CRect& rItem) const;
 	void DrawAttribute(CDC* pDC, CRect& rLine, TDC_ATTRIBUTE nAttrib, const CString& sValue, int nFlags, COLORREF crText) const;
-	void FillItemBackground(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText, BOOL bSelected) const;
+	void FillItemBackground(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText) const;
 	void DrawItemTitle(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText);
 	void DrawItemAttributes(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText);
+	int BuildSortedSelection(CHTIList& lstHTI) const;
 
 	static int CALLBACK SortProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 	static UINT GetDisplayFormat(TDC_ATTRIBUTE nAttrib, BOOL bLong);

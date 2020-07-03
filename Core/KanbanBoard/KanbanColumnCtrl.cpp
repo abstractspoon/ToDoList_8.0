@@ -33,16 +33,8 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 
-#ifndef LVS_EX_DOUBLEBUFFER
-#	define LVS_EX_DOUBLEBUFFER  0x00010000
-#endif
-
 #ifndef TVS_EX_DOUBLEBUFFER
 #	define TVS_EX_DOUBLEBUFFER  0x0004
-#endif
-
-#ifndef LVS_EX_LABELTIP
-#	define LVS_EX_LABELTIP		0x00004000
 #endif
 
 #ifndef TTM_ADJUSTRECT
@@ -86,6 +78,7 @@ const int TIP_PADDING			= GraphicsMisc::ScaleByDPIFactor(4);
 const int IMAGE_SIZE			= GraphicsMisc::ScaleByDPIFactor(16);
 const int IMAGE_PADDING			= 2/*GraphicsMisc::ScaleByDPIFactor(2)*/;
 const int LEVEL_INDENT			= GraphicsMisc::ScaleByDPIFactor(16);
+const int MAX_DRAG_IMAGE_SIZE	= GraphicsMisc::ScaleByDPIFactor(200);
 
 const CRect TEXT_BORDER			= CRect(2, 1, 3, 1);
 const COLORREF WHITE			= RGB(255, 255, 255);
@@ -113,7 +106,7 @@ CKanbanColumnCtrl::CKanbanColumnCtrl(const CKanbanItemMap& data, const KANBANCOL
 	m_bDrawTaskParents(FALSE),
 	m_dwDisplay(0),
 	m_dwOptions(0),
-	m_htiHot(NULL),
+	m_dwHotItem(0),
 #pragma warning (disable: 4355)
 	m_tch(*this)
 #pragma warning (default: 4355)
@@ -135,13 +128,13 @@ BEGIN_MESSAGE_MAP(CKanbanColumnCtrl, CTreeCtrl)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_RBUTTONDOWN()
-	ON_WM_MOUSEMOVE()
-	ON_WM_SIZE()
+	ON_WM_KEYDOWN()
+	ON_WM_SYSKEYDOWN()
 	ON_WM_SETCURSOR()
+	ON_WM_KILLFOCUS()
+	ON_WM_SETFOCUS()
 	ON_NOTIFY(TTN_SHOW, 0, OnTooltipShow)
 	ON_MESSAGE(WM_SETFONT, OnSetFont)
-	ON_MESSAGE(WM_MOUSEWHEEL, OnMouseWheel)
-	ON_MESSAGE(WM_MOUSELEAVE, OnMouseLeave)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -150,7 +143,7 @@ END_MESSAGE_MAP()
 BOOL CKanbanColumnCtrl::Create(UINT nID, CWnd* pParentWnd)
 {
 	UINT nFlags = (WS_CHILD | WS_VISIBLE | LVS_REPORT | WS_TABSTOP |
-				   TVS_NONEVENHEIGHT | TVS_SHOWSELALWAYS | TVS_EDITLABELS | 
+				   TVS_NONEVENHEIGHT | TVS_SHOWSELALWAYS | 
 				   TVS_FULLROWSELECT | TVS_NOTOOLTIPS | TVS_NOHSCROLL);
 
 	return CTreeCtrl::Create(nFlags, CRect(0, 0, 0, 0), pParentWnd, nID);
@@ -187,6 +180,20 @@ int CKanbanColumnCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	RefreshBkgndColor();
 
 	return 0;
+}
+
+void CKanbanColumnCtrl::OnSetFocus(CWnd* pOldWnd)
+{
+	CTreeCtrl::OnSetFocus(pOldWnd);
+
+	Invalidate(FALSE);
+}
+
+void CKanbanColumnCtrl::OnKillFocus(CWnd* pNewWnd)
+{
+	CTreeCtrl::OnKillFocus(pNewWnd);
+
+	Invalidate(FALSE);
 }
 
 void CKanbanColumnCtrl::SetDropTarget(BOOL bTarget)
@@ -360,6 +367,9 @@ void CKanbanColumnCtrl::SetAttributeLabelVisibility(KBC_ATTRIBLABELS nLabelVis)
 void CKanbanColumnCtrl::SetSelected(BOOL bSelected)
 {
 	m_bSelected = bSelected;
+
+	if (!bSelected)
+		ClearSelection();
 }
 
 int CKanbanColumnCtrl::CalcItemTitleTextHeight() const
@@ -367,9 +377,9 @@ int CKanbanColumnCtrl::CalcItemTitleTextHeight() const
 	return (m_nNumTitleLines * m_nItemTextHeight);
 }
 
-HTREEITEM CKanbanColumnCtrl::AddTask(const KANBANITEM& ki, BOOL bSelect)
+HTREEITEM CKanbanColumnCtrl::AddTask(const KANBANITEM& ki)
 {
-	HTREEITEM hti = FindTask(ki.dwTaskID);
+	HTREEITEM hti = FindItem(ki.dwTaskID);
 
 	if (hti)
 	{
@@ -390,16 +400,8 @@ HTREEITEM CKanbanColumnCtrl::AddTask(const KANBANITEM& ki, BOOL bSelect)
 
 	if (hti)
 	{
-		m_mapItems[ki.dwTaskID] = hti;
-
+		m_mapHTItems.AddItem(*this, hti);
 		RefreshItemLineHeights(hti);
-
-		// select item and make visible
-		if (bSelect)
-		{
-			SetItemState(hti, TVIS_SELECTED, TVIS_SELECTED);
-			EnsureVisible(hti);
-		}
 	}
 
 	return hti;
@@ -408,6 +410,16 @@ HTREEITEM CKanbanColumnCtrl::AddTask(const KANBANITEM& ki, BOOL bSelect)
 CString CKanbanColumnCtrl::GetAttributeID() const 
 { 
 	return m_columnDef.sAttribID; 
+}
+
+BOOL CKanbanColumnCtrl::IsTaskSelected(DWORD dwTaskID) const
+{
+	ASSERT(dwTaskID);
+
+	if (m_bSavingToImage || !m_bSelected)
+		return FALSE;
+	
+	return (Misc::FindT(dwTaskID, m_aSelTaskIDs) != -1);
 }
 
 BOOL CKanbanColumnCtrl::IsBacklog() const
@@ -473,24 +485,11 @@ int CKanbanColumnCtrl::CalcAvailableAttributeWidth(int nColWidth) const
 	return nAvailWidth;
 }
 
-void CKanbanColumnCtrl::OnSize(UINT nType, int cx, int cy)
+void CKanbanColumnCtrl::FillItemBackground(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText) const
 {
-	CTreeCtrl::OnSize(nType, cx, cy);
-
-// 	if (!m_bSavingToImage && m_header.GetSafeHwnd() && m_header.GetCount())
-// 	{
-// 		if (GetStyle() & WS_VSCROLL)
-// 			SetColumnWidth(0, (cx - 1));
-// 		else
-// 			SetColumnWidth(0, (cx - 1 - GetSystemMetrics(SM_CXVSCROLL)));
-// 	}
-}
-
-void CKanbanColumnCtrl::FillItemBackground(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText, BOOL bSelected) const
-{
-	if (bSelected)
+	if (IsTaskSelected(pKI->dwTaskID))
 	{
-		BOOL bFocused = (bSelected && (::GetFocus() == GetSafeHwnd()));
+		BOOL bFocused = (::GetFocus() == *this);
 
 		GM_ITEMSTATE nState = (bFocused ? GMIS_SELECTED : GMIS_SELECTEDNOTFOCUSED);
 		crText = GraphicsMisc::GetExplorerItemSelectionTextColor(crText, nState, GMIB_THEMECLASSIC);
@@ -526,9 +525,9 @@ void CKanbanColumnCtrl::OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
 		
 	case CDDS_ITEMPREPAINT:
 		{
-			const KANBANITEM* pKI = m_data.GetItem(pTVCD->nmcd.lItemlParam);
+			DWORD dwTaskID = pTVCD->nmcd.lItemlParam;
 			
-			if (pKI)
+			if (m_data.HasItem(dwTaskID))
 			{
 				HTREEITEM hti = (HTREEITEM)pTVCD->nmcd.dwItemSpec;
 				CDC* pDC = CDC::FromHandle(pTVCD->nmcd.hdc);
@@ -537,41 +536,55 @@ void CKanbanColumnCtrl::OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
 				GetItemRect(hti, rItem, NULL);
 				rItem.DeflateRect(1, 1);
 
-				// Checkbox
-				DrawItemCheckbox(pDC, pKI, rItem);
-				
-				BOOL bSelected = (!m_bSavingToImage && TCH().IsSelectedItem(hti));
-				COLORREF crText = pKI->GetTextColor(bSelected, (HasOption(KBCF_TASKTEXTCOLORISBKGND) && !HasOption(KBCF_SHOWTASKCOLORASBAR)));
-
-				// Background
-				FillItemBackground(pDC, pKI, rItem, crText, bSelected);
-
-				// Parents
-				COLORREF crOtherText = crText;
-				
-				if (!bSelected && !Misc::IsHighContrastActive() && !pKI->IsDone(TRUE))
-					crOtherText = GraphicsMisc::Lighter(crText, 0.3);
-
-				DrawItemParents(pDC, pKI, rItem, crOtherText);
-	
-				// Bar affects everything else
-				DrawItemBar(pDC, pKI, rItem);
-
-				// Icons don't affect attributes
-				CRect rAttributes(rItem);
-
-				DrawItemImages(pDC, pKI, rItem, (hti == m_htiHot));
-				DrawItemTitle(pDC, pKI, rItem, crText);
-
-				rAttributes.top += CalcItemTitleTextHeight();
-				rAttributes.top += IMAGE_PADDING;
-
-				DrawItemAttributes(pDC, pKI, rAttributes, crOtherText);
+				DrawItem(pDC, dwTaskID, rItem);
 			}
 			
 			*pResult |= CDRF_SKIPDEFAULT;
 		}
 	}
+}
+
+void CKanbanColumnCtrl::DrawItem(CDC* pDC, DWORD dwTaskID, const CRect& rItem)
+{
+	const KANBANITEM* pKI = m_data.GetItem(dwTaskID);
+
+	if (!pKI)
+	{
+		ASSERT(0);
+		return;
+	}
+
+	// Checkbox
+	CRect rBody(rItem);
+	DrawItemCheckbox(pDC, pKI, rBody);
+
+	BOOL bSelected = IsTaskSelected(dwTaskID);
+	COLORREF crText = pKI->GetTextColor(bSelected, (HasOption(KBCF_TASKTEXTCOLORISBKGND) && !HasOption(KBCF_SHOWTASKCOLORASBAR)));
+
+	// Background
+	FillItemBackground(pDC, pKI, rBody, crText);
+
+	// Parents
+	COLORREF crOtherText = crText;
+
+	if (!bSelected && !Misc::IsHighContrastActive() && !pKI->IsDone(TRUE))
+		crOtherText = GraphicsMisc::Lighter(crText, 0.3);
+
+	DrawItemParents(pDC, pKI, rBody, crOtherText);
+
+	// Bar affects everything else
+	DrawItemBar(pDC, pKI, rBody);
+
+	// Icons don't affect attributes
+	CRect rAttributes(rBody);
+
+	DrawItemImages(pDC, pKI, rBody);
+	DrawItemTitle(pDC, pKI, rBody, crText);
+
+	rAttributes.top += CalcItemTitleTextHeight();
+	rAttributes.top += IMAGE_PADDING;
+
+	DrawItemAttributes(pDC, pKI, rAttributes, crOtherText);
 }
 
 void CKanbanColumnCtrl::DrawItemTitle(CDC* pDC, const KANBANITEM* pKI, const CRect& rItem, COLORREF crText)
@@ -689,7 +702,7 @@ void CKanbanColumnCtrl::DrawItemParents(CDC* pDC, const KANBANITEM* pKI, CRect& 
 	}
 }
 
-void CKanbanColumnCtrl::DrawItemImages(CDC* pDC, const KANBANITEM* pKI, CRect& rItem, BOOL bHot) const
+void CKanbanColumnCtrl::DrawItemImages(CDC* pDC, const KANBANITEM* pKI, CRect& rItem) const
 {
 	CSaveDC sdc(pDC);
 	CRect rClip(rItem), rIcon(rItem);
@@ -710,7 +723,10 @@ void CKanbanColumnCtrl::DrawItemImages(CDC* pDC, const KANBANITEM* pKI, CRect& r
 			DrawItemImage(pDC, rIcon, KBCI_ICON, FALSE, hilTask, iImageIndex);
 	}
 
+	// Always leave space for icon
 	rIcon.OffsetRect(0, IMAGE_SIZE);
+
+	BOOL bHot = (!m_bSavingToImage && (pKI->dwTaskID == m_dwHotItem));
 
 	if (m_bDrawTaskFlags)
 	{
@@ -782,27 +798,24 @@ void CKanbanColumnCtrl::DrawItemBar(CDC* pDC, const KANBANITEM* pKI, CRect& rIte
 
 void CKanbanColumnCtrl::DrawItemCheckbox(CDC* pDC, const KANBANITEM* pKI, CRect& rItem)
 {
-	if (HasOption(KBCF_SHOWCOMPLETIONCHECKBOXES))
+	CRect rCheckbox(rItem);
+
+	if (GetItemCheckboxRect(rCheckbox))
 	{
-		CRect rCheckbox(rItem);
+		int iImage = KLCC_UNCHECKED;
 
-		if (GetItemCheckboxRect(rCheckbox))
+		if (pKI->IsDone(FALSE))
 		{
-			int iImage = KLCC_UNCHECKED;
-		
-			if (pKI->IsDone(FALSE))
-			{
-				iImage = KLCC_CHECKED;
-			}
-			else if (pKI->bSomeSubtaskDone)
-			{
-				iImage = KLCC_MIXED;
-			}
-
-			m_ilCheckboxes.Draw(pDC, iImage, rCheckbox.TopLeft(), ILD_TRANSPARENT);
-
-			rItem.left = (rCheckbox.right + CHECKBOX_PADDING);
+			iImage = KLCC_CHECKED;
 		}
+		else if (pKI->bSomeSubtaskDone)
+		{
+			iImage = KLCC_MIXED;
+		}
+
+		m_ilCheckboxes.Draw(pDC, iImage, rCheckbox.TopLeft(), ILD_TRANSPARENT);
+
+		rItem.left = (rCheckbox.right + CHECKBOX_PADDING);
 	}
 }
 
@@ -1013,13 +1026,13 @@ CString CKanbanColumnCtrl::FormatAttribute(TDC_ATTRIBUTE nAttrib, const CString&
 
 BOOL CKanbanColumnCtrl::GetLabelEditRect(LPRECT pEdit)
 {
-	if (!m_bSelected || !GetCount() || !GetSelectedItem())
+	if (!m_bSelected || !GetCount() || (m_aSelTaskIDs.GetSize() != 1))
 	{
 		ASSERT(0);
 		return FALSE;
 	}
 
-	HTREEITEM hti = GetSelectedItem();
+	HTREEITEM hti = FindItem(m_aSelTaskIDs[0]);
 	ASSERT(hti);
 
 	// scroll into view first
@@ -1036,38 +1049,191 @@ BOOL CKanbanColumnCtrl::GetLabelEditRect(LPRECT pEdit)
 	return FALSE;
 }
 
-DWORD CKanbanColumnCtrl::GetSelectedTaskID() const
+int CKanbanColumnCtrl::GetSelectedTaskIDs(CDWordArray& aTaskIDs) const
 {
-	HTREEITEM hti = GetSelectedItem();
+	if (m_bSelected)
+		aTaskIDs.Copy(m_aSelTaskIDs);
+	else
+		aTaskIDs.RemoveAll();
 
-	return (hti ? GetTaskID(hti) : 0);
+	return aTaskIDs.GetSize();
+}
+
+int CKanbanColumnCtrl::GetSelectedCount() const
+{
+	if (m_bSelected)
+		return m_aSelTaskIDs.GetSize();
+
+	return 0;
+}
+
+HTREEITEM CKanbanColumnCtrl::GetFirstSelectedItem() const
+{
+	CHTIList lstHTI;
+
+	if (BuildSortedSelection(lstHTI))
+		return lstHTI.GetHead();
+
+	return NULL;
+}
+
+HTREEITEM CKanbanColumnCtrl::GetLastSelectedItem() const
+{
+	CHTIList lstHTI;
+
+	if (BuildSortedSelection(lstHTI))
+		return lstHTI.GetTail();
+
+	return NULL;
+}
+
+int CKanbanColumnCtrl::BuildSortedSelection(CHTIList& lstHTI) const
+{
+	lstHTI.RemoveAll();
+	
+	if (!m_bSelected || !m_aSelTaskIDs.GetSize())
+		return 0;
+
+	int nSel = m_aSelTaskIDs.GetSize();
+
+	while (nSel--)
+		lstHTI.AddTail(FindItem(m_aSelTaskIDs[nSel]));
+
+	CKanbanColumnCtrl& tree = const_cast<CKanbanColumnCtrl&>(*this);
+
+	CTreeSelectionHelper(tree).SortSelection(lstHTI, TRUE);
+
+	return lstHTI.GetCount();
+}
+
+BOOL CKanbanColumnCtrl::SelectTasks(const CDWordArray& aTaskIDs)
+{
+	if (HasTasks(aTaskIDs))
+		m_aSelTaskIDs.Copy(aTaskIDs);
+	else
+		m_aSelTaskIDs.RemoveAll();
+
+	Invalidate(FALSE);
+
+	return m_aSelTaskIDs.GetSize();
+}
+
+BOOL CKanbanColumnCtrl::HasTasks(const CDWordArray& aTaskIDs) const
+{
+	int nID = aTaskIDs.GetSize();
+
+	while (nID--)
+	{
+		if (!m_mapHTItems.HasItem(aTaskIDs[nID]))
+			return FALSE;
+	}
+
+	return TRUE;
 }
 
 void CKanbanColumnCtrl::ScrollToSelection()
 {
-	TCH().EnsureItemVisible(GetSelectedItem(), FALSE);
+	if (m_bSelected && GetSelectedCount())
+	{
+		CRect rClient;
+		GetClientRect(rClient);
+
+		// Check for any selected item being completely visible
+		int nID = GetSelectedCount();
+		HTREEITEM htiPartial = NULL;
+
+		while (nID--)
+		{
+			HTREEITEM hti = FindItem(m_aSelTaskIDs[nID]);
+			ASSERT(hti);
+
+			CRect rItem;
+			CTreeCtrl::GetItemRect(hti, rItem, FALSE);
+
+			if ((rItem.top >= rClient.top) && (rItem.bottom <= rClient.bottom))
+				return;
+
+			// Keep track of any partially visible item
+			if (htiPartial == NULL)
+			{
+				BOOL bNotVisible = ((rItem.bottom <= rClient.top) || (rItem.top >= rClient.bottom));
+
+				if (!bNotVisible)
+					htiPartial = hti;
+			}
+		}
+
+		// else just scroll to the first
+		HTREEITEM hti = (htiPartial ? htiPartial : FindItem(m_aSelTaskIDs[0]));
+		ASSERT(hti);
+
+		TCH().EnsureItemVisible(hti, FALSE);
+	}
 }
 
 void CKanbanColumnCtrl::ClearSelection()
 {
-	CTreeCtrl::SelectItem(NULL);
+	if (m_aSelTaskIDs.GetSize())
+	{
+		m_aSelTaskIDs.RemoveAll();
+		Invalidate(FALSE);
+	}
 }
 
 BOOL CKanbanColumnCtrl::SelectTask(DWORD dwTaskID)
 {
-	return CTreeCtrl::SelectItem(FindTask(dwTaskID));
+	if (IsOnlySelectedTask(dwTaskID))
+		return TRUE;
+
+	ClearSelection();
+
+	if (dwTaskID)
+	{
+		HTREEITEM hti = FindItem(dwTaskID);
+
+		if (hti)
+		{
+			m_aSelTaskIDs.Add(dwTaskID);
+			TCH().EnsureItemVisible(hti, FALSE);
+		}
+	}
+
+	return m_aSelTaskIDs.GetSize();
 }
 
-HTREEITEM CKanbanColumnCtrl::FindTask(DWORD dwTaskID) const
+BOOL CKanbanColumnCtrl::IsOnlySelectedTask(DWORD dwTaskID)
 {
-	HTREEITEM hti = NULL;
-	m_mapItems.Lookup(dwTaskID, hti);
-
-	return hti;
-	//return m_tch.FindItem(dwTaskID);
+	return (dwTaskID && (dwTaskID == GetOnlySelectedTask()));
 }
 
-HTREEITEM CKanbanColumnCtrl::FindTask(const CPoint& ptScreen) const
+DWORD CKanbanColumnCtrl::GetOnlySelectedTask() const
+{
+	if (GetSelectedCount() != 1)
+		return 0;
+
+	return m_aSelTaskIDs[0];
+}
+
+void CKanbanColumnCtrl::SetHotItem(DWORD dwTaskID)
+{
+	if (m_dwHotItem == dwTaskID)
+		return;
+
+	if (m_dwHotItem)
+		TCH().InvalidateItem(FindItem(m_dwHotItem));
+
+	if (dwTaskID)
+		TCH().InvalidateItem(FindItem(dwTaskID));
+
+	m_dwHotItem = dwTaskID;
+}
+
+HTREEITEM CKanbanColumnCtrl::FindItem(DWORD dwTaskID) const
+{
+	return m_mapHTItems.GetItem(dwTaskID);
+}
+
+HTREEITEM CKanbanColumnCtrl::FindItem(const CPoint& ptScreen) const
 {
 	CPoint ptClient(ptScreen);
 	ScreenToClient(&ptClient);
@@ -1075,7 +1241,7 @@ HTREEITEM CKanbanColumnCtrl::FindTask(const CPoint& ptScreen) const
 	return CTreeCtrl::HitTest(ptClient);
 }
 
-HTREEITEM CKanbanColumnCtrl::FindTask(const IUISELECTTASK& select, BOOL bNext, HTREEITEM htiStart) const
+HTREEITEM CKanbanColumnCtrl::FindItem(const IUISELECTTASK& select, BOOL bNext, HTREEITEM htiStart) const
 {
 	HTREEITEM htiNext = NULL;
 
@@ -1102,11 +1268,15 @@ HTREEITEM CKanbanColumnCtrl::FindTask(const IUISELECTTASK& select, BOOL bNext, H
 
 BOOL CKanbanColumnCtrl::DeleteTask(DWORD dwTaskID)
 {
-	HTREEITEM hti = FindTask(dwTaskID);
+	HTREEITEM hti = FindItem(dwTaskID);
 
 	if (hti && CTreeCtrl::DeleteItem(hti))
 	{
-		m_mapItems.RemoveKey(dwTaskID);
+		m_mapHTItems.RemoveKey(dwTaskID);
+
+		if (m_dwHotItem == dwTaskID)
+			m_dwHotItem = 0;
+
 		return TRUE;
 	}
 
@@ -1115,7 +1285,7 @@ BOOL CKanbanColumnCtrl::DeleteTask(DWORD dwTaskID)
 
 BOOL CKanbanColumnCtrl::DeleteAll()
 {
-	m_mapItems.RemoveAll();
+	m_mapHTItems.RemoveAll();
 
 	return CTreeCtrl::DeleteAllItems();
 }
@@ -1134,14 +1304,14 @@ int CKanbanColumnCtrl::RemoveDeletedTasks(const CDWordSet& mapCurIDs)
 
 		if (!mapCurIDs.Has(dwTaskID) && CTreeCtrl::DeleteItem(hti))
 		{	
-			m_mapItems.RemoveKey(dwTaskID);
+			m_mapHTItems.RemoveKey(dwTaskID);
 			nNumDeleted++;
 		}
 
 		hti = htiNext;
 	}
 
-	ASSERT(m_mapItems.GetCount() == (int)GetCount());
+	ASSERT(m_mapHTItems.GetCount() == (int)GetCount());
 
 	return nNumDeleted;
 }
@@ -1314,68 +1484,14 @@ void CKanbanColumnCtrl::Sort(TDC_ATTRIBUTE nBy, BOOL bAscending)
 	TVSORTCB tvs = { NULL, SortProc, (LPARAM)&ks };
 
 	SortChildrenCB(&tvs);
-	UpdateHotItem();
 }
 
 void CKanbanColumnCtrl::OnRButtonDown(UINT nFlags, CPoint point)
 {
 	HTREEITEM htiUnused = NULL;
-	HandleButtonClick(point, htiUnused);
+	HandleButtonClick(point, FALSE, htiUnused);
 	
 	CTreeCtrl::OnRButtonDown(nFlags, point);
-}
-
-void CKanbanColumnCtrl::OnMouseMove(UINT nFlags, CPoint point)
-{
-	CTreeCtrl::OnMouseMove(nFlags, point);
-
-	UpdateHotItem();
-}
-
-LRESULT CKanbanColumnCtrl::OnMouseWheel(WPARAM /*wp*/, LPARAM /*lp*/)
-{
-	LRESULT lr = Default();
-
-	UpdateHotItem();
-
-	return lr;
-}
-
-LRESULT CKanbanColumnCtrl::OnMouseLeave(WPARAM /*wp*/, LPARAM /*lp*/)
-{
-	LRESULT lr = Default();
-
-	UpdateHotItem();
-	CDialogHelper::TrackMouseLeave(*this, FALSE);
-
-	return lr;
-}
-
-void CKanbanColumnCtrl::UpdateHotItem()
-{
-	if (!m_bDrawTaskFlags)
-		return;
-
-	CPoint point(GetMessagePos());
-	ScreenToClient(&point);
-
-	HTREEITEM htiHot = HitTest(point);
-
-	if (htiHot != m_htiHot)
-	{
-		CRect rFlag;
-
-		if (m_htiHot)
-			TCH().InvalidateItem(m_htiHot);
-
-		if (htiHot)
-		{
-			TCH().InvalidateItem(htiHot);
-			CDialogHelper::TrackMouseLeave(*this, TRUE, FALSE);
-		}
-
-		m_htiHot = htiHot;
-	}
 }
 
 void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
@@ -1384,18 +1500,25 @@ void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 	// indentation of subtasks, because we want clicking to the
 	// left of the task to select the task BUT NOT begin a 
 	// drag operation or a label edit. 
-	// My intuition tells me that it can be simplified...
+	DWORD dwPrevOnlyTaskID = GetOnlySelectedTask(), dwHitTaskID = 0;
+
 	HTREEITEM htiHit = NULL;
-	BOOL bHandled = HandleButtonClick(point, htiHit);
+	BOOL bHandled = HandleButtonClick(point, TRUE, htiHit);
 
 	if (htiHit)
 	{
+		dwHitTaskID = GetTaskID(htiHit);
+
+		const KANBANITEM* pKI = m_data.GetItem(dwHitTaskID);
+		ASSERT(pKI);
+
 		UINT nMsgID = 0;
-		DWORD dwTaskID = GetTaskID(htiHit);
+		BOOL bSet = FALSE;
 
 		if (HitTestCheckbox(htiHit, point))
 		{
-			nMsgID = WM_KLCN_TOGGLETASKDONE;
+			nMsgID = WM_KLCN_EDITTASKDONE;
+			bSet = !pKI->bDone;
 		}
 		else
 		{
@@ -1406,7 +1529,8 @@ void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 				break;
 
 			case KBCI_FLAG:
-				nMsgID = WM_KLCN_TOGGLETASKFLAG;
+				nMsgID = WM_KLCN_EDITTASKFLAG;
+				bSet = !pKI->bFlagged;
 				break;
 			}
 		}
@@ -1414,45 +1538,36 @@ void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 		if (nMsgID)
 		{
 			// Post message to give mouse-click time to complete
-			GetParent()->PostMessage(nMsgID, (WPARAM)GetSafeHwnd(), dwTaskID);
+			GetParent()->PostMessage(nMsgID, (WPARAM)GetSafeHwnd(), bSet);
+			Invalidate(FALSE);
+
 			bHandled = TRUE;
 		}
 		else if (bHandled)
 		{
-			// Handle item drag because we WON'T be calling base class
-			CPoint ptScreen(point);
-			ClientToScreen(&ptScreen);
+			// Perform drag if the point is to the right of any indent
+			// because we won't be calling the base class handler
+			CRect rIndentedItem;
+			GetItemLabelTextRect(htiHit, rIndentedItem, FALSE);
 
-			if (::DragDetect(*this, ptScreen))
+			if (point.x > rIndentedItem.left)
 			{
-				TRACE(_T("CKanbanColumnCtrl::OnLButtonDown(Faking drag start)\n"));
+				CPoint ptScreen(point);
+				ClientToScreen(&ptScreen);
 
-				NMTREEVIEW nmtv = { *this, (UINT)GetDlgCtrlID(), TVN_BEGINDRAG, 0 };
+				if (::DragDetect(*this, ptScreen))
+				{
+					TRACE(_T("CKanbanColumnCtrl::OnLButtonDown(Faking drag start)\n"));
 
-				nmtv.itemNew.hItem = htiHit;
-				nmtv.itemNew.lParam = dwTaskID;
-				nmtv.ptDrag = point;
+					NMTREEVIEW nmtv = { *this, (UINT)GetDlgCtrlID(), TVN_BEGINDRAG, 0 };
 
-				GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nmtv);
+					nmtv.itemNew.hItem = htiHit;
+					nmtv.itemNew.lParam = dwHitTaskID;
+					nmtv.ptDrag = point;
+
+					GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nmtv);
+				}
 			}
-		}
-	}
-
-	// If not handled second click should cause label edit
-	if (!bHandled && htiHit)
-	{
-		// Adjust 'point' to compensate for the indent
-		CRect rTreeItem, rIndentedItem;
-
-		CTreeCtrl::GetItemRect(htiHit, rTreeItem, FALSE);
-		GetItemLabelTextRect(htiHit, rIndentedItem, FALSE);
-
-		if (rTreeItem.left != rIndentedItem.left)
-		{
-			point.x -= (rIndentedItem.left - rTreeItem.left);
-			DefWindowProc(WM_LBUTTONDOWN, nFlags, MAKELPARAM(point.x, point.y));
-		
-			bHandled = TRUE;
 		}
 	}
 	
@@ -1463,19 +1578,85 @@ void CKanbanColumnCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 void CKanbanColumnCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	HTREEITEM htiHit = NULL;
-	BOOL bHandled = HandleButtonClick(point, htiHit);
+	BOOL bHandled = HandleButtonClick(point, TRUE, htiHit);
 
 	if (htiHit)
 	{
-		bHandled = TRUE;
-		EditLabel(htiHit);
+		CRect rIndentedItem;
+		GetItemLabelTextRect(htiHit, rIndentedItem, FALSE);
+
+		if (point.x > rIndentedItem.left)
+		{
+			bHandled = TRUE;
+			GetParent()->PostMessage(WM_KLCN_EDITTASKLABEL, (WPARAM)GetSafeHwnd(), GetTaskID(htiHit));
+		}
 	}
 
 	if (!bHandled)
 		CTreeCtrl::OnLButtonDblClk(nFlags, point);
 }
 
-BOOL CKanbanColumnCtrl::HandleButtonClick(CPoint point, HTREEITEM& htiHit)
+BOOL CKanbanColumnCtrl::HandleExtendedSelection(HTREEITEM htiSelected)
+{
+	DWORD dwTaskID = GetTaskID(htiSelected);
+
+	if (Misc::IsKeyPressed(VK_SHIFT))
+	{
+		// select all items between first item (anchor) and clicked item
+		if (m_aSelTaskIDs.GetSize())
+		{
+			DWORD dwAnchorID = m_aSelTaskIDs[0];
+
+			HTREEITEM htiAnchor = FindItem(dwAnchorID);
+			ASSERT(htiAnchor);
+
+			CTreeSelectionHelper tsh(*this);
+			tsh.SetItems(htiAnchor, htiSelected, TSHS_SELECT, FALSE);
+
+			// If control is pressed we append these to the current
+			// selection else we overwrite the current selection
+			if (Misc::IsKeyPressed(VK_CONTROL))
+			{
+				CDWordArray aNewTaskIDs;
+				tsh.GetItemData(aNewTaskIDs);
+
+				Misc::AddUniqueItems(aNewTaskIDs, m_aSelTaskIDs);
+			}
+			else
+			{
+				tsh.GetItemData(m_aSelTaskIDs);
+			}
+
+			// Move the anchor to the head
+			Misc::RemoveItemT(dwAnchorID, m_aSelTaskIDs);
+			m_aSelTaskIDs.InsertAt(0, dwAnchorID);
+		}
+		else
+		{
+			SelectTask(dwTaskID);
+		}
+
+		return TRUE;
+	}
+	
+	if (Misc::IsKeyPressed(VK_CONTROL))
+	{
+		if (Misc::FindT(dwTaskID, m_aSelTaskIDs) == -1)
+		{
+			m_aSelTaskIDs.InsertAt(0, dwTaskID); // new anchor
+		}
+		else
+		{
+			Misc::RemoveItemT(dwTaskID, m_aSelTaskIDs);
+		}
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+BOOL CKanbanColumnCtrl::HandleButtonClick(CPoint point, BOOL bLeftBtn, HTREEITEM& htiHit)
 {
 	BOOL bHandled = FALSE;
 
@@ -1491,17 +1672,88 @@ BOOL CKanbanColumnCtrl::HandleButtonClick(CPoint point, HTREEITEM& htiHit)
 	}
 	else
 	{
-		if (!m_bSelected)
+		bHandled = !m_bSelected;
+		SetFocus();
+
+		if (HandleExtendedSelection(htiHit))
 		{
-			SetFocus();
 			bHandled = TRUE;
 		}
+		else
+		{
+			DWORD dwTaskID = GetTaskID(htiHit);
 
-		if (htiHit != GetSelectedItem())
-			SelectItem(htiHit, TRUE);
+			if (!IsTaskSelected(dwTaskID))
+			{
+				SelectTask(dwTaskID);
+				bHandled = TRUE;
+			}
+			else
+			{
+				// We need to be careful here not to clear
+				// an existing multiple selection which the 
+				// user intends either to drag or to edit
+				BOOL bSameTask = IsOnlySelectedTask(dwTaskID);
+				BOOL bWantEdit = (!bLeftBtn ||
+								  HitTestCheckbox(htiHit, point) || 
+								  (HitTestImage(htiHit, point) != KBCI_NONE));
+
+				if (!bSameTask && !bWantEdit && !::DragDetect(*this, point))
+				{
+					SelectTask(dwTaskID);
+					bHandled = TRUE;
+				}
+			}
+		}
+
+		if (bHandled)
+		{
+			NotifyParentSelectionChange(htiHit, TRUE);
+			Invalidate(FALSE);
+		}
 	}
 
 	return bHandled;
+}
+
+void CKanbanColumnCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	HTREEITEM htiSel = NULL, htiNext = NULL;
+
+	switch (nChar)
+	{
+	case VK_UP:
+		htiSel = GetFirstSelectedItem();
+		htiNext = GetPrevVisibleItem(htiSel);
+		break;
+
+	case VK_DOWN:
+		htiSel = GetLastSelectedItem();
+		htiNext = GetNextVisibleItem(htiSel);
+		break;
+
+	case VK_PRIOR:
+		htiSel = GetFirstSelectedItem();
+		htiNext = TCH().GetPrevPageVisibleItem(htiSel);
+		break;
+
+	case VK_NEXT:
+		htiSel = GetLastSelectedItem();
+		htiNext = TCH().GetNextPageVisibleItem(htiSel);
+		break;
+	}
+
+	if (!htiNext)
+		htiNext = htiSel;
+
+	if (htiNext)
+	{
+		if (HandleExtendedSelection(htiNext) || SelectItem(htiNext, FALSE))
+		{
+			NotifyParentSelectionChange(htiNext, FALSE);
+			Invalidate(FALSE);
+		}
+	}
 }
 
 KBC_IMAGETYPE CKanbanColumnCtrl::HitTestImage(HTREEITEM hti, CPoint point) const
@@ -1621,13 +1873,11 @@ CSize CKanbanColumnCtrl::CalcRequiredSizeForImage() const
 
 BOOL CKanbanColumnCtrl::SelectionHasLockedTasks() const
 {
-	HTREEITEM hti = GetSelectedItem();
+	int nID = m_aSelTaskIDs.GetSize();
 
-	if (hti)
+	while (nID--)
 	{
-		DWORD dwTaskID = GetTaskID(hti);
-
-		if (m_data.IsLocked(dwTaskID))
+		if (m_data.IsLocked(m_aSelTaskIDs[nID]))
 			return TRUE;
 	}
 
@@ -1678,11 +1928,20 @@ void CKanbanColumnCtrl::RecalcItemLineHeight()
 
 BOOL CKanbanColumnCtrl::SelectItem(HTREEITEM hItem, BOOL bByMouse)
 {
-	if (!CTreeCtrl::SelectItem(hItem))
-		return FALSE;
+	DWORD dwTaskID = GetTaskID(hItem);
 
+	if (!dwTaskID || !SelectTask(dwTaskID))
+		return FALSE;
+	
 	// We must synthesize our own notification because the default
 	// one will be ignored because its action is TVC_UNKNOWN
+	NotifyParentSelectionChange(hItem, bByMouse);
+
+	return TRUE;
+}
+
+void CKanbanColumnCtrl::NotifyParentSelectionChange(HTREEITEM hItem, BOOL bByMouse)
+{
 	NMTREEVIEW nmtv = { 0 };
 
 	nmtv.hdr.hwndFrom = GetSafeHwnd();
@@ -1697,8 +1956,6 @@ BOOL CKanbanColumnCtrl::SelectItem(HTREEITEM hItem, BOOL bByMouse)
 	nmtv.action = (bByMouse ? TVC_BYMOUSE : TVC_BYKEYBOARD);
 
 	GetParent()->SendMessage(WM_NOTIFY, nmtv.hdr.idFrom, (LPARAM)&nmtv);
-
-	return TRUE;
 }
 
 BOOL CKanbanColumnCtrl::InitTooltip()
@@ -1757,7 +2014,7 @@ void CKanbanColumnCtrl::OnTooltipShow(NMHDR* pNMHDR, LRESULT* pResult)
 	DWORD dwTaskID = m_tooltip.GetLastHitToolInfo().uId;
 	ASSERT(dwTaskID);
 
-	HTREEITEM hti = FindTask(dwTaskID);
+	HTREEITEM hti = FindItem(dwTaskID);
 	ASSERT(hti);
 
 	const KANBANITEM* pKI = m_data.GetItem(dwTaskID);

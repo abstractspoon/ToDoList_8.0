@@ -66,10 +66,10 @@ int CKanbanColumnCtrlArray::Find(DWORD dwTaskID, HTREEITEM& hti) const
 
 		for (int nCol = 0; nCol < nNumCol; nCol++)
 		{
-			CKanbanColumnCtrl* pCol = GetAt(nCol);
+			const CKanbanColumnCtrl* pCol = GetAt(nCol);
 			ASSERT(pCol);
 
-			hti = pCol->FindTask(dwTaskID);
+			hti = pCol->FindItem(dwTaskID);
 			
 			if (hti)
 				return nCol;
@@ -81,6 +81,26 @@ int CKanbanColumnCtrlArray::Find(DWORD dwTaskID, HTREEITEM& hti) const
 	return -1;
 }
 
+int CKanbanColumnCtrlArray::Find(const CDWordArray& aTaskIDs) const
+{
+	if (aTaskIDs.GetSize())
+	{
+		int nNumCol = GetSize();
+
+		for (int nCol = 0; nCol < nNumCol; nCol++)
+		{
+			const CKanbanColumnCtrl* pCol = GetAt(nCol);
+			ASSERT(pCol);
+
+			if (pCol->HasTasks(aTaskIDs))
+				return nCol;
+		}
+	}
+
+	// not found
+	return -1;
+}
+
 int CKanbanColumnCtrlArray::Find(const CString& sAttribValue) const
 {
 	CString sAttribValueID(Misc::ToUpper(sAttribValue));
@@ -88,7 +108,7 @@ int CKanbanColumnCtrlArray::Find(const CString& sAttribValue) const
 
 	for (int nCol = 0; nCol < nNumCol; nCol++)
 	{
-		CKanbanColumnCtrl* pCol = GetAt(nCol);
+		const CKanbanColumnCtrl* pCol = GetAt(nCol);
 		ASSERT(pCol);
 
 		if (pCol->GetAttributeValueID() == sAttribValueID)
@@ -107,7 +127,7 @@ int CKanbanColumnCtrlArray::Find(HWND hwnd) const
 
 	for (int nCol = 0; nCol < nNumCol; nCol++)
 	{
-		CKanbanColumnCtrl* pCol = GetAt(nCol);
+		const CKanbanColumnCtrl* pCol = GetAt(nCol);
 		ASSERT(pCol);
 
 		if (pCol->GetSafeHwnd() == hwnd)
@@ -288,7 +308,7 @@ void CKanbanColumnCtrlArray::Exclude(CDC* pDC)
 	}
 }
 
-void CKanbanColumnCtrlArray::SortItems(TDC_ATTRIBUTE nBy, BOOL bAscending)
+void CKanbanColumnCtrlArray::Sort(TDC_ATTRIBUTE nBy, BOOL bAscending)
 {
 	int nCol = GetSize();
 
@@ -301,7 +321,7 @@ void CKanbanColumnCtrlArray::SortItems(TDC_ATTRIBUTE nBy, BOOL bAscending)
 	}
 }
 
-void CKanbanColumnCtrlArray::SortColumns()
+void CKanbanColumnCtrlArray::Sort()
 {
 	if (GetSize() > 1)
 		qsort(GetData(), GetSize(), sizeof(CKanbanColumnCtrl**), SortProc);
@@ -458,14 +478,20 @@ CKanbanColumnCtrl* CKanbanColumnCtrlArray::HitTest(const CPoint& ptScreen, HTREE
 	return NULL;
 }
 
-
 DWORD CKanbanColumnCtrlArray::HitTestTask(const CPoint& ptScreen) const
 {
-	const CKanbanColumnCtrl* pCol = HitTest(ptScreen);
+	CKanbanColumnCtrl* pUnused = NULL;
+
+	return HitTestTask(ptScreen, pUnused);
+}
+
+DWORD CKanbanColumnCtrlArray::HitTestTask(const CPoint& ptScreen, CKanbanColumnCtrl*& pCol) const
+{
+	pCol = HitTest(ptScreen);
 
 	if (pCol)
 	{
-		HTREEITEM hti = pCol->FindTask(ptScreen);
+		HTREEITEM hti = pCol->FindItem(ptScreen);
 
 		if (hti)
 			return pCol->GetTaskID(hti);
@@ -473,6 +499,33 @@ DWORD CKanbanColumnCtrlArray::HitTestTask(const CPoint& ptScreen) const
 
 	// else
 	return 0;
+}
+
+void CKanbanColumnCtrlArray::FilterToolTipMessage(MSG* pMsg)
+{
+	CKanbanColumnCtrl* pCol = HitTest(pMsg->pt);
+
+	if (pCol)
+		pCol->FilterToolTipMessage(pMsg);
+}
+
+void CKanbanColumnCtrlArray::UpdateHotItem(const CPoint& ptScreen)
+{
+	CKanbanColumnCtrl* pHotCol = NULL;
+	DWORD dwHotItem = HitTestTask(ptScreen, pHotCol);
+
+	int nCol = GetSize();
+
+	while (nCol--)
+	{
+		CKanbanColumnCtrl* pCol = GetAt(nCol);
+		ASSERT(pCol);
+
+		if (pCol == pHotCol)
+			pCol->SetHotItem(dwHotItem);
+		else
+			pCol->SetHotItem(0);
+	}
 }
 
 void CKanbanColumnCtrlArray::SetSelectedColumn(const CKanbanColumnCtrl* pSelCol)

@@ -41,13 +41,17 @@ public:
 	void UpdateTasks(const ITaskList* pTasks, IUI_UPDATETYPE nUpdate);
 	bool PrepareNewTask(ITaskList* pTask) const;
 
-	DWORD GetSelectedTaskID() const;
-	BOOL SelectTask(DWORD dwTaskID);
+	int GetSelectedTaskIDs(CDWordArray& aTaskIDs) const;
+	BOOL SelectTasks(const CDWordArray& aTaskIDs);
 	BOOL SelectTask(IUI_APPCOMMAND nCmd, const IUISELECTTASK& select);
 
 	DWORD GetNextTask(DWORD dwTaskID, IUI_APPCOMMAND nCmd) const;
 	DWORD HitTestTask(const CPoint& ptScreen) const;
 	void ScrollToSelectedTask();
+
+	BOOL IsTaskLocked(DWORD dwTaskID) const { return m_data.IsLocked(dwTaskID); }
+	BOOL IsTaskFlagged(DWORD dwTaskID) const { return m_data.IsFlagged(dwTaskID); }
+	BOOL IsTaskDone(DWORD dwTaskID, BOOL bIncGoodAsDone = FALSE) const { return m_data.IsDone(dwTaskID, bIncGoodAsDone); }
 
 	BOOL SaveToImage(CBitmap& bmImage);
 	BOOL CanSaveToImage() const;
@@ -96,11 +100,11 @@ protected:
 	TDC_ATTRIBUTE m_nTrackAttribute, m_nSortBy;
 	CString m_sTrackAttribID;
 	CDWordArray m_aPriorityColors;
-	CFontCache m_fonts;
 
 	CKanbanColumnCtrl* m_pSelectedColumn;
 	CKanbanColumnCtrlArray m_aColumns;
 	CEnHeaderCtrl m_header;
+	CFontCache m_fonts;
 
 	CKanbanItemMap m_data;
 	CKanbanAttributeValueMap m_mapAttributeValues;
@@ -115,22 +119,23 @@ protected:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnColumnItemSelChange(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnColumnEditLabel(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBeginDragColumnItem(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg LRESULT OnColumnToggleTaskDone(WPARAM wp, LPARAM lp);
-	afx_msg LRESULT OnColumnEditTaskIcon(WPARAM wp, LPARAM lp);
-	afx_msg LRESULT OnColumnToggleTaskFlag(WPARAM wp, LPARAM lp);
 	afx_msg void OnColumnSetFocus(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg LRESULT OnColumnGetTaskIcon(WPARAM wp, LPARAM lp);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	afx_msg void OnSetFocus(CWnd* );
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
+	afx_msg void OnCaptureChanged(CWnd* pWnd);
 	afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
 	afx_msg LRESULT OnSetFont(WPARAM wp, LPARAM lp);
-	afx_msg LRESULT OnSelectTask(WPARAM wp, LPARAM lp);
 	afx_msg void OnHeaderCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnHeaderItemChanging(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnHeaderDividerDoubleClick(NMHDR* pNMHDR, LRESULT* pResult);
+
+	afx_msg LRESULT OnColumnEditLabel(WPARAM wp, LPARAM lp);
+	afx_msg LRESULT OnColumnEditTaskDone(WPARAM wp, LPARAM lp);
+	afx_msg LRESULT OnColumnEditTaskIcon(WPARAM wp, LPARAM lp);
+	afx_msg LRESULT OnColumnEditTaskFlag(WPARAM wp, LPARAM lp);
+	afx_msg LRESULT OnColumnGetTaskIcon(WPARAM wp, LPARAM lp);
 
 	DECLARE_MESSAGE_MAP()
 
@@ -139,6 +144,7 @@ protected:
 	void ResizeHeader(CDeferWndMove& dwm, CRect& rAvail);
 
 	void RebuildColumns(BOOL bRebuildData, BOOL bTaskUpdate);
+	void RebuildColumns(BOOL bRebuildData, BOOL bTaskUpdate, const CDWordArray& aSelTaskIDs);
 	void RebuildDynamicColumns(const CKanbanItemArrayMap& mapKIArray);
 	void RebuildFixedColumns(const CKanbanItemArrayMap& mapKIArray);
 	int RemoveOldDynamicColumns(const CKanbanItemArrayMap& mapKIArray);
@@ -162,6 +168,7 @@ protected:
 	const CKanbanColumnCtrl* GetSelColumn() const;
 	const CKanbanColumnCtrl* GetNextColumn(const CKanbanColumnCtrl* pCol, BOOL bNext, BOOL bExcludeEmpty) const;
 
+	int GetSelColumnIndex() const;
 	BOOL SelectColumn(CKanbanColumnCtrl* pCol, BOOL bNotifyParent = TRUE);
 	BOOL IsSelectedColumn(HWND hWnd) const;
 	void FixupSelectedColumn();
@@ -174,10 +181,10 @@ protected:
 	inline BOOL UsingDynamicColumns() const { return !UsingFixedColumns(); }
 
 	BOOL IsDragging() const;
-	BOOL EndDragItem(CKanbanColumnCtrl* pSrcCol, DWORD dwTaskID, CKanbanColumnCtrl* pDestCol, const CString& sDestAttribValue);
+	BOOL EndDragItems(CKanbanColumnCtrl* pSrcCol, const CDWordArray& aTaskIDs, CKanbanColumnCtrl* pDestCol, const CString& sDestAttribValue);
 	BOOL HandleKeyDown(WPARAM wp, LPARAM lp);
 	
-	BOOL NotifyParentAttibuteChange(DWORD dwTaskID);
+	BOOL NotifyParentAttibuteChange(const CDWordArray& aTaskIDs);
 	void NotifyParentSelectionChange();
 	BOOL GetColumnAttributeValue(const CKanbanColumnCtrl* pDestCol, const CPoint& ptScreen, CString& sValue) const;
 	BOOL UpdateTrackableTaskAttribute(KANBANITEM* pKI, TDC_ATTRIBUTE nAttrib, const CString& sNewValue);

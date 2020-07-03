@@ -11,13 +11,10 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-// WPARAM = Task ID, LPARAM = LPCTSTR
+// WPARAM = int, LPARAM = LPDWORD
 const UINT WM_KBC_VALUECHANGE		= ::RegisterWindowMessage(_T("WM_KBC_VALUECHANGE"));
 
-// WPARAM = Task ID, LPARAM = TRUE/FALSE
-const UINT WM_KBC_EDITTASKDONE		= ::RegisterWindowMessage(_T("WM_KBC_EDITTASKDONE"));
-
-// WPARAM = Task ID, LPARAM = 
+// WPARAM = , LPARAM = 
 const UINT WM_KBC_SELECTIONCHANGE	= ::RegisterWindowMessage(_T("WM_KBC_SELECTIONCHANGE"));
 
 // WPARAM = , LPARAM = 
@@ -26,13 +23,16 @@ const UINT WM_KBC_PREFSHELP			= ::RegisterWindowMessage(_T("WM_KBC_PREFSHELP"));
 // WPARAM = Task ID, LPARAM = int* (imageIndex), return HIMAGELIST
 const UINT WM_KBC_GETTASKICON 		= ::RegisterWindowMessage(_T("WM_KBC_GETTASKICON"));
 
+// WPARAM = , LPARAM = TRUE/FALSE
+const UINT WM_KBC_EDITTASKDONE		= ::RegisterWindowMessage(_T("WM_KBC_EDITTASKDONE"));
+
 // WPARAM = Task ID, LPARAM = 
 const UINT WM_KBC_EDITTASKTITLE		= ::RegisterWindowMessage(_T("WM_KBC_EDITTASKTITLE"));
 
-// WPARAM = Task ID, LPARAM = 
+// WPARAM = , LPARAM = 
 const UINT WM_KBC_EDITTASKICON		= ::RegisterWindowMessage(_T("WM_KBC_EDITTASKICON"));
 
-// WPARAM = Task ID, LPARAM = TRUE/FALSE 
+// WPARAM = , LPARAM = TRUE/FALSE
 const UINT WM_KBC_EDITTASKFLAG		= ::RegisterWindowMessage(_T("WM_KBC_EDITTASKFLAG"));
 
 /////////////////////////////////////////////////////////////////////////////

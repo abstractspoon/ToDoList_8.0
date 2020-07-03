@@ -45,7 +45,6 @@ CKanbanWnd::CKanbanWnd(CWnd* pParent /*=NULL*/)
 	m_bReadOnly(FALSE),
 	m_nTrackedAttrib(TDCA_NONE),
 	m_ctrlKanban(),
-	m_dwSelTaskID(0),
 #pragma warning(disable:4355)
 	m_dlgPrefs(this)
 #pragma warning(default:4355)
@@ -470,14 +469,28 @@ DWORD CKanbanWnd::HitTestTask(POINT ptScreen, bool /*bTitleColumnOnly*/) const
 bool CKanbanWnd::SelectTask(DWORD dwTaskID)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
-	m_dwSelTaskID = dwTaskID;
-
-	return (m_ctrlKanban.SelectTask(dwTaskID) != FALSE);
+	
+	return SelectTasks(&dwTaskID, 1);
 }
 
 bool CKanbanWnd::SelectTasks(const DWORD* pdwTaskIDs, int nTaskCount)
 {
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
+	CDWordArray aTaskIDs;
+	aTaskIDs.SetSize(nTaskCount);
+
+	for (int nID = 0; nID < nTaskCount; nID++)
+		aTaskIDs[nID] = pdwTaskIDs[nID];
+
+	if (m_ctrlKanban.SelectTasks(aTaskIDs) != FALSE)
+	{
+		m_ctrlKanban.GetSelectedTaskIDs(m_aSelTaskIDs);
+		return true;
+	}
+
+	// else
+	m_aSelTaskIDs.RemoveAll();
 	return false;
 }
 
@@ -494,8 +507,8 @@ void CKanbanWnd::UpdateTasks(const ITaskList* pTaskList, IUI_UPDATETYPE nUpdate)
 
 	m_ctrlKanban.UpdateTasks(pTaskList, nUpdate);
 
-	if (!m_ctrlKanban.SelectTask(m_dwSelTaskID))
-		m_dwSelTaskID = m_ctrlKanban.GetSelectedTaskID();
+	if (!m_ctrlKanban.SelectTasks(m_aSelTaskIDs))
+		m_ctrlKanban.GetSelectedTaskIDs(m_aSelTaskIDs);
 
 	// Update custom attribute combo
 	const ITASKLISTBASE* pTasks = GetITLInterface<ITASKLISTBASE>(pTaskList, IID_TASKLISTBASE);
@@ -737,7 +750,7 @@ BOOL CKanbanWnd::OnEraseBkgnd(CDC* pDC)
 
 void CKanbanWnd::SendParentSelectionUpdate()
 {
-	GetParent()->SendMessage(WM_IUI_SELECTTASK, 0, m_ctrlKanban.GetSelectedTaskID());
+	GetParent()->SendMessage(WM_IUI_SELECTTASK, (WPARAM)m_aSelTaskIDs.GetData(), m_aSelTaskIDs.GetSize());
 }
 
 void CKanbanWnd::OnSetFocus(CWnd* pOldWnd) 
@@ -791,9 +804,7 @@ void CKanbanWnd::RefreshKanbanCtrlDisplayAttributes()
 
 LRESULT CKanbanWnd::OnKanbanNotifyValueChange(WPARAM wp, LPARAM lp)
 {
-	ASSERT((HWND)wp == m_ctrlKanban.GetSafeHwnd());
-	ASSERT(lp);
-	DWORD dwTaskID = lp;
+	ASSERT(wp && lp);
 	
 	CString sCustAttribID;
 	TDC_ATTRIBUTE nAttrib = TDCA_NONE;
@@ -808,54 +819,63 @@ LRESULT CKanbanWnd::OnKanbanNotifyValueChange(WPARAM wp, LPARAM lp)
 		sCustAttribID = m_sTrackedCustomAttribID;
 	}
 
-	IUITASKMOD mod;
+	int nNumMods = (int)wp;
+	LPDWORD pTaskIDs = (LPDWORD)lp;
 
-	mod.nAttrib = nAttrib;
-	mod.dwSelectedTaskID = dwTaskID;
+	CArray<IUITASKMOD, IUITASKMOD&> aMods;
+	aMods.SetSize(nNumMods);
 
-	CStringArray aTaskValues;
-	m_ctrlKanban.GetTaskTrackedAttributeValues(mod.dwSelectedTaskID, aTaskValues);
-
-	CString sModValue = Misc::FormatArray(aTaskValues, '\n');
-
-	switch (nAttrib)
+	for (int nMod = 0; nMod < nNumMods; nMod++)
 	{
-		case TDCA_ALLOCTO:
-		case TDCA_CATEGORY:
-		case TDCA_TAGS:
-		case TDCA_STATUS:
-		case TDCA_ALLOCBY:
-		case TDCA_VERSION:
-			mod.szValue = sModValue; // temporary string
-			break;
+		IUITASKMOD& mod = aMods[nMod];
 
-		case TDCA_PRIORITY:
-		case TDCA_RISK:
-			if (aTaskValues.GetSize() == 0)
-				mod.nValue = -2; // None
-			else
-				mod.nValue = _ttoi(aTaskValues[0]);
-			break;
+		mod.nAttrib = nAttrib;
+		mod.dwSelectedTaskID = pTaskIDs[nMod];
 
-		case TDCA_CUSTOMATTRIB:
-			ASSERT(!sCustAttribID.IsEmpty());
+		CStringArray aTaskValues;
+		m_ctrlKanban.GetTaskTrackedAttributeValues(mod.dwSelectedTaskID, aTaskValues);
 
-			mod.szValue = sModValue;
-			mod.szCustomAttribID = sCustAttribID;
+		CString sModValue = Misc::FormatArray(aTaskValues, '\n');
 
-			// TODO - multi value items and time periods
-			break;
+		switch (nAttrib)
+		{
+			case TDCA_ALLOCTO:
+			case TDCA_CATEGORY:
+			case TDCA_TAGS:
+			case TDCA_STATUS:
+			case TDCA_ALLOCBY:
+			case TDCA_VERSION:
+				mod.szValue = sModValue; // temporary string
+				break;
 
-		default:
-			ASSERT(0);
+			case TDCA_PRIORITY:
+			case TDCA_RISK:
+				if (aTaskValues.GetSize() == 0)
+					mod.nValue = -2; // None
+				else
+					mod.nValue = _ttoi(aTaskValues[0]);
+				break;
+
+			case TDCA_CUSTOMATTRIB:
+				ASSERT(!sCustAttribID.IsEmpty());
+
+				mod.szValue = sModValue;
+				mod.szCustomAttribID = sCustAttribID;
+
+				// TODO - multi value items and time periods
+				break;
+
+			default:
+				ASSERT(0);
+		}
 	}
 
-	return GetParent()->SendMessage(WM_IUI_MODIFYSELECTEDTASK, 1, (LPARAM)&mod);
+	return GetParent()->SendMessage(WM_IUI_MODIFYSELECTEDTASK, nNumMods, (LPARAM)aMods.GetData());
 }
 
-LRESULT CKanbanWnd::OnKanbanNotifySelectionChange(WPARAM wp, LPARAM /*lp*/) 
+LRESULT CKanbanWnd::OnKanbanNotifySelectionChange(WPARAM /*wp*/, LPARAM /*lp*/) 
 {
-	m_dwSelTaskID = wp;
+	m_ctrlKanban.GetSelectedTaskIDs(m_aSelTaskIDs);
 	SendParentSelectionUpdate();
 	
 	return 0L;
@@ -863,32 +883,35 @@ LRESULT CKanbanWnd::OnKanbanNotifySelectionChange(WPARAM wp, LPARAM /*lp*/)
 
 LRESULT CKanbanWnd::OnKanbanNotifyEditTaskDone(WPARAM /*wp*/, LPARAM lp) 
 {
-	IUITASKMOD mod = { TDCA_DONEDATE, m_dwSelTaskID, 0 };
+	// This is complicated by the fact that we don't
+	// want to change any existing completion dates
+	int nNumSel = m_aSelTaskIDs.GetSize();
+	
+	CArray<IUITASKMOD, IUITASKMOD&> aMods;
+	IUITASKMOD mod = { TDCA_DONEDATE, 0, 0 };
 
-	if (lp) // done/not done
-		VERIFY(CDateHelper::GetTimeT64(CDateHelper::GetDate(DHD_NOW), mod.tValue));
-	else
-		mod.tValue = T64Utils::T64_NULL;
+	for (int nSel = 0, nMod = 0; nSel < nNumSel; nSel++)
+	{
+		mod.dwSelectedTaskID = m_aSelTaskIDs[nSel];
 
-	return GetParent()->SendMessage(WM_IUI_MODIFYSELECTEDTASK, 1, (LPARAM)&mod);
+		if (lp && m_ctrlKanban.IsTaskDone(mod.dwSelectedTaskID))
+			continue;
+
+		if (lp) // done
+			VERIFY(CDateHelper::GetTimeT64(CDateHelper::GetDate(DHD_NOW), mod.tValue));
+		else
+			mod.tValue = T64Utils::T64_NULL;
+
+		aMods.Add(mod);
+	}
+
+	return GetParent()->SendMessage(WM_IUI_MODIFYSELECTEDTASK, aMods.GetSize(), (LPARAM)aMods.GetData());
 }
 
 LRESULT CKanbanWnd::OnKanbanNotifyEditTaskFlag(WPARAM /*wp*/, LPARAM lp) 
 {
-	IUITASKMOD mod = { TDCA_FLAG, m_dwSelTaskID, 0 };
-	mod.bValue = (lp != 0);
-
-	return GetParent()->SendMessage(WM_IUI_MODIFYSELECTEDTASK, 1, (LPARAM)&mod);
-}
-
-LRESULT CKanbanWnd::OnKanbanNotifyFlagChange(WPARAM /*wp*/, LPARAM lp) 
-{
-	IUITASKMOD mod = { TDCA_DONEDATE, m_dwSelTaskID, 0 };
-
-	if (lp) // done/not done
-		VERIFY(CDateHelper::GetTimeT64(CDateHelper::GetDate(DHD_NOW), mod.tValue));
-	else
-		mod.tValue = T64Utils::T64_NULL;
+	IUITASKMOD mod = { TDCA_FLAG, 0, 0 };
+	mod.bValue = (lp != FALSE);
 
 	return GetParent()->SendMessage(WM_IUI_MODIFYSELECTEDTASK, 1, (LPARAM)&mod);
 }
@@ -977,7 +1000,12 @@ void CKanbanWnd::ProcessTrackedAttributeChange()
 
 	// Track the new attribute
 	m_ctrlKanban.TrackAttribute(nTrackAttrib, sCustomAttrib, aColDefs);
-	m_ctrlKanban.SelectTask(m_dwSelTaskID);
+
+	if (!m_ctrlKanban.SelectTasks(m_aSelTaskIDs))
+	{
+		if (m_ctrlKanban.GetSelectedTaskIDs(m_aSelTaskIDs))
+			SendParentSelectionUpdate();
+	}
 }
 
 void CKanbanWnd::OnSelchangeOptions() 
@@ -993,9 +1021,9 @@ void CKanbanWnd::OnSelchangeOptions()
 	m_ctrlKanban.SetOptions(dwOptions);
 
 	// Fixup selection if parents are being shown
-	if ((bWasShowingParentTasks || bIsShowingParentTasks) && m_dwSelTaskID)
+	if ((bWasShowingParentTasks || bIsShowingParentTasks) && m_aSelTaskIDs.GetSize())
 	{
-		m_ctrlKanban.SelectTask(m_dwSelTaskID);
+		m_ctrlKanban.SelectTasks(m_aSelTaskIDs);
 		SendParentSelectionUpdate();
 	}
 }

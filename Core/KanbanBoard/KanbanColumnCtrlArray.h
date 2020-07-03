@@ -26,6 +26,7 @@ public:
 	int Find(HWND hWnd) const;
 	int Find(const CString& sAttribValue) const;
 	int Find(const CKanbanColumnCtrl* pList) const;
+	int Find(const CDWordArray& aTaskIDs) const;
 
 	CKanbanColumnCtrl* Get(DWORD dwTaskID) const;
 	CKanbanColumnCtrl* Get(DWORD dwTaskID, HTREEITEM& hti) const;
@@ -40,7 +41,9 @@ public:
 	float GetAverageCharWidth();
 	DWORD HitTestTask(const CPoint& ptScreen) const;
 	void SetAttributeLabelVisibility(KBC_ATTRIBLABELS nLabelVis);
-	
+	void FilterToolTipMessage(MSG* pMsg);
+	void UpdateHotItem(const CPoint& ptScreen);
+
 	CSize CalcRequiredColumnSizeForImage() const;
 	BOOL CanSaveToImage() const;
 	BOOL SaveToImage(CBitmap& bmImage);
@@ -50,8 +53,8 @@ public:
 
 	void OnDisplayAttributeChanged();
 
-	void SortColumns();
-	void SortItems(TDC_ATTRIBUTE nBy, BOOL bAscending);
+	void Sort();
+	void Sort(TDC_ATTRIBUTE nBy, BOOL bAscending);
 
 	void SetSelectedColumn(const CKanbanColumnCtrl* pSelList);
 	void SetDropTarget(const CKanbanColumnCtrl* pTarget);
@@ -64,6 +67,8 @@ public:
 	void SetFont(HFONT hFont);
 
 protected:
+	DWORD HitTestTask(const CPoint& ptScreen, CKanbanColumnCtrl*& pCol) const;
+
 	static int SortProc(const void* pV1, const void* pV2);
 
 };
