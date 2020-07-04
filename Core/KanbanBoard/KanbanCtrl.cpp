@@ -229,7 +229,7 @@ BOOL CKanbanCtrl::HandleKeyDown(WPARAM wp, LPARAM lp)
 		if (m_pSelectedColumn->GetFirstSelectedItem())
 		{
 			int nSelCol = GetSelColumnIndex();
-
+			
 			for (int nCol = (nSelCol - 1); nCol >= 0; nCol--)
 			{
 				if (SelectClosestAdjacentItemToSelection(nCol))
@@ -2789,7 +2789,7 @@ LRESULT CKanbanCtrl::OnColumnEditLabel(WPARAM wp, LPARAM lp)
 	{
 		ASSERT(0);
 	}
-	else if (m_pSelectedColumn->GetOnlySelectedTask() != lp)
+	else if (m_pSelectedColumn->GetOnlySelectedTask() != (DWORD)lp)
 	{
 		ASSERT(0);
 	}
