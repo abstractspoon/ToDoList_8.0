@@ -348,6 +348,9 @@ BOOL CKanbanCtrl::HandleKeyDown(WPARAM wp, LPARAM lp)
 
 BOOL CKanbanCtrl::SelectTasks(const CDWordArray& aTaskIDs)
 {
+	if (!aTaskIDs.GetSize())
+		return FALSE;
+
 	CAutoFlag af(m_bSelectTasks, TRUE);
 
 	// Check for 'no change'
@@ -357,23 +360,19 @@ BOOL CKanbanCtrl::SelectTasks(const CDWordArray& aTaskIDs)
 	int nPrevSel = GetSelColumnIndex(), nNewSel = -1;
 
 	if (m_pSelectedColumn && m_pSelectedColumn->HasTasks(aTaskIDs))
-	{
 		nNewSel = nPrevSel;
-	}
 	else
-	{
 		nNewSel = m_aColumns.Find(aTaskIDs);
-
-		if (nNewSel == -1)
-			return FALSE;
-	}
 
 	if ((nPrevSel != nNewSel) || !Misc::MatchAll(aTaskIDs, aSelTaskIDs))
 	{
 		m_aColumns.SetSelectedColumn(NULL);
 
 		if ((nNewSel == -1) || !aTaskIDs.GetSize())
+		{
+			m_pSelectedColumn = NULL;
 			return FALSE;
+		}
 
 		// else
 		SelectColumn(m_aColumns[nNewSel], FALSE);
@@ -421,7 +420,10 @@ CKanbanColumnCtrl* CKanbanCtrl::GetSelColumn()
 	ASSERT((m_pSelectedColumn == NULL) || Misc::HasT(m_pSelectedColumn, m_aColumns));
 
 	if (!m_pSelectedColumn && m_aColumns.GetSize())
+	{
 		m_pSelectedColumn = m_aColumns[0];
+		m_pSelectedColumn->SetSelected(TRUE);
+	}
 
 	return m_pSelectedColumn;
 }
@@ -1776,15 +1778,8 @@ void CKanbanCtrl::RebuildColumns(BOOL bRebuildData, BOOL bTaskUpdate, const CDWo
 	// because the app takes care of that
 	if (!bTaskUpdate && aSelTaskIDs.GetSize() && !SelectTasks(aSelTaskIDs))
 	{
-		if (!m_pSelectedColumn || !Misc::HasT(m_pSelectedColumn, m_aColumns))
-		{
-			// Find the first list with some items
-			m_pSelectedColumn = m_aColumns.GetFirstNonEmpty();
-
-			// No list has items?
-			if (!m_pSelectedColumn)
-				m_pSelectedColumn = m_aColumns[0];
-		}
+		FixupSelectedColumn();
+		NotifyParentSelectionChange();
 	}
 }
 
@@ -1887,6 +1882,8 @@ void CKanbanCtrl::FixupSelectedColumn()
 		// No list has items?
 		if (!m_pSelectedColumn)
 			m_pSelectedColumn = m_aColumns[0];
+
+		m_pSelectedColumn->SetSelected(TRUE);
 	}
 
 	FixupColumnFocus();
