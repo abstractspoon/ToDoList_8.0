@@ -348,9 +348,6 @@ BOOL CKanbanCtrl::HandleKeyDown(WPARAM wp, LPARAM lp)
 
 BOOL CKanbanCtrl::SelectTasks(const CDWordArray& aTaskIDs)
 {
-	if (!aTaskIDs.GetSize())
-		return FALSE;
-
 	CAutoFlag af(m_bSelectTasks, TRUE);
 
 	// Check for 'no change'
@@ -364,7 +361,7 @@ BOOL CKanbanCtrl::SelectTasks(const CDWordArray& aTaskIDs)
 	else
 		nNewSel = m_aColumns.Find(aTaskIDs);
 
-	if ((nPrevSel != nNewSel) || !Misc::MatchAll(aTaskIDs, aSelTaskIDs))
+	if ((nPrevSel != nNewSel) || !aTaskIDs.GetSize() || !Misc::MatchAll(aTaskIDs, aSelTaskIDs))
 	{
 		m_aColumns.SetSelectedColumn(NULL);
 
@@ -1775,11 +1772,41 @@ void CKanbanCtrl::RebuildColumns(BOOL bRebuildData, BOOL bTaskUpdate, const CDWo
 	Resize();
 		
 	// We only need to restore selection if not doing a task update
-	// because the app takes care of that
+	// because otherwise the app takes care of that
 	if (!bTaskUpdate && aSelTaskIDs.GetSize() && !SelectTasks(aSelTaskIDs))
 	{
+		// If the selection can't be restored as-is probably
+		// because previously visible tasks are no longer
+		// then we give the selected column the chance to do
+		// the best it can
+/*
+		if (m_aColumns.Find(aSelTaskIDs) != -1)
+		{
+			VERIFY(SelectTasks(aSelTaskIDs));
+			return;
+		}
+
+		// else
+		if (m_pSelectedColumn)
+		{
+			ASSERT(m_aColumns.Find(m_pSelectedColumn) != -1);
+
+			CDWordArray aFoundIDs;
+			aFoundIDs.Copy(aSelTaskIDs);
+
+			int nID = aFoundIDs.GetSize();
+
+			while (nID--)
+			{
+				if (m_pSelectedColumn->FindItem(aFoundIDs[nID]) == NULL)
+					aFoundIDs.RemoveAt(nID);
+			}
+		
+		}
+*/
+
 		FixupSelectedColumn();
-		NotifyParentSelectionChange();
+ 		NotifyParentSelectionChange();
 	}
 }
 

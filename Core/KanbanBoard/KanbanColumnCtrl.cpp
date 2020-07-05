@@ -1139,6 +1139,9 @@ BOOL CKanbanColumnCtrl::SelectAll()
 
 BOOL CKanbanColumnCtrl::HasTasks(const CDWordArray& aTaskIDs) const
 {
+	if (aTaskIDs.GetSize() == 0)
+		return FALSE;
+
 	int nID = aTaskIDs.GetSize();
 
 	while (nID--)
