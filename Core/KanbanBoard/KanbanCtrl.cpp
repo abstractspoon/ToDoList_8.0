@@ -1773,20 +1773,18 @@ void CKanbanCtrl::RebuildColumns(BOOL bRebuildData, BOOL bTaskUpdate, const CDWo
 		
 	// We only need to restore selection if not doing a task update
 	// because otherwise the app takes care of that
-	if (!bTaskUpdate && aSelTaskIDs.GetSize() && !SelectTasks(aSelTaskIDs))
+	if (!bTaskUpdate && aSelTaskIDs.GetSize())
 	{
-		// If the selection can't be restored as-is probably
-		// because previously visible tasks are no longer
-		// then we give the selected column the chance to do
-		// the best it can
-/*
 		if (m_aColumns.Find(aSelTaskIDs) != -1)
 		{
 			VERIFY(SelectTasks(aSelTaskIDs));
 			return;
 		}
 
-		// else
+		// If the selection can't be restored as-is probably
+		// because previously visible tasks are now hidden
+		// then we give the selected column the chance to do
+		// the best it can
 		if (m_pSelectedColumn)
 		{
 			ASSERT(m_aColumns.Find(m_pSelectedColumn) != -1);
@@ -1798,12 +1796,15 @@ void CKanbanCtrl::RebuildColumns(BOOL bRebuildData, BOOL bTaskUpdate, const CDWo
 
 			while (nID--)
 			{
-				if (m_pSelectedColumn->FindItem(aFoundIDs[nID]) == NULL)
+				if (!m_pSelectedColumn->FindItem(aFoundIDs[nID]))
 					aFoundIDs.RemoveAt(nID);
 			}
 		
+			if (aFoundIDs.GetSize() > 0)
+				m_pSelectedColumn->SelectTasks(aFoundIDs);
+			else
+				m_pSelectedColumn = NULL;
 		}
-*/
 
 		FixupSelectedColumn();
  		NotifyParentSelectionChange();
