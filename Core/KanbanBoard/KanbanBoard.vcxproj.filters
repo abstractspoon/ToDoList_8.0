@@ -1,16 +1,42 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{87650f9f-200f-4b8f-affc-3d046015461a}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{e51e2c5d-9cc5-473d-b59b-40a7d651d187}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{ec453b62-9fe8-47e8-bfd6-84b6f6a8f4ab}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="KanbanAttributeComboBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KanbanBoard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KanbanColumnCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KanbanColumnCtrlArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="KanbanCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KanbanCustomAttributeComboBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="KanbanFixedColumnListCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="KanbanOptionComboBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KanbanPreferencesDlg.cpp">
@@ -25,24 +51,14 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KanbanOptionComboBox.cpp">
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KanbanBoard.rc">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KanbanCustomAttributeComboBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KanbanColumnCtrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KanbanColumnCtrlArray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KanbanAttributeComboBox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KanbanWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="KanbanBoard.h">
@@ -51,7 +67,16 @@
     <ClInclude Include="KanbanColors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="KanbanColumnCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KanbanColumnCtrlArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="KanbanCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KanbanCustomAttributeComboBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="KanbanEnum.h">
@@ -60,10 +85,19 @@
     <ClInclude Include="KanbanFixedColumnListCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Kanbanmsg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KanbanOptionComboBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="KanbanPreferencesDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="KanbanStruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KanbanWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -72,68 +106,34 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Kanbanmsg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KanbanOptionComboBox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KanbanCustomAttributeComboBox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KanbanColumnCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KanbanColumnCtrlArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\KanbanBoard.rc2">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="res\column_toolbar.bmp">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="RES\toolbar_std.bmp">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\column_toolbar_std.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\icon1.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\toolbar.bmp">
+    <None Include="res\flag.bmp">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\help_button.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\KanbanBoard.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="RES\toolbar_std.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="res\XPcheckboxes.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\flag.bmp">
-      <Filter>Resource Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{d30abd3f-5106-4651-9da0-af29c199d517}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{bccd9dfb-149f-4b35-8d32-6531a13caaa0}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{864c4508-ce79-44c3-8ef0-29250408dc0e}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="KanbanBoard.rc">
-      <Filter>Source Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>
