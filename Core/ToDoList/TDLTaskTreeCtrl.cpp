@@ -263,21 +263,16 @@ int CTDLTaskTreeCtrl::GetExpandedTasks(CDWordArray& aExpanded, HTREEITEM hti) co
 {
 	int nStart = 0;
 	
-	if (hti == NULL)
+	if (hti)
 	{
-		// guesstimate initial size
-		aExpanded.SetSize(0, m_tcTasks.GetCount() / 4);
-	}
-	else if (TCH().IsItemExpanded(hti) <= 0)
-	{
-		return 0; // nothing added
-	}
-	else // expanded
-	{
+		if (TCH().IsItemExpanded(hti) <= 0)
+			return 0; // nothing added
+
+		// else expanded
 		nStart = aExpanded.GetSize();
 		aExpanded.Add(GetTaskID(hti));
 	}
-	
+
 	// process children
 	HTREEITEM htiChild = m_tcTasks.GetChildItem(hti);
 	
