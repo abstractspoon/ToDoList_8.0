@@ -159,9 +159,25 @@ BOOL CTDLTaskTreeCtrl::SelectItem(HTREEITEM hti, BOOL bSyncAndNotify, SELCHANGE_
 		TSH().SetAnchor(hti);
 		
 		bSelected = TCH().SelectItem(hti);
-		
-		CHoldHScroll hhs(m_tcTasks);
-		TCH().EnsureItemVisible(hti, FALSE);
+
+		if (!TCH().IsItemVisible(hti, FALSE, FALSE))
+		{
+			{
+				CLockUpdates hr(m_tcTasks);
+				CHoldHScroll hhs(m_tcTasks);
+
+				m_tcTasks.EnsureVisible(hti);
+			}
+
+			if ((nBy == SC_BYMOUSE) && !TCH().IsItemVisible(hti, TRUE, FALSE))
+			{
+				// If the item is still not visible because of the horizontal
+				// hold (which is necessary to prevent the default behaviour)
+				// and this was a mouse selection then we post a message to
+				// ensure that whatever called this has already finished
+				m_tcTasks.PostMessage(TVM_ENSUREVISIBLE, 0, (LPARAM)hti);
+			}
+		}
 	}
 
 	if (bSyncAndNotify)
@@ -760,9 +776,11 @@ BOOL CTDLTaskTreeCtrl::OnTreeSelectionChange(NMTREEVIEW* pNMTV)
 	if (CanResync())
 		SyncColumnSelectionToTasks();
 
-	if (hti)
+	if (hti && !TCH().IsItemVisible(hti, FALSE))
 	{
+		CLockUpdates lr(m_tcTasks);
 		CHoldHScroll hhs(m_tcTasks);
+
 		TCH().EnsureItemVisible(hti, FALSE);
 	}
 
@@ -1019,13 +1037,6 @@ LRESULT CTDLTaskTreeCtrl::WindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM 
 			{
 			case NM_DBLCLK:
 				return 0L; // always eat
-
-			case TVN_SELCHANGED:
-				{
-					CHoldHScroll hhs(m_tcTasks);
-					return CTDLTaskCtrlBase::WindowProc(hRealWnd, msg, wp, lp);
-				}
-				break;
 
  			case TVN_BEGINLABELEDIT:
 				return 0L; // we handle this ourselves
