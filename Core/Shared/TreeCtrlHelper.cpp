@@ -113,6 +113,59 @@ void CHTIMap::Trace(CTreeCtrl& tree) const
 
 //////////////////////////////////////////////////////////////////////
 
+CHoldHScroll::CHoldHScroll(HWND hwnd, int nInitialPos) : m_hwnd(hwnd)
+{
+	// it's acceptable to pass no HWND -> nothing happens
+	if (m_hwnd)
+	{
+		if (nInitialPos < 0)
+			m_nOrgHScrollPos = ::GetScrollPos(hwnd, SB_HORZ);
+		else
+			m_nOrgHScrollPos = nInitialPos;
+	}
+}
+
+CHoldHScroll::~CHoldHScroll()
+{
+	if (m_hwnd)
+	{
+		if (::GetScrollPos(m_hwnd, SB_HORZ) != m_nOrgHScrollPos)
+		{
+			::SendMessage(m_hwnd, WM_HSCROLL, MAKEWPARAM(SB_THUMBPOSITION, m_nOrgHScrollPos), 0L);
+			::UpdateWindow(m_hwnd);
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+CDisableTreeTips::CDisableTreeTips(CTreeCtrl& tree, BOOL bToolTips, BOOL bInfoTips)
+	: 
+	m_tree(tree), 
+	m_bToolTips(FALSE),
+	m_bInfoTips(FALSE)
+{
+	DWORD dwStyle = m_tree.GetStyle();
+
+	m_bToolTips = (bToolTips && !(dwStyle & TVS_NOTOOLTIPS));
+	m_bInfoTips = (bInfoTips && (dwStyle & TVS_INFOTIP));
+
+	m_tree.ModifyStyle((m_bInfoTips ? TVS_INFOTIP : 0), (m_bToolTips ? TVS_NOTOOLTIPS : 0));
+}
+
+CDisableTreeTips::~CDisableTreeTips()
+{
+	m_tree.ModifyStyle((m_bToolTips ? TVS_NOTOOLTIPS : 0), (m_bInfoTips ? TVS_INFOTIP : 0));
+
+	if (m_bToolTips)
+	{
+		m_tree.Invalidate(FALSE);
+		m_tree.UpdateWindow();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
+
 // helper for copying
 struct TCHHCOPY
 {
