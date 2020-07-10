@@ -190,7 +190,7 @@ BOOL CTabbedToDoCtrl::OnInitDialog()
 		AddView(m_mgrUIExt.GetUIExtension(nExt));
 	}
 
-	SetVisibleExtensionViews(s_aDefTaskViews);
+	SetVisibleTaskViews(s_aDefTaskViews);
 
 	return FALSE;
 }
@@ -408,11 +408,11 @@ void CTabbedToDoCtrl::LoadPrefs()
 			Misc::RemoveItem(sTypeID, aTypeIDs);
 		}
 
-		SetVisibleExtensionViews(aTypeIDs);
+		SetVisibleTaskViews(aTypeIDs);
 	}
 	else
 	{
-		SetVisibleExtensionViews(s_aDefTaskViews);
+		SetVisibleTaskViews(s_aDefTaskViews);
 	}
 
 	// Last active view
@@ -447,7 +447,7 @@ void CTabbedToDoCtrl::SavePrefs()
 	CStringArray aVisTypeIDs, aTypeIDs;
 
 	m_mgrUIExt.GetExtensionTypeIDs(aTypeIDs);
-	GetVisibleExtensionViews(aVisTypeIDs);
+	GetVisibleTaskViews(aVisTypeIDs);
 
 	// remove visible items to leave hidden ones
 	Misc::RemoveItems(aVisTypeIDs, aTypeIDs);
@@ -4138,7 +4138,7 @@ void CTabbedToDoCtrl::OnTabCtrlRClick(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 		helper.AddAllExtensionsToMenu(pPopup, m_mgrUIExt);
 
 		CStringArray aTypeIDs;
-		GetVisibleExtensionViews(aTypeIDs);
+		GetVisibleTaskViews(aTypeIDs);
 
 		helper.UpdateExtensionVisibilityState(pPopup, m_mgrUIExt, aTypeIDs);
 
@@ -4160,7 +4160,7 @@ void CTabbedToDoCtrl::OnTabCtrlRClick(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 			
 		default:
 			if (helper.ProcessExtensionVisibilityMenuCmd(nCmdID, m_mgrUIExt, aTypeIDs))
-				SetVisibleExtensionViews(aTypeIDs);
+				SetVisibleTaskViews(aTypeIDs);
 			break;
 		}
 	}
@@ -6301,9 +6301,11 @@ BOOL CTabbedToDoCtrl::IsListViewTabShowing() const
 	return m_tabViews.IsViewTabShowing(FTCV_TASKLIST);
 }
 
-void CTabbedToDoCtrl::SetVisibleExtensionViews(const CStringArray& aTypeIDs)
+void CTabbedToDoCtrl::SetVisibleTaskViews(const CStringArray& aTypeIDs)
 {
-	// update extension visibility
+	// Excludes the task tree which can never be hidden
+	ASSERT(GetSafeHwnd());
+
 	int nExt = m_mgrUIExt.GetNumUIExtensions();
 
 	while (nExt--)
@@ -6320,18 +6322,15 @@ void CTabbedToDoCtrl::SetVisibleExtensionViews(const CStringArray& aTypeIDs)
 		m_tabViews.ShowViewTab(nView, bVisible);
 	}
 
-	// Handle list view
 	ShowListViewTab(Misc::Contains(LISTVIEW_TYPE, aTypeIDs, FALSE, TRUE));
 
-#ifdef _DEBUG
-	int nTabCount = (m_tabViews.GetItemCount() - 1); // -1 for tree
-
-	ASSERT(nTabCount == aTypeIDs.GetSize());
-#endif
+	// Sanity check (-1 for tree)
+	ASSERT((m_tabViews.GetItemCount() - 1) == aTypeIDs.GetSize());
 }
 
-int CTabbedToDoCtrl::GetVisibleExtensionViews(CStringArray& aTypeIDs) const
+int CTabbedToDoCtrl::GetVisibleTaskViews(CStringArray& aTypeIDs) const
 {
+	// Excludes the task tree which can never be hidden
 	ASSERT(GetSafeHwnd());
 
 	aTypeIDs.RemoveAll();
@@ -6346,14 +6345,11 @@ int CTabbedToDoCtrl::GetVisibleExtensionViews(CStringArray& aTypeIDs) const
 			aTypeIDs.Add(m_mgrUIExt.GetUIExtensionTypeID(nExt));
 	}
 
-#ifdef _DEBUG
-	int nTabCount = (m_tabViews.GetItemCount() - 1); // -1 for tree
-
 	if (IsListViewTabShowing())
-		nTabCount--;
+		aTypeIDs.Add(LISTVIEW_TYPE);
 
-	ASSERT(nTabCount == aTypeIDs.GetSize());
-#endif
+	// Sanity check (-1 for tree)
+	ASSERT((m_tabViews.GetItemCount() - 1) == aTypeIDs.GetSize());
 
 	return aTypeIDs.GetSize();
 }
