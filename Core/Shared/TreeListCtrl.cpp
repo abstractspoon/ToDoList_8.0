@@ -1041,7 +1041,8 @@ LRESULT CTreeListCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM l
 		case WM_MOUSEWHEEL:
 			// if the tree has a horizontal scrollbar and the list doesn't have
 			// a vertical scrollbar then Windows will scroll the tree horizontally 
-			// so we need to redraw the whole tree to prevent artifacts
+			// so we need to redraw the whole tree to prevent artifacts caused
+			// by our multiple columns
 			if (!HasVScrollBar(m_list) && HasHScrollBar(m_tree))
 			{
 				int zDelta = GET_WHEEL_DELTA_WPARAM(wp);
@@ -1050,7 +1051,7 @@ LRESULT CTreeListCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM l
 				if ((zDelta == 0) || (wKeys != 0))
 					return TRUE; // eat
 
-				if (!CanScrollTree(SB_HORZ, (zDelta > 0)))
+				if (!CanScroll(m_tree, SB_HORZ, (zDelta > 0)))
 					return TRUE; // eat
 
 				CHoldRedraw hr(hRealWnd, NCR_PAINT | NCR_UPDATE);
@@ -1095,23 +1096,6 @@ LRESULT CTreeListCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM l
 	// else tree or list
 	switch (msg)
 	{
-	case WM_MOUSEWHEEL:
-		{
-			int zDelta = GET_WHEEL_DELTA_WPARAM(wp);
-			WORD wKeys = LOWORD(wp);
-
-			if ((zDelta == 0) || (wKeys != 0))
-				return TRUE; // eat
-
-			if (!CanScrollTree(SB_VERT, (zDelta > 0)))
-				return TRUE; // eat
-
-			CHoldHScroll hhs(m_tree);
-					
-			return CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
-		}
-		break;
-
 	case WM_KEYUP:
 		{
 			LRESULT lr = CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
@@ -1141,33 +1125,9 @@ LRESULT CTreeListCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM l
 			}
 			return lr;
 		}
-		
-	case WM_VSCROLL:
-		{
-			CHoldHScroll hhs(m_tree);
-			
-			return CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
-		}
-		break;
 	}
 	
 	return CTreeListSyncer::ScWindowProc(hRealWnd, msg, wp, lp);
-}
-
-BOOL CTreeListCtrl::CanScrollTree(int nScrollbar, BOOL bLeftUp) const
-{
-	int nPos = ::GetScrollPos(m_tree, nScrollbar);
-
-	if (bLeftUp)
-		return (nPos > 0);
-
-	// right/down
-	SCROLLINFO si = { sizeof(si), SIF_RANGE | SIF_PAGE, 0 };
-
-	if (!::GetScrollInfo(m_tree, nScrollbar, &si))
-		return FALSE;
-
-	return (nPos <= (si.nMax - (int)si.nPage));
 }
 
 BOOL CTreeListCtrl::OnHeaderItemWidthChanging(NMHEADER* pHDN, int nMinWidth)

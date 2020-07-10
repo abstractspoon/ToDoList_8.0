@@ -111,32 +111,6 @@ void CHTIMap::Trace(CTreeCtrl& tree) const
 }
 #endif
 
-//////////////////////////////////////////////////////////////////////
-
-CHoldHScroll::CHoldHScroll(HWND hwnd, int nInitialPos) : m_hwnd(hwnd)
-{
-	// it's acceptable to pass no HWND -> nothing happens
-	if (m_hwnd)
-	{
-		if (nInitialPos < 0)
-			m_nOrgHScrollPos = ::GetScrollPos(hwnd, SB_HORZ);
-		else
-			m_nOrgHScrollPos = nInitialPos;
-	}
-}
-
-CHoldHScroll::~CHoldHScroll()
-{
-	if (m_hwnd)
-	{
-		if (::GetScrollPos(m_hwnd, SB_HORZ) != m_nOrgHScrollPos)
-		{
-			::SendMessage(m_hwnd, WM_HSCROLL, MAKEWPARAM(SB_THUMBPOSITION, m_nOrgHScrollPos), 0L);
-			::UpdateWindow(m_hwnd);
-		}
-	}
-}
-
 /////////////////////////////////////////////////////////////////////////////
 
 CDisableTreeTips::CDisableTreeTips(CTreeCtrl& tree, BOOL bToolTips, BOOL bInfoTips)

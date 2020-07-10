@@ -11,6 +11,8 @@
 #include "..\shared\copywndcontents.h"
 #include "..\shared\enbitmap.h"
 
+#include "..\3rdParty\Detours\detours.h"
+
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #define WM_RESYNC           (WM_USER+2)
@@ -42,6 +44,10 @@ const int LINUX_VOFFSET_FUDGE	= 2;
 #	define TVM_SETEXTENDEDSTYLE (TV_FIRST + 44)
 #	define TreeView_SetExtendedStyle(hwnd, dw, mask) (DWORD)SNDMSG((hwnd), TVM_SETEXTENDEDSTYLE, mask, dw)
 #endif
+
+#ifndef GET_WHEEL_DELTA_WPARAM
+#	define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
+#endif 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -84,6 +90,84 @@ CHoldListVScroll::~CHoldListVScroll()
 			ListView_Scroll(m_hwndList, 0, nVOffset);
 		}
 	}
+}
+
+//////////////////////////////////////////////////////////////////////
+
+int(WINAPI * TrueSetScrollPos)(HWND hWnd, int nBar, int nPos, BOOL bRedraw) = SetScrollPos;
+int(WINAPI * TrueScrollWindowEx)(HWND hWnd, int dx, int dy, const RECT *prcScroll, const RECT *prcClip, HRGN hrgnUpdate, LPRECT prcUpdate, UINT flags) = ScrollWindowEx;
+
+HWND CHoldHScroll::s_hwndGlobal = NULL;
+
+CHoldHScroll::CHoldHScroll(HWND hwnd, int nInitialPos) : m_hwnd(hwnd)
+{
+	// it's acceptable to pass no HWND -> nothing happens
+	if (m_hwnd == NULL)
+		return;
+
+	// Can only have one active hold at a time
+	// Don't assert if the HWND is the same
+	if (s_hwndGlobal != NULL)
+	{
+		ASSERT(0/*m_hwnd == s_hwndGlobal*/);
+
+		m_hwnd = NULL;
+		return;
+	}
+
+	s_hwndGlobal = m_hwnd;
+
+	if (nInitialPos < 0)
+		m_nOrgHScrollPos = ::GetScrollPos(hwnd, SB_HORZ);
+	else
+		m_nOrgHScrollPos = nInitialPos;
+
+	VERIFY(DetourTransactionBegin() == 0);
+	VERIFY(DetourUpdateThread(GetCurrentThread()) == 0);
+	VERIFY(DetourAttach(&(PVOID&)TrueSetScrollPos, MySetScrollPos) == 0);
+	VERIFY(DetourAttach(&(PVOID&)TrueScrollWindowEx, MyScrollWindowEx) == 0);
+	VERIFY(DetourTransactionCommit() == 0);
+}
+
+CHoldHScroll::~CHoldHScroll()
+{
+	if (m_hwnd)
+	{
+		ASSERT(s_hwndGlobal);
+
+		VERIFY(DetourTransactionBegin() == 0);
+		VERIFY(DetourUpdateThread(GetCurrentThread()) == 0);
+		VERIFY(DetourDetach(&(PVOID&)TrueSetScrollPos, MySetScrollPos) == 0);
+		VERIFY(DetourDetach(&(PVOID&)TrueScrollWindowEx, MyScrollWindowEx) == 0);
+		VERIFY(DetourTransactionCommit() == 0);
+
+		s_hwndGlobal = NULL;
+
+		::SendMessage(m_hwnd, WM_HSCROLL, MAKEWPARAM(SB_THUMBPOSITION, m_nOrgHScrollPos), 0L);
+		::UpdateWindow(m_hwnd);
+	}
+}
+
+int WINAPI CHoldHScroll::MySetScrollPos(HWND hWnd, int nBar, int nPos, BOOL bRedraw)
+{
+	if ((s_hwndGlobal == hWnd) && (nBar == SB_HORZ))
+	{
+		return 0;
+	}
+
+	// else
+	return TrueSetScrollPos(hWnd, nBar, nPos, bRedraw);
+}
+
+int WINAPI CHoldHScroll::MyScrollWindowEx(HWND hWnd, int dx, int dy, const RECT *prcScroll, const RECT *prcClip, HRGN hrgnUpdate, LPRECT prcUpdate, UINT flags)
+{
+	if (s_hwndGlobal == hWnd)
+	{
+		dx = 0;
+		InvalidateRect(hWnd, NULL, FALSE);
+	}
+
+	return TrueScrollWindowEx(hWnd, dx, dy, prcScroll, prcClip, hrgnUpdate, prcUpdate, flags);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -549,6 +633,8 @@ BOOL CTreeListSyncer::ResyncSelection(HWND hwnd, HWND hwndTo, BOOL bClearTreeSel
 
 	CAutoFlag af(m_bResyncing, TRUE);
 	BOOL bSynced = FALSE;
+
+	CHoldHScroll hs(WantHoldHScroll(hwnd) ? hwnd : NULL);
 
 	if (IsTree(hwnd) && IsList(hwndTo)) // sync Tree to list
 	{
@@ -2401,6 +2487,15 @@ LRESULT CTreeListSyncer::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM
 		}
 		break;
 
+	case TVM_SELECTITEM:
+		if ((wp == TVGN_FIRSTVISIBLE) && WantHoldHScroll(hRealWnd))
+		{
+			CHoldHScroll hhs(hRealWnd);
+
+			return ScDefault(hRealWnd);
+		}
+		break;
+
 	case WM_VSCROLL:
 	case LVM_ENSUREVISIBLE:
 	case TVM_ENSUREVISIBLE:
@@ -2409,41 +2504,13 @@ LRESULT CTreeListSyncer::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM
 			lr = ScDefault(hRealWnd);
 			bDoneDefault = TRUE;
 			
-			if (ResyncScrollPos(OtherWnd(hRealWnd), hRealWnd))
-			{
-				// TODO
-			}
+			ResyncScrollPos(OtherWnd(hRealWnd), hRealWnd);
 		}
 		break;
 		
 	case WM_MOUSEWHEEL:
-		if (IsRight(hRealWnd)) // right view has received mousewheel => resync left
-		{
-			lr = ScDefault(hRealWnd);
-			bDoneDefault = TRUE;
-			
-			if (ResyncScrollPos(OtherWnd(hRealWnd), hRealWnd))
-			{
-				// TODO
-			}
-		}
-		else // left view has received mousewheel input => response varies
-		{
-			HWND hwndOther = OtherWnd(hRealWnd);
-			
-			// if the right view has a vertical scrollbar this takes priority,
-			// else if we do not have a horz scrollbar
-			if (HasVScrollBar(hwndOther))
-			{
-				return ::SendMessage(hwndOther, WM_MOUSEWHEEL, wp, lp);
-			}
-			else if (!HasHScrollBar(hRealWnd))
-			{
-				return ::SendMessage(hwndOther, WM_MOUSEWHEEL, wp, lp);
-			}
-			// else default behaviour
-		}
-		break;
+		HandleMouseWheel(hRealWnd, wp, lp);
+		return 0L;
 		
 	case WM_NCPAINT:
 		if (m_bTreeExpanding && IsLeft(hRealWnd) && IsTree(hRealWnd))
@@ -2593,6 +2660,57 @@ LRESULT CTreeListSyncer::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM
 		lr = ScDefault(hRealWnd);
 	
 	return lr;
+}
+
+void CTreeListSyncer::HandleMouseWheel(HWND hWnd, WPARAM wp, LPARAM lp)
+{
+	HWND hwndOther = OtherWnd(hWnd);
+
+	if (HasVScrollBar())
+	{
+		int zDelta = GET_WHEEL_DELTA_WPARAM(wp);
+		BOOL bUp = (zDelta > 0);
+
+		int nLine = (abs(zDelta / 120) * 3);
+		WORD wKeys = LOWORD(wp);
+
+		if (nLine && !wKeys && CanScroll(hWnd, SB_VERT, bUp))
+		{
+			// We get the fewest UI artifacts when we pass this to 
+			// the tree and then resync the list
+			HWND hwndScroll = (IsTree(hWnd) ? hWnd : IsTree(hwndOther) ? hwndOther : hWnd);
+			
+			while (nLine--)
+				::SendMessage(hwndScroll, WM_VSCROLL, (bUp ? SB_LINEUP : SB_LINEDOWN), 0L);
+		}
+
+		return; // always
+	}
+
+	// else
+	ScDefault(hWnd);
+	ResyncScrollPos(hwndOther, hWnd);
+}
+
+BOOL CTreeListSyncer::CanScroll(HWND hWnd, int nScrollbar, BOOL bLeftUp)
+{
+	int nPos = ::GetScrollPos(hWnd, nScrollbar);
+
+	if (bLeftUp)
+		return (nPos > 0);
+
+	// right/down
+	SCROLLINFO si = { sizeof(si), SIF_RANGE | SIF_PAGE, 0 };
+
+	if (!::GetScrollInfo(hWnd, nScrollbar, &si))
+		return FALSE;
+
+	return (nPos <= (si.nMax - (int)si.nPage));
+}
+
+BOOL CTreeListSyncer::WantHoldHScroll(HWND hWnd) const
+{
+	return (!HasFlag(TLSF_NOHOLDTREEHSCROLL) && IsTree(hWnd));
 }
 
 LRESULT CTreeListSyncer::ScDefault(HWND hwnd)

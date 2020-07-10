@@ -134,8 +134,7 @@ IMPLEMENT_DYNAMIC(CTDLTaskCtrlBase, CWnd)
 
 //////////////////////////////////////////////////////////////////////
 
-CTDLTaskCtrlBase::CTDLTaskCtrlBase(BOOL bSyncSelection,
-								   const CTDCImageList& ilIcons,
+CTDLTaskCtrlBase::CTDLTaskCtrlBase(const CTDCImageList& ilIcons,
 								   const CToDoCtrlData& data, 
 								   const CToDoCtrlFind& find,
 								   const CTDCStyleMap& styles,
@@ -143,7 +142,7 @@ CTDLTaskCtrlBase::CTDLTaskCtrlBase(BOOL bSyncSelection,
 								   const CTDCColumnIDMap& mapVisibleCols,
 								   const CTDCCustomAttribDefinitionArray& aCustAttribDefs) 
 	: 
-	CTreeListSyncer(TLSF_SYNCFOCUS | TLSF_BORDER | TLSF_SYNCDATA | TLSF_SPLITTER | (bSyncSelection ? TLSF_SYNCSELECTION : 0)),
+	CTreeListSyncer(TLSF_SYNCFOCUS | TLSF_BORDER | TLSF_SYNCDATA | TLSF_SPLITTER | TLSF_SYNCSELECTION),
 	m_data(data),
 	m_find(find),
 	m_styles(styles),

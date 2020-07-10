@@ -29,25 +29,6 @@
 
 //////////////////////////////////////////////////////////////////////
 
-typedef CMap<HTREEITEM, HTREEITEM, int, int&> CMapIndices;
-
-class CHTIMap : public CMap<DWORD, DWORD, HTREEITEM, HTREEITEM&>
-{
-public:
-	HTREEITEM GetItem(DWORD dwItemID) const;
-	BOOL HasItem(DWORD dwItemID) const;
-
-	int BuildMap(const CTreeCtrl& tree, BOOL bVisibleChildrenOnly = FALSE);
-	void AddItem(const CTreeCtrl& tree, HTREEITEM hti, BOOL bVisibleChildrenOnly = FALSE);
-	BOOL RemoveItem(const CTreeCtrl& tree, HTREEITEM hti);
-	
-#ifdef _DEBUG
-	void Trace(CTreeCtrl& tree) const;
-#endif
-};
-
-//////////////////////////////////////////////////////////////////////
-
 enum TCH_EDGE 
 { 
 	TCHE_TOP, 
@@ -69,17 +50,23 @@ enum TCH_WHERE
 	TCHW_BELOW
 };
 
-/////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 
-class CHoldHScroll
+typedef CMap<HTREEITEM, HTREEITEM, int, int&> CMapIndices;
+
+class CHTIMap : public CMap<DWORD, DWORD, HTREEITEM, HTREEITEM&>
 {
 public:
-	CHoldHScroll(HWND hwnd, int nInitialPos = -1);
-	~CHoldHScroll();
+	HTREEITEM GetItem(DWORD dwItemID) const;
+	BOOL HasItem(DWORD dwItemID) const;
+
+	int BuildMap(const CTreeCtrl& tree, BOOL bVisibleChildrenOnly = FALSE);
+	void AddItem(const CTreeCtrl& tree, HTREEITEM hti, BOOL bVisibleChildrenOnly = FALSE);
+	BOOL RemoveItem(const CTreeCtrl& tree, HTREEITEM hti);
 	
-protected:
-	HWND m_hwnd;
-	int m_nOrgHScrollPos;
+#ifdef _DEBUG
+	void Trace(CTreeCtrl& tree) const;
+#endif
 };
 
 /////////////////////////////////////////////////////////////////////////////

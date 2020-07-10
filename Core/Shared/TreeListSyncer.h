@@ -24,11 +24,12 @@ enum TLS_HIDE
 
 enum
 {
-	TLSF_SYNCSELECTION	= 0x0001,
-	TLSF_SYNCFOCUS		= 0x0002,
-	TLSF_SYNCDATA		= 0x0004,
-	TLSF_SPLITTER		= 0x0008,
-	TLSF_BORDER			= 0x0010,
+	TLSF_SYNCSELECTION		= 0x0001,
+	TLSF_SYNCFOCUS			= 0x0002,
+	TLSF_SYNCDATA			= 0x0004,
+	TLSF_SPLITTER			= 0x0008,
+	TLSF_BORDER				= 0x0010,
+	TLSF_NOHOLDTREEHSCROLL	= 0x0020,
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -71,6 +72,26 @@ public:
 protected:
 	HWND m_hwndList;
 	int m_nOrgVScrollPos;
+};
+
+/////////////////////////////////////////////////////////////////////////////
+
+class CHoldHScroll
+{
+public:
+	CHoldHScroll(HWND hwnd, int nInitialPos = -1);
+	~CHoldHScroll();
+
+protected:
+	HWND m_hwnd;
+	int m_nOrgHScrollPos;
+
+private:
+	static HWND s_hwndGlobal;
+
+private:
+	static int WINAPI MySetScrollPos(HWND hWnd, int nBar, int nPos, BOOL bRedraw);
+	static int WINAPI MyScrollWindowEx(HWND hWnd, int dx, int dy, const RECT *prcScroll, const RECT *prcClip, HRGN hrgnUpdate, LPRECT prcUpdate, UINT flags);
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -183,6 +204,7 @@ protected:
 	static BOOL HasVScrollBar(HWND hwnd);
 	static BOOL HasHScrollBar(HWND hwnd);
 	static BOOL HasScrollBars(HWND hwnd, BOOL bHScroll, BOOL bVScroll);
+	static BOOL CanScroll(HWND hwnd, int nScrollbar, BOOL bLeftUp);
 	static DWORD GetTreeItemData(HWND hwnd, HTREEITEM hti);
 	static DWORD GetListItemData(HWND hwnd, int nItem);
 	static BOOL SetListItemData(HWND hwnd, int nItem, DWORD dwItemData);
@@ -251,6 +273,7 @@ protected:
 	HWND PrimaryWnd() const;
 	int GetSelectedListItems(HWND hwndList, CIntArray& aItems);
 	BOOL ResyncListToTreeSelection(HWND hwndTree, const CList<HTREEITEM, HTREEITEM>& htItems, HTREEITEM htiFocused);
+	BOOL WantHoldHScroll(HWND hWnd) const;
 
 	void ExpandList(HWND hwndList, HWND hwndTree, HTREEITEM hti, int& nNextIndex);
 	void CollapseList(HWND hwndList, HWND hwndTree, HTREEITEM hti);
@@ -307,6 +330,7 @@ private:
 	void BuildTreeListSortMap(HWND hwndTree, HWND hwndList, HTREEITEM hti, CSortMap& map, int& nIndex);
 	void SortTreeItem(HWND hwndTree, HTREEITEM hti, PFNTLSCOMPARE pfnCompare, LPARAM lParamSort, BOOL bRecursive);
 	void BuildListListSortMap(HWND hwndPrimary, HWND hwndList, CSortMap& map);
+	void HandleMouseWheel(HWND hWnd, WPARAM wp, LPARAM lp);
 
 	static int CALLBACK SortListProc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 	static BOOL ConvertNonClientToClientMouseMsg(HWND hWnd, UINT& nMsg, WPARAM& wParam, LPARAM& lParam);
