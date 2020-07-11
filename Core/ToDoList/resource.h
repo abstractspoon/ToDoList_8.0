@@ -817,6 +817,7 @@
 #define IDC_NEWPROJNAME                 1540
 #define IDC_NEWFILEPATH                 1541
 #define IDC_EXPANDALL                   1541
+#define IDC_IMPORT_MUSTMAPTITLE         1542
 #define IDC_TASKLIST                    2000
 #define IDD_IMPORT_OUTLOOK_DIALOG       2000
 #define IDI_OUTLOOK                     2001
@@ -2239,7 +2240,7 @@
 #define IDS_SELECTSTYLESHEET_TITLE      51407
 #define IDS_UNINSTALLER_SMARTSCREENBLOCK 51408
 #define IDS_UPDATER_SMARTSCREENBLOCK    51409
-#define IDS_EDIT_OPENFILELINK            51410
+#define IDS_EDIT_OPENFILELINK           51410
 #define IDS_TE_WEEKDAYS                 51411
 #define IDS_WEEKDAYS_ABBREV             51412
 #define IDS_USERTOOL_FOLDERPROMPT       51413
@@ -2253,6 +2254,7 @@
 #define IDS_TIMETRACKREMINDER_BALLOONTITLE 51421
 #define IDS_START_TRACKING              51422
 #define IDS_STOP_TRACKING               51423
+#define IDS_CSV_EXISTCUSTOMATTRIB       51424
 #define IDS_REMINDER_TASKCOL            51425
 #define IDS_REMINDER_TASKLISTCOL        51426
 #define IDS_REMINDER_WHENCOL            51427
@@ -2383,7 +2385,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        319
 #define _APS_NEXT_COMMAND_VALUE         34742
-#define _APS_NEXT_CONTROL_VALUE         1542
+#define _APS_NEXT_CONTROL_VALUE         1543
 #define _APS_NEXT_SYMED_VALUE           108
 #endif
 #endif

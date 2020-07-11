@@ -23,17 +23,18 @@ class CTDLCsvImportExportDlg : public CTDLDialog
 // Construction
 public:
 	// import constructor
-	CTDLCsvImportExportDlg(const CString& sFilePath, 
-							IPreferences* pPrefs, 
-							LPCTSTR szKey, 
-							CWnd* pParent = NULL);   
-   
-	// export constructor
-	CTDLCsvImportExportDlg(const CString& sFilePath, 
-							const CTDCAttributeArray& aExportAttributes, 
-							IPreferences* pPrefs, 
-							LPCTSTR szKey, 
-							CWnd* pParent = NULL);
+	CTDLCsvImportExportDlg(const CString& sFilePath,
+						   const CMapStringToString& mapImportCustAttrib,
+						   IPreferences* pPrefs,
+						   LPCTSTR szKey,
+						   CWnd* pParent = NULL);
+
+   // export constructor
+	CTDLCsvImportExportDlg(const CString& sFilePath,
+						   const CTDCAttributeArray& aExportAttributes,
+						   IPreferences* pPrefs,
+						   LPCTSTR szKey,
+						   CWnd* pParent = NULL);
 
 	int GetColumnMapping(CTDCAttributeMapping& aMapping) const;
 	CString GetDelimiter() const;
@@ -42,15 +43,18 @@ public:
 protected:
 // Dialog Data
 	//{{AFX_DATA(CTDLCsvImportExportDlg)
-	CString	m_sDelim;
-	CString	m_sFilePath;
-	BOOL	m_bAlwaysExportTaskIDs;
 	//}}AFX_DATA
 	CFileEdit	m_eFilePath;
 	CTDLImportExportAttributeMappingListCtrl m_lcColumnSetup;
+
+	CString	m_sDelim;
+	CString	m_sFilePath;
+	BOOL m_bAlwaysExportTaskIDs;
 	BOOL m_bImporting;
+
 	CTDCAttributeMapping m_aMasterColumnMapping;
 	CTDCAttributeArray m_aExportAttributes;
+	CMapStringToString m_mapImportCustAttrib;
 
 	IPreferences* m_pPrefs;
 
@@ -87,14 +91,14 @@ protected:
 	int FindMasterColumn(LPCTSTR szColumn) const;
 	TDC_ATTRIBUTE GetMasterColumnAttribute(LPCTSTR szColumn) const;
 	void SetMasterColumnAttribute(LPCTSTR szColumn, TDC_ATTRIBUTE attrib);
+	CString FindCustomAttributeID(LPCTSTR szColumn) const;
 
 	int LoadMasterColumnMapping();
 	void SaveMasterColumnMapping() const;
 
-	BOOL DoInit(const CString& sFilePath, IPreferences* pPrefs, 
-				LPCTSTR szKey, const CTDCAttributeArray* pExportAttributes);
-
+	BOOL DoInit(BOOL bImport, const CString& sFilePath, IPreferences* pPrefs, LPCTSTR szKey);
 	void InitialiseDelimiter();
+
 	static BOOL IsUsingExcel();
 	static CString GetFileDelimiter(const CString& sUIDelim);
 	static CString GetUIDelimiter(const CString& sFileDelim);

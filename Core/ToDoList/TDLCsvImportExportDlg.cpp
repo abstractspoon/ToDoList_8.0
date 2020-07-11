@@ -24,38 +24,44 @@ static const CString COMMA(_T(","));
 /////////////////////////////////////////////////////////////////////////////
 // CTDLCsvImportExportDlg dialog
 
-CTDLCsvImportExportDlg::CTDLCsvImportExportDlg(const CString& sFilePath, 
-											   IPreferences* pPrefs, LPCTSTR szKey, CWnd* pParent /*=NULL*/)
+CTDLCsvImportExportDlg::CTDLCsvImportExportDlg(const CString& sFilePath,
+											   const CMapStringToString& mapImportCustAttrib,
+											   IPreferences* pPrefs, 
+											   LPCTSTR szKey, 
+											   CWnd* pParent /*=NULL*/)
 	: 
 	CTDLDialog(IDD_CSVIMPORTEXPORT_DIALOG, _T(""), pParent), 
 	m_lcColumnSetup(TRUE), 
 	m_eFilePath(FES_NOBROWSE)
 {
-	VERIFY(DoInit(sFilePath, pPrefs, szKey, NULL));
+	Misc::Copy(mapImportCustAttrib, m_mapImportCustAttrib);
+
+	VERIFY(DoInit(TRUE, sFilePath, pPrefs, szKey));
 }
 
 CTDLCsvImportExportDlg::CTDLCsvImportExportDlg(const CString& sFilePath, 
 											   const CTDCAttributeArray& aExportAttributes, 
-											   IPreferences* pPrefs, LPCTSTR szKey, CWnd* pParent /*=NULL*/)
+											   IPreferences* pPrefs, 
+											   LPCTSTR szKey, 
+											   CWnd* pParent /*=NULL*/)
 	: 
 	CTDLDialog(IDD_CSVIMPORTEXPORT_DIALOG, _T(""), pParent), 
 	m_lcColumnSetup(FALSE), 
 	m_eFilePath(FES_NOBROWSE)
 {
-	VERIFY(DoInit(sFilePath, pPrefs, szKey, &aExportAttributes));
+	m_aExportAttributes.Copy(aExportAttributes);
+	
+	VERIFY(DoInit(FALSE, sFilePath, pPrefs, szKey));
 }
 
-BOOL CTDLCsvImportExportDlg::DoInit(const CString& sFilePath, 
-									IPreferences* pPrefs, 
-									LPCTSTR szKey, 
-									const CTDCAttributeArray* pExportAttributes)
+BOOL CTDLCsvImportExportDlg::DoInit(BOOL bImport, const CString& sFilePath, IPreferences* pPrefs, LPCTSTR szKey)
 {
+	m_bImporting = bImport;
 	m_sFilePath = sFilePath; 
 	m_pPrefs = pPrefs;
 	m_sPrefsKey.Format(_T("%s\\CsvColumnMapping"), szKey);
 	m_sDelim = Misc::GetListSeparator();
 	m_bAlwaysExportTaskIDs = TRUE;
-	m_bImporting = (pExportAttributes ? FALSE : TRUE);
 
 	InitialiseDelimiter();
 	LoadMasterColumnMapping();
@@ -64,14 +70,9 @@ BOOL CTDLCsvImportExportDlg::DoInit(const CString& sFilePath,
 	CTDCAttributeMapping aMapping;
 
 	if (m_bImporting)
-	{
 		BuildImportColumnMapping(aMapping);
-	}
 	else
-	{
-		m_aExportAttributes.Copy(*pExportAttributes);
 		BuildExportColumnMapping(aMapping);
-	}
 
 	m_lcColumnSetup.SetColumnMapping(aMapping);
 
@@ -204,7 +205,29 @@ void CTDLCsvImportExportDlg::InitialiseDelimiter()
 
 int CTDLCsvImportExportDlg::GetColumnMapping(CTDCAttributeMapping& aMapping) const 
 { 
-	return m_lcColumnSetup.GetColumnMapping(aMapping);
+	int nNumMappings = m_lcColumnSetup.GetColumnMapping(aMapping);
+
+	// Fixup existing custom attribute column names
+	if (m_bImporting)
+	{
+		for (int nMapping = 0; nMapping < nNumMappings; nMapping++)
+		{
+			TDCATTRIBUTEMAPPING& mapping = aMapping[nMapping];
+
+			if (mapping.nTDCAttrib == TDCA_EXISTING_CUSTOMATTRIBUTE)
+			{
+				CString sCustID = FindCustomAttributeID(mapping.sColumnName), sCustLabel;
+				ASSERT(!sCustID.IsEmpty());
+
+				m_mapImportCustAttrib.Lookup(sCustID, sCustLabel);
+				ASSERT(!sCustLabel.IsEmpty());
+
+				mapping.sColumnName.Format(_T("%s (%s)"), sCustLabel, sCustID);
+			}
+		}
+	}
+
+	return aMapping.GetSize();
 }
 
 CString CTDLCsvImportExportDlg::GetDelimiter() const 
@@ -421,14 +444,55 @@ void CTDLCsvImportExportDlg::SaveMasterColumnMapping() const
 
 CString CTDLCsvImportExportDlg::GetMasterColumnName(TDC_ATTRIBUTE attrib) const
 {
+	ASSERT(!m_bImporting);
+
 	int nCol = FindMasterColumn(attrib);
 	return (nCol == -1) ? _T("") : m_aMasterColumnMapping[nCol].sColumnName;
 }
 
 TDC_ATTRIBUTE CTDLCsvImportExportDlg::GetMasterColumnAttribute(LPCTSTR szColumn) const
 {
+	ASSERT(m_bImporting);
+
 	int nCol = FindMasterColumn(szColumn);
-	return (nCol == -1) ? TDCA_NONE : m_aMasterColumnMapping[nCol].nTDCAttrib;
+
+	if (nCol != -1)
+		return m_aMasterColumnMapping[nCol].nTDCAttrib;
+
+	// Try for a custom attribute
+	if (!FindCustomAttributeID(szColumn).IsEmpty())
+		return TDCA_EXISTING_CUSTOMATTRIBUTE;
+
+	return TDCA_NONE;
+}
+
+CString CTDLCsvImportExportDlg::FindCustomAttributeID(LPCTSTR szColumn) const
+{
+	ASSERT(m_bImporting);
+
+	POSITION pos = m_mapImportCustAttrib.GetStartPosition();
+
+	while (pos)
+	{
+		CString sCustID, sCustLabel;
+		m_mapImportCustAttrib.GetNextAssoc(pos, sCustID, sCustLabel);
+
+		if (sCustID.CompareNoCase(szColumn) == 0)
+			return sCustID;
+
+		if (sCustLabel.CompareNoCase(szColumn) == 0)
+			return sCustID;
+
+		// Try combined name
+		CString sCombinedName;
+		sCombinedName.Format(_T("%s (%s)"), sCustLabel, sCustID);
+
+		if (sCombinedName.CompareNoCase(szColumn) == 0)
+			return sCustID;
+	}
+
+	// not found
+	return _T("");
 }
 
 void CTDLCsvImportExportDlg::SetMasterColumnAttribute(LPCTSTR szColumn, TDC_ATTRIBUTE attrib)

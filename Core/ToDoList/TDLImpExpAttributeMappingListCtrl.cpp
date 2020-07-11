@@ -8,6 +8,7 @@
 
 #include "..\shared\Localizer.h"
 #include "..\shared\dialoghelper.h"
+#include "..\shared\holdredraw.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -100,11 +101,8 @@ void CTDLImportExportAttributeMappingListCtrl::PreSubclassWindow()
 	// add custom attribute placeholder if importing
 	if (m_bImporting)
 	{
-		int nItem = m_cbAttributes.AddString(CEnString(IDS_CSV_CUSTOMATTRIB)); 
-		m_cbAttributes.SetItemData(nItem, (DWORD)TDCA_CUSTOMATTRIB_FIRST); 
-
-		nItem = m_cbAttributes.AddString(CEnString(IDS_CSV_CUSTOMLISTATTRIB)); 
-		m_cbAttributes.SetItemData(nItem, (DWORD)TDCA_CUSTOMATTRIB_LAST); 
+		CDialogHelper::AddString(m_cbAttributes, CEnString(IDS_CSV_CUSTOMATTRIB), TDCA_NEW_CUSTOMATTRIBUTE);
+		CDialogHelper::AddString(m_cbAttributes, CEnString(IDS_CSV_CUSTOMLISTATTRIB), TDCA_NEW_CUSTOMATTRIBUTE_LIST);
 	}
 
 	m_header.EnableTracking(FALSE);
@@ -146,6 +144,9 @@ void CTDLImportExportAttributeMappingListCtrl::InitState()
 
 void CTDLImportExportAttributeMappingListCtrl::BuildListCtrl()
 {
+	CLockUpdates hr(*this);
+	CWaitCursor cursor;
+
 	DeleteAllItems();
 
 	for (int nRow = 0; nRow < m_aMapping.GetSize(); nRow++)
@@ -172,6 +173,10 @@ void CTDLImportExportAttributeMappingListCtrl::BuildListCtrl()
 // static helper
 CString CTDLImportExportAttributeMappingListCtrl::GetAttributeName(TDC_ATTRIBUTE nAtt)
 {
+	// Special case:
+	if (nAtt == TDCA_EXISTING_CUSTOMATTRIBUTE)
+		return CEnString(IDS_CSV_EXISTCUSTOMATTRIB);
+	
 	for (int nAttrib = 0; nAttrib < ATTRIB_COUNT; nAttrib++)
 	{
 		const TDCATTRIBUTE& att = ATTRIBUTES[nAttrib];
