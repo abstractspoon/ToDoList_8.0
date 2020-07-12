@@ -1558,6 +1558,8 @@ BEGIN
     CONTROL         "Hide &confidential attributes",IDC_HIDECONFIDENTIAL,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,226,386,10
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,242,386,1
+    RTEXT           "You must include 'Title' in your column mapping",
+                    IDC_IMPORT_MUSTMAPTITLE,7,251,272,8,NOT WS_VISIBLE
 END
 
 IDD_ADDCUSTOMATTRIB_DIALOG DIALOG DISCARDABLE  0, 0, 422, 321
