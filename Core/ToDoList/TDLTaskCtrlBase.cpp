@@ -1882,7 +1882,7 @@ void CTDLTaskCtrlBase::DoSort()
 	}
 
 	ResyncScrollPos(Tasks(), m_lcColumns);
-	EnsureSelectionVisible();
+	EnsureSelectionVisible(TRUE);
 }
 
 void CTDLTaskCtrlBase::GetSortBy(TDSORTCOLUMNS& sort) const
