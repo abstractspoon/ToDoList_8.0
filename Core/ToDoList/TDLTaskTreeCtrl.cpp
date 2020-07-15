@@ -357,35 +357,15 @@ BOOL CTDLTaskTreeCtrl::EnsureSelectionVisible()
 	{
 		// Check there's something to do because holding 
 		// the redraw/scroll has a cost
-		BOOL bAllExpanded = TRUE;
-		POSITION pos = TSH().GetFirstItemPos();
-		
-		while (pos && bAllExpanded)
-		{
-			HTREEITEM htiSel = TSH().GetNextItem(pos);
-			bAllExpanded = TCH().IsParentItemExpanded(htiSel, TRUE);
-		}
-		
-		BOOL bVisible = (bAllExpanded && TCH().IsItemVisible(htiSel, FALSE));
+		BOOL bAllExpanded = TSH().ParentItemsAreAllExpanded(TRUE);
+		BOOL bVisible = (bAllExpanded && TCH().IsItemVisible(htiSel, FALSE, bHorzPartialOK));
 		
 		if (!bVisible)
 		{
 			CHoldRedraw hr(*this);
 
 			if (!bAllExpanded)
-			{
-				// Expand the parents of all selected tasks
-				POSITION pos = TSH().GetFirstItemPos();
-			
-				while (pos)
-				{
-					HTREEITEM htiSel = TSH().GetNextItem(pos);
-					HTREEITEM htiParent = m_tcTasks.GetParentItem(htiSel);
-				
-					if (htiParent)
-						TCH().ExpandItem(htiParent);
-				}
-			}
+				TSH().ExpandAllParentItems(TRUE);
 			
 			TCH().EnsureItemVisible(htiSel, FALSE);
 		}
