@@ -1393,7 +1393,7 @@ LRESULT CTDLTaskTreeCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARA
 					{
 						// save item handle so we don't re-handle in LButtonUp handler
 						m_htiLastHandledLBtnDown = htiHit;
-						bColClick = TRUE;
+						bColClick = !(nHitFlags & TVHT_ONITEMINDENT);
 					}
 				}
 				
@@ -1432,11 +1432,11 @@ LRESULT CTDLTaskTreeCtrl::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARA
 						int nSelCount = TSH().GetCount();
 						ASSERT (nSelCount);
 						
-						if (!m_bReadOnly &&
-							!SelectionHasLocked(FALSE, FALSE) && 
+						if (!m_bReadOnly && 
 							(nHitFlags & TVHT_ONITEMLABEL) && 
 							(nSelCount == 1) && 
-							(htiLastHandledLBtnDown == NULL))
+							(htiLastHandledLBtnDown == NULL) &&
+							!SelectionHasLocked(FALSE, FALSE))
 						{
 							BeginLabelEditTimer();
 						}
