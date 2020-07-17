@@ -525,7 +525,6 @@ BOOL CToDoListApp::GetDefaultIniPath(CString& sIniPath, BOOL bCheckExists)
 
 	if (ValidateIniPath(sTestIni, bCheckExists))
 	{
-
 		sIniPath = sTestIni;
 		return TRUE;
 	}
@@ -1025,7 +1024,7 @@ BOOL CToDoListApp::InitPreferences(CEnCommandLineInfo& cmdInfo)
 			prefs.WriteProfileInt(_T("Preferences"), _T("CheckinNoEdit"), TRUE);
 			prefs.WriteProfileInt(_T("Preferences"), _T("Use3rdPartySourceControl"), FALSE);
 		}
-		
+
 		// setup column visibility
 		TDCCOLEDITFILTERVISIBILITY vis;
 		wizard.GetColumnVisibility(vis);
