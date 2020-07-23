@@ -4467,7 +4467,6 @@ TDC_FILE CToDoListWnd::OpenTaskList(LPCTSTR szFilePath, BOOL bNotifyDueTasks)
 		AddToDoCtrl(pTDC);
 	}
 
-	Resize();
 	Invalidate();
 	
 	return nOpen;
@@ -6529,6 +6528,10 @@ int CToDoListWnd::AddToDoCtrl(CFilteredToDoCtrl* pTDC, TSM_TASKLISTINFO* pInfo)
 	{
 		pTDC->ShowWindow(SW_HIDE);
 	}
+
+	// Show the tab-bar as required
+	if (WantTasklistTabbarVisible() && !m_tabCtrl.IsWindowVisible())
+		Resize();
 
 	return nSel;
 }
