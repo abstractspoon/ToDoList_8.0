@@ -12,6 +12,8 @@
 #include "tdcenum.h"
 #include "taskfile.h"
 
+#include "..\Shared\icon.h"
+
 #include "..\Interfaces\Itasklist.h"
 #include "..\Interfaces\IImportExport.h"
 
@@ -34,10 +36,13 @@ public:
 	LPCTSTR GetFileFilter() const { return _T("Tasklists (*.tdl)|*.tdl||"); }
 	LPCTSTR GetFileExtension() const { return _T("tdl"); }
 	LPCTSTR GetTypeID() const { return TDLEXPORT_TYPEID; }
-	HICON GetIcon() const { return NULL; }
+	HICON GetIcon() const { return m_icon; }
 
 	IIMPORTEXPORT_RESULT Export(const ITaskList* pSrcTaskFile, LPCTSTR szDestFilePath, bool bSilent, IPreferences* pPrefs, LPCTSTR szKey);
 	IIMPORTEXPORT_RESULT Export(const IMultiTaskList* pSrcTaskFile, LPCTSTR szDestFilePath, bool bSilent, IPreferences* pPrefs, LPCTSTR szKey);
+
+protected:
+	CIcon m_icon;
 
 protected:
 	static void CreateReverseFileLinks(CTaskFile& tasks, HTASKITEM hTask, const CID2IDMap& mapIDs, const CString& sFileName, BOOL bAndSiblings);
