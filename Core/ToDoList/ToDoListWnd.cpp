@@ -2406,8 +2406,7 @@ LRESULT CToDoListWnd::OnPostOnCreate(WPARAM /*wp*/, LPARAM /*lp*/)
 	// load last files
 	if (bReloadTasklists)
 	{
-		Invalidate();
-		UpdateWindow();
+		CAutoFlag af(m_bReloading, TRUE);
 
 		// get the last active tasklist
 		CString sLastActiveFile = prefs.GetProfileString(SETTINGS_KEY, _T("LastActiveFile"));
@@ -2489,6 +2488,9 @@ LRESULT CToDoListWnd::OnPostOnCreate(WPARAM /*wp*/, LPARAM /*lp*/)
 			Resize();
 		}
 	}
+
+	Resize();
+	UpdateWindow();
 
 	// if there's only one tasklist open and it's pristine then it's
 	// the original one so add a sample task unless 'empty' flag is set
@@ -6268,10 +6270,13 @@ void CToDoListWnd::Resize(int cx, int cy, BOOL bMaximized)
 
 BOOL CToDoListWnd::WantTasklistTabbarVisible() const 
 { 
-	BOOL bWantTabbar = (GetTDCCount() > 1 || !Prefs().GetAutoHideTabbar()); 
-	bWantTabbar &= m_bShowTasklistBar;
+	if (m_bReloading)
+		return FALSE;
 
-	return bWantTabbar;
+	if (!m_bShowTasklistBar)
+		return FALSE;
+
+	return ((GetTDCCount() > 1) || !Prefs().GetAutoHideTabbar()); 
 }
 
 int CToDoListWnd::ReposTabBar(CDeferWndMove& dwm, const CPoint& ptOrg, int nWidth, BOOL bCalcOnly)
