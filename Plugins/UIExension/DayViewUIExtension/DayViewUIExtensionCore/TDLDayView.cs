@@ -826,7 +826,7 @@ namespace DayViewUIExtension
 			}
 
 			if (sorted)
-				appts.Sort((a, b) => (int)(a.StartDate.Ticks - b.StartDate.Ticks));
+				appts.Sort((a, b) => (int)(b.StartDate.Ticks - a.StartDate.Ticks));
 
 			return appts;
 		}
