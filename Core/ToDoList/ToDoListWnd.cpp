@@ -10507,7 +10507,7 @@ LRESULT CToDoListWnd::OnFindAddSearch(WPARAM /*wp*/, LPARAM lp)
 {
 	RefreshFilterBarAdvancedFilterNames();
 
-	// See FixupAdvancedFilterMenuItemIDs for more detail
+	// See RemapAdvancedFilterMenuItemIDs for more detail
 	ASSERT(lp);
 
 	CStringArray aPrevFilters;
@@ -10524,7 +10524,7 @@ LRESULT CToDoListWnd::OnFindDeleteSearch(WPARAM /*wp*/, LPARAM lp)
 {
 	RefreshFilterBarAdvancedFilterNames();
 
-	// See FixupAdvancedFilterMenuItemIDs for more detail
+	// See RemapAdvancedFilterMenuItemIDs for more detail
 	ASSERT(lp);
 
 	CStringArray aPrevFilters;
