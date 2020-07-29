@@ -147,7 +147,6 @@ protected:
 	afx_msg void OnMoveRuleUp();
 	afx_msg void OnNewSearch();
 	afx_msg void OnSaveSearch();
-	afx_msg void OnSearchresults();
 	afx_msg void OnSelchangeSearchlist();
 	afx_msg void OnSelchangeTasklistoptions();
 	afx_msg void OnSelchangeInclude();
@@ -199,10 +198,6 @@ protected:
 	int LoadSearches();
 	int SaveSearches();
 	int GetSearchParams(LPCTSTR szName, SEARCHPARAMS& params) const;
-	BOOL LoadRule(const CPreferences& prefs, const CString& sRule, 
-					TDC_ATTRIBUTE& attrib, FIND_ATTRIBTYPE& nFindType, FIND_OPERATOR& op, 
-					BOOL& bAnd, DWORD& dwFlags, CString& sValue) const;
-	BOOL SaveRule(CPreferences& prefs, const CString& sRule, const SEARCHPARAM& rule) const;
 
 	CRect GetSplitterRect() const;
 	BOOL GetSplitterRect(CRect& rSplitter, int nSplitPos) const;
