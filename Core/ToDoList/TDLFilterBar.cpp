@@ -451,25 +451,18 @@ FILTER_SHOW CTDLFilterBar::GetFilter(TDCFILTER& filter, CString& sCustom, DWORD&
 
 BOOL CTDLFilterBar::SetAdvancedFilterFlags(const CString& sCustom, DWORD dwFlags)
 {
-	DWORD dwPrevFlags = 0;
-	
-	if (!m_mapCustomFlags.Lookup(sCustom, dwPrevFlags))
+	if (!m_cbTaskFilter.HasAdvancedFilter(sCustom))
 	{
 		ASSERT(0);
 		return FALSE;
 	}
 
-	if (dwFlags != dwPrevFlags)
-	{
-		m_mapCustomFlags[sCustom] = dwFlags;
+	CString sActive;
 
-		CString sActive;
+	if ((GetFilter(sActive) == FS_ADVANCED) && (sCustom == sActive))
+		m_cbOptions.SetSelectedOptions(dwFlags);
 
-		if ((GetFilter(sActive) == FS_ADVANCED) && (sCustom == sActive))
-		{
-			m_cbOptions.SetSelectedOptions(dwFlags);
-		}
-	}
+	m_mapCustomFlags[sCustom] = dwFlags;
 
 	return TRUE;
 }

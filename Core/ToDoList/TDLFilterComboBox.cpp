@@ -145,6 +145,11 @@ FILTER_SHOW CTDLFilterComboBox::GetSelectedFilter(CString& sAdvanced) const
 	return nSelFilter;
 }
 
+BOOL CTDLFilterComboBox::HasAdvancedFilter(const CString& sAdvanced) const
+{
+	return (Misc::Find(sAdvanced, m_aAdvancedFilterNames, FALSE, TRUE) != -1);
+}
+
 BOOL CTDLFilterComboBox::SelectFilter(FILTER_SHOW nFilter)
 {
 	return (CB_ERR != CDialogHelper::SelectItemByData(*this, (DWORD)nFilter));
