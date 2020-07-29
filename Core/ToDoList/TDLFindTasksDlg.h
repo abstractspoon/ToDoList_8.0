@@ -59,6 +59,7 @@ public:
 	void DeleteAllResults();
 
 	void RefreshUserPreferences() { m_lcResults.RefreshUserPreferences(); }
+	BOOL SetSearchFlags(LPCTSTR szName, DWORD dwFlags);
 
 	void SetCustomAttributes(const CTDCCustomAttribDefinitionArray& aActiveTasklistAttribDefs,
 							const CTDCCustomAttribDefinitionArray& aAllTasklistsAttribDefs);

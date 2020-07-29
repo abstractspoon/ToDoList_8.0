@@ -10545,11 +10545,15 @@ LRESULT CToDoListWnd::OnFindSaveSearch(WPARAM /*wp*/, LPARAM lp)
 	CString sActive;
 	LPCTSTR szSearch = (LPCTSTR)lp;
 
+	TDCADVANCEDFILTER filter;
+	m_dlgFindTasks.GetSearchParams(szSearch, filter);
+
+	// Synchronise filter bar flags
+	VERIFY(m_filterBar.SetAdvancedFilterFlags(szSearch, filter.dwFlags));
+
+	// Update Filter
 	if ((m_filterBar.GetFilter(sActive) == FS_ADVANCED) && (sActive == szSearch))
 	{
-		TDCADVANCEDFILTER filter;
-		m_dlgFindTasks.GetSearchParams(szSearch, filter);
-
 		GetToDoCtrl().SetAdvancedFilter(filter);
 	}
 
@@ -11398,6 +11402,10 @@ void CToDoListWnd::OnChangeFilter(TDCFILTER& filter, const CString& sCustom, DWO
 
 	if (!sCustom.IsEmpty())
 	{
+		// Synchronise 'Find Tasks' dialog flags
+		VERIFY(m_dlgFindTasks.SetSearchFlags(sCustom, dwCustomFlags));
+
+		// Update filter
 		TDCADVANCEDFILTER filter(sCustom, dwCustomFlags);
 		VERIFY(m_dlgFindTasks.GetSearchParams(sCustom, filter));
 
