@@ -1535,11 +1535,11 @@ BOOL CTDLFindTasksDlg::OnEraseBkgnd(CDC* pDC)
 
 void CTDLFindTasksDlg::OnApplyasfilter() 
 {
-	if (m_sActiveSearch.IsEmpty())
-	{
-		m_sActiveSearch = CEnString(IDS_UNNAMEDFILTER);
-		m_cbSearches.SetWindowText(m_sActiveSearch);
-	}
+	CString sSearch;
+	m_cbSearches.GetWindowText(sSearch);
+
+	if (sSearch.IsEmpty())
+		m_cbSearches.SetWindowText(CEnString(IDS_UNNAMEDFILTER));
 
 	OnSaveSearch();
 
