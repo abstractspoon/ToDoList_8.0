@@ -184,18 +184,12 @@ BEGIN_MESSAGE_MAP(CTDLFilterBar, CDialog)
 	//{{AFX_MSG_MAP(CFilterBar)
 	ON_WM_SIZE()
 	//}}AFX_MSG_MAP
-	ON_CBN_SELCHANGE(IDC_ALLOCTOFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELCHANGE(IDC_TAGFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELCHANGE(IDC_VERSIONFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELCHANGE(IDC_ALLOCBYFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELCHANGE(IDC_STATUSFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELCHANGE(IDC_CATEGORYFILTERCOMBO, OnSelchangeFilter)
-
-	ON_CBN_SELENDOK(IDC_FILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELENDOK(IDC_STARTFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELENDOK(IDC_DUEFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELENDOK(IDC_PRIORITYFILTERCOMBO, OnSelchangeFilter)
-	ON_CBN_SELENDOK(IDC_RISKFILTERCOMBO, OnSelchangeFilter)
+	ON_CBN_SELCHANGE(IDC_ALLOCTOFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELCHANGE(IDC_TAGFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELCHANGE(IDC_VERSIONFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELCHANGE(IDC_ALLOCBYFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELCHANGE(IDC_STATUSFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELCHANGE(IDC_CATEGORYFILTERCOMBO, OnSelchangeFilterAttribute)
 
 	// Cancelling checkbox filters needs extra care
 	ON_CBN_SELENDCANCEL(IDC_ALLOCTOFILTERCOMBO, OnSelcancelAllocToFilter)
@@ -205,6 +199,12 @@ BEGIN_MESSAGE_MAP(CTDLFilterBar, CDialog)
 	ON_CBN_SELENDCANCEL(IDC_STATUSFILTERCOMBO, OnSelcancelStatusFilter)
 	ON_CBN_SELENDCANCEL(IDC_CATEGORYFILTERCOMBO, OnSelcancelCategoryFilter)
 
+	ON_CBN_SELENDOK(IDC_STARTFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELENDOK(IDC_DUEFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELENDOK(IDC_PRIORITYFILTERCOMBO, OnSelchangeFilterAttribute)
+	ON_CBN_SELENDOK(IDC_RISKFILTERCOMBO, OnSelchangeFilterAttribute)
+
+	ON_CBN_SELENDOK(IDC_FILTERCOMBO, OnSelchangeFilter) // separate handler
 	ON_CBN_CLOSEUP(IDC_OPTIONFILTERCOMBO, OnCloseUpOptions)
 
 	ON_NOTIFY(DTN_DATETIMECHANGE, IDC_USERDUEDATE, OnSelchangeDateFilter)
@@ -289,6 +289,16 @@ void CTDLFilterBar::OnSelchangeFilter()
 
 		GetParent()->SendMessage(WM_FBN_FILTERCHNG, GetDlgCtrlID(), (LPARAM)GetSafeHwnd());
 	}
+}
+
+void CTDLFilterBar::OnSelchangeFilterAttribute() 
+{
+	TDCFILTER prevFilter = m_filter;
+	UpdateData();
+	
+	// Only notify the parent if something actually changed
+	if (m_filter != prevFilter)
+		GetParent()->SendMessage(WM_FBN_FILTERCHNG, GetDlgCtrlID(), (LPARAM)GetSafeHwnd());
 }
 
 void CTDLFilterBar::OnSelcancelAllocToFilter()
@@ -382,7 +392,7 @@ void CTDLFilterBar::OnSelchangeDateFilter(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 
 LRESULT CTDLFilterBar::OnEEBtnClick(WPARAM wp, LPARAM /*lp*/)
 {
-	OnSelchangeFilter();
+	OnSelchangeFilterAttribute();
 	
 	switch (wp)
 	{
@@ -405,7 +415,7 @@ BOOL CTDLFilterBar::PreTranslateMessage(MSG* pMsg)
 		(pMsg->hwnd == m_eTitleFilter) &&
 		(pMsg->wParam == VK_RETURN))
 	{
-		OnSelchangeFilter();
+		OnSelchangeFilterAttribute();
 		return TRUE;
 	}
 
