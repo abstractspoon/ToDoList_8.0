@@ -323,6 +323,7 @@ BOOL CPreferencesPageBase::HighlightUIText(const CStringArray& aSearch, COLORREF
 	m_brHighlight = ::CreateSolidBrush(crHighlight);
 
 	InvalidateAllCtrls(this);
+	Invalidate(TRUE);
 
 	return TRUE;
 }
@@ -364,6 +365,7 @@ void CPreferencesPageBase::ClearHighlights()
 		m_crHighlight = CLR_NONE;
 
 		InvalidateAllCtrls(this);
+		Invalidate(TRUE);
 	}
 }
 
