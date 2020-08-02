@@ -2531,6 +2531,10 @@ LRESULT CTreeListSyncer::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM
 			ShowVScrollBar(hRealWnd, FALSE, FALSE);
 			// then default behaviour
 		}
+
+		// Brute force attempt to fix occasional misalignment
+		// of horizontal scroll regions
+		PostResize();
 		break;
 		
 	case WM_SIZE: 
