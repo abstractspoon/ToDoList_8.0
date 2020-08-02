@@ -622,6 +622,8 @@ BOOL CTreeListSyncer::ResyncListToTreeSelection(HWND hwndTree, const CList<HTREE
 		}
 	}
 
+	InvalidateRect(hwndList, NULL, FALSE);
+
 	return TRUE;
 }
 
