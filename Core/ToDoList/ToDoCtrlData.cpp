@@ -4235,6 +4235,8 @@ BOOL CToDoCtrlData::InitialiseNewRecurringTask(DWORD dwPrevTaskID, DWORD dwNewTa
 	// Special handling for recreated tasks
 	if (dwNewTaskID != dwPrevTaskID)
 	{
+		SetTaskDate(dwNewTaskID, TDCD_CREATE, COleDateTime::GetCurrentTime());
+
 		// the task ID has effectively changed so fix up those
 		// tasks that previously had a dependency
 		FixupTaskLocalDependentsIDs(dwNewTaskID, dwPrevTaskID);
