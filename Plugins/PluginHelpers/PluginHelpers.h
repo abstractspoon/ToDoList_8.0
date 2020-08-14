@@ -42,6 +42,14 @@ namespace Abstractspoon
 
 			// ----------------------------------------------------------------------------
 
+			public ref class StringUtil
+			{
+			public:
+				static bool Find(String^ source, String^ findText, bool matchWhole, bool matchCase);
+			};
+
+			// ----------------------------------------------------------------------------
+
 			public ref class Log
 			{
 			private:

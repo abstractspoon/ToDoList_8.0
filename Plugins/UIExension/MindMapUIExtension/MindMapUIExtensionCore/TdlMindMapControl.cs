@@ -444,6 +444,63 @@ namespace MindMapUIExtension
 			return true;
 		}
 
+        public bool SelectTask(String text, UIExtension.SelectTask selectTask, bool caseSensitive, bool wholeWord, bool findReplace)
+        {
+            if ((text == String.Empty) || IsEmpty())
+                return false;
+
+			TreeNode node = null; // start node
+			bool forward = true;
+
+			switch (selectTask)
+            {
+            case UIExtension.SelectTask.SelectFirstTask:
+				node = RootNode.Nodes[0];
+                break;
+
+            case UIExtension.SelectTask.SelectNextTask:
+				if (SelectedNode != null)
+					node = SelectedNode.NextNode;
+                break;
+
+            case UIExtension.SelectTask.SelectNextTaskInclCurrent:
+				if (SelectedNode != null)
+					node = SelectedNode;
+				break;
+
+            case UIExtension.SelectTask.SelectPrevTask:
+				if (SelectedNode != null)
+				{
+					node = SelectedNode.PrevNode;
+
+					if (node == null)
+						node = LastNode;
+
+					forward = false;
+				}
+				break;
+
+            case UIExtension.SelectTask.SelectLastTask:
+				node = LastNode;
+				forward = false;
+				break;
+            }
+			
+			// Avoid recursion
+			while (node != null)
+			{ 
+				if (StringUtil.Find(node.Text, text, caseSensitive, wholeWord))
+				{
+					SelectedNode = node;
+					return true;
+				}
+
+				node = (forward ? node.NextNode : node.PrevNode);
+			}
+
+			return false;
+		}
+
 		public bool GetTask(UIExtension.GetTask getTask, ref UInt32 taskID)
 		{
 			TreeNode node = FindNode(taskID);
