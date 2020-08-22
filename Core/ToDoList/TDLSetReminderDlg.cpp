@@ -136,21 +136,6 @@ int CTDLSetReminderDlg::DoModal(TDCREMINDER& rem, BOOL bNewReminder)
 		m_sModifyDlgTitle.LoadString(IDS_MODIFYTASKREMINDER_TITLE);
 	}
 
-	// verify relative date is feasible
-	BOOL bTaskHasDue = CDateHelper::IsDateSet(rem.pTDC->GetTaskDate(rem.dwTaskID, TDCD_DUE));
-	BOOL bTaskHasStart = CDateHelper::IsDateSet(rem.pTDC->GetTaskDate(rem.dwTaskID, TDCD_START));
-
-	if (m_bRelativeFromDueDate)
-	{
-		if (!bTaskHasDue && bTaskHasStart)
-			m_bRelativeFromDueDate = FALSE;
-	}
-	else // relative from start
-	{
-		if (bTaskHasDue && !bTaskHasStart)
-			m_bRelativeFromDueDate = TRUE;
-	}
-
 	m_sTaskTitle = rem.GetTaskTitle();
 	m_sTaskTitle.Replace(_T("&"), _T("&&"));
 		
