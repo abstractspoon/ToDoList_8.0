@@ -245,6 +245,10 @@ SOURCE=.\res\help_button.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\icons.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\kanban.ico
 # End Source File
 # Begin Source File
