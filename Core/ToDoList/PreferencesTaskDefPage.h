@@ -84,7 +84,7 @@ protected:
 	BOOL	m_bUseCreationDateForDefDueDate;
 	CWndPromptManager m_mgrPrompts;
 	CTDCImageList m_ilTaskIcons;
-	int m_nDefReminderLeadin;
+	int m_nDefReminderLeadinMins;
 
 	const CContentMgr* m_pMgrContent;
 	CTDLCommentsCtrl m_ctrlComments;
