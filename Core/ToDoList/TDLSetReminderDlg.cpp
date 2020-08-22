@@ -41,7 +41,7 @@ CTDLSetReminderDlg::CTDLSetReminderDlg(CWnd* pParent /*=NULL*/)
 	//{{AFX_DATA_INIT(CTDLSetReminderDlg)
 	m_bRelativeFromDueDate = 0;
 	m_sSoundFile = _T("");
-	m_dRelativeLeadIn = 0.25; // 15 mins
+	m_dRelativeLeadInHours = 0.25; // 15 mins
 	m_bRelative = TRUE;
 	m_dtAbsoluteDate = COleDateTime::GetCurrentTime();
 	m_sTaskTitle = _T("");
@@ -67,12 +67,12 @@ void CTDLSetReminderDlg::DoDataExchange(CDataExchange* pDX)
 
 	if (pDX->m_bSaveAndValidate)
 	{
-		m_dRelativeLeadIn = (m_cbLeadIn.GetSelectedPeriod() / 60.0);
+		m_dRelativeLeadInHours = (m_cbLeadIn.GetSelectedPeriod() / 60.0);
 		m_dAbsoluteTime = m_cbAbsoluteTime.GetOleTime();
 	}
 	else
 	{
-		m_cbLeadIn.SetSelectedPeriod((UINT)(m_dRelativeLeadIn * 60));
+		m_cbLeadIn.SetSelectedPeriod((UINT)(m_dRelativeLeadInHours * 60));
 		m_cbAbsoluteTime.SetOleTime(m_dAbsoluteTime);
 	}
 }
@@ -97,7 +97,7 @@ int CTDLSetReminderDlg::DoModal(TDCREMINDER& rem, BOOL bNewReminder)
 	if (bNewReminder)
 	{
 		m_bRelative = prefs.GetProfileInt(m_sPrefsKey, _T("Relative"), TRUE);
-		m_dRelativeLeadIn = prefs.GetProfileDouble(m_sPrefsKey, _T("LeadIn"), 0.25); // 15 mins
+		m_dRelativeLeadInHours = prefs.GetProfileDouble(m_sPrefsKey, _T("LeadIn"), 0.25); // 15 mins
 		m_bRelativeFromDueDate = prefs.GetProfileInt(m_sPrefsKey, _T("RelativeFromDue"), TRUE);
 		m_sSoundFile = prefs.GetProfileString(m_sPrefsKey, _T("SoundFile"), m_sSoundFile);
 
@@ -120,7 +120,7 @@ int CTDLSetReminderDlg::DoModal(TDCREMINDER& rem, BOOL bNewReminder)
 
 		if (m_bRelative)
 		{
-			m_dRelativeLeadIn = (rem.dRelativeDaysLeadIn * 24);
+			m_dRelativeLeadInHours = (rem.dRelativeDaysLeadIn * 24);
 			m_bRelativeFromDueDate = (rem.nRelativeFromWhen == TDCR_DUEDATE);
 
 			// init absolute date and time to now
@@ -154,7 +154,7 @@ int CTDLSetReminderDlg::DoModal(TDCREMINDER& rem, BOOL bNewReminder)
 		if (m_bRelative)
 		{
 			rem.nRelativeFromWhen = (m_bRelativeFromDueDate ? TDCR_DUEDATE : TDCR_STARTDATE);
-			rem.dRelativeDaysLeadIn = (m_dRelativeLeadIn / 24);
+			rem.dRelativeDaysLeadIn = (m_dRelativeLeadInHours / 24);
 		}
 		else
 		{
@@ -166,7 +166,7 @@ int CTDLSetReminderDlg::DoModal(TDCREMINDER& rem, BOOL bNewReminder)
 		
 		prefs.WriteProfileInt(m_sPrefsKey, _T("Relative"), m_bRelative);
 		prefs.WriteProfileInt(m_sPrefsKey, _T("RelativeFromDue"), m_bRelativeFromDueDate);
-		prefs.WriteProfileDouble(m_sPrefsKey, _T("LeadIn"), m_dRelativeLeadIn);
+		prefs.WriteProfileDouble(m_sPrefsKey, _T("LeadIn"), m_dRelativeLeadInHours);
 		prefs.WriteProfileString(m_sPrefsKey, _T("SoundFile"), m_sSoundFile.IsEmpty() ? NO_SOUND : m_sSoundFile);
 	}
 
@@ -204,7 +204,7 @@ void CTDLSetReminderDlg::OnSelchangeLeadin()
 {
 	UpdateData();
 
-	m_dRelativeLeadIn = (m_cbLeadIn.GetSelectedPeriod() / 60.0); // in hours
+	m_dRelativeLeadInHours = (m_cbLeadIn.GetSelectedPeriod() / 60.0); // in hours
 }
 
 void CTDLSetReminderDlg::OnChangeRelative() 
