@@ -49,7 +49,7 @@ public:
 	void SetDefaultCommentsFont(const CString& sFaceName, int nPointSize);
 
 	void GetTaskAttributes(TODOITEM& tdiDefault) const;
-	BOOL GetReminder(UINT& nMinutes, BOOL& bBeforeDue) const;
+	BOOL GetReminder(TDCREMINDER& rem) const;
 
 protected:
 // Dialog Data

@@ -150,14 +150,16 @@ void CPreferencesTaskDefPage::OnFirstShow()
 	PostMessage(WM_PTDP_INITCOMMENTS);
 }
 
-BOOL CPreferencesTaskDefPage::GetReminder(UINT& nMinutes, BOOL& bBeforeDue) const
+BOOL CPreferencesTaskDefPage::GetReminder(TDCREMINDER& rem) const
 {
 	if (m_nDefReminderLeadinMins == TDLRPC_NOREMINDER)
 		return FALSE;
 
 	// else
-	nMinutes = m_nDefReminderLeadinMins;
-	bBeforeDue = m_bReminderBeforeDue;	
+	rem.bRelative = TRUE;
+	rem.dRelativeDaysLeadIn = (m_nDefReminderLeadinMins / (24 * 60.0));
+	rem.nRelativeFromWhen = (m_bReminderBeforeDue ? TDCR_DUEDATE : TDCR_STARTDATE);
+	rem.sSoundFile = m_sReminderSound;
 
 	return TRUE;
 }
