@@ -36,7 +36,8 @@ const UINT COMMENTS_COMBOLENDLU = 122;
 
 /////////////////////////////////////////////////////////////////////////////
 
-const LPCTSTR ENDL = _T("\r\n");
+const LPCTSTR ENDL		= _T("\r\n");
+const LPCTSTR NO_SOUND	= _T("None");
 
 /////////////////////////////////////////////////////////////////////////////
 // CPreferencesTaskDefPage property page
@@ -54,6 +55,7 @@ CPreferencesTaskDefPage::CPreferencesTaskDefPage(const CTDLContentMgr* pMgrConte
 	m_nDefReminderLeadinMins(TDLRPC_NOREMINDER)
 {
 	//{{AFX_DATA_INIT(CPreferencesTaskDefPage)
+	m_sReminderSound = _T("");
 	//}}AFX_DATA_INIT
 	m_bReminderBeforeDue = TRUE;
 	m_eCost.SetMask(_T("@.0123456789"), ME_LOCALIZEDECIMAL);
@@ -67,6 +69,8 @@ void CPreferencesTaskDefPage::DoDataExchange(CDataExchange* pDX)
 {
 	CPreferencesPageBase::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CPreferencesTaskDefPage)
+	DDX_Control(pDX, IDC_PLAYSOUND, m_eReminderSound);
+	DDX_Text(pDX, IDC_PLAYSOUND, m_sReminderSound);
 	DDX_Control(pDX, IDC_DEFREMINDER, m_cbDefReminder);
 	DDX_Control(pDX, IDC_DEFAULTRISK, m_cbDefRisk);
 	DDX_Control(pDX, IDC_DEFAULTPRIORITY, m_cbDefPriority);
@@ -128,6 +132,7 @@ void CPreferencesTaskDefPage::OnFirstShow()
 	AddGroupLine(IDC_DEFGROUP);
 
 	GetDlgItem(IDC_DEFREMINDERDATE)->EnableWindow(m_nDefReminderLeadinMins != TDLRPC_NOREMINDER);
+	GetDlgItem(IDC_PLAYSOUND)->EnableWindow(m_nDefReminderLeadinMins != TDLRPC_NOREMINDER);
 	GetDlgItem(IDC_USECREATIONTIMEFORDEFSTARTDATE)->EnableWindow(m_bUseCreationDateForDefStartDate);	
 
 	m_btDefColor.SetColor(m_crDef);
@@ -143,6 +148,7 @@ void CPreferencesTaskDefPage::OnFirstShow()
 	m_mgrPrompts.SetEditPrompt(IDC_DEFAULTTAGS, *this, CEnString(IDS_TDC_NONE));
 	m_mgrPrompts.SetEditPrompt(IDC_DEFAULTCATEGORY, *this, CEnString(IDS_TDC_NONE));
 	m_mgrPrompts.SetEditPrompt(IDC_DEFAULTCREATEDBY, *this, Misc::GetUserName());
+	m_mgrPrompts.SetEditPrompt(IDC_PLAYSOUND, *this, CEnString(IDS_NOSOUND));
 
 	VERIFY(m_ctrlComments.Create(this, IDC_COMMENTS));
 
@@ -181,6 +187,9 @@ void CPreferencesTaskDefPage::SetDefaultCommentsFont(const CString& sFaceName, i
 void CPreferencesTaskDefPage::OnOK() 
 {
 	CPreferencesPageBase::OnOK();
+
+	if (m_sReminderSound.IsEmpty())
+		m_sReminderSound = NO_SOUND;
 }
 
 BOOL CPreferencesTaskDefPage::PreTranslateMessage(MSG* pMsg)
@@ -221,6 +230,17 @@ void CPreferencesTaskDefPage::LoadPreferences(const IPreferences* pPrefs, LPCTST
 	m_sDefIcon = pPrefs->GetProfileString(szKey, _T("DefaultIcon"));
 	m_nDefReminderLeadinMins = pPrefs->GetProfileInt(szKey, _T("DefaultReminderLeadin"), TDLRPC_NOREMINDER);
 	m_bReminderBeforeDue = pPrefs->GetProfileInt(szKey, _T("ReminderBeforeDue"), TRUE);
+
+	m_sReminderSound = pPrefs->GetProfileString(szKey, _T("ReminderSound"));
+
+	if (m_sReminderSound == NO_SOUND)
+	{
+		m_sReminderSound.Empty();
+	}
+	else if (m_sReminderSound.IsEmpty()) // first time initialisation
+	{
+		m_sReminderSound = CSoundEdit::GetWindowsSound(_T("tada"));
+	}
 	
 	CColourButton::LoadPreferences(pPrefs);
 
@@ -267,6 +287,7 @@ void CPreferencesTaskDefPage::SavePreferences(IPreferences* pPrefs, LPCTSTR szKe
 	pPrefs->WriteProfileInt(szKey, _T("DefaultTimeSpentUnits"), m_defTimeSpent.GetTHUnits());
 	pPrefs->WriteProfileInt(szKey, _T("DefaultReminderLeadin"), m_nDefReminderLeadinMins);
 	pPrefs->WriteProfileInt(szKey, _T("ReminderBeforeDue"), m_bReminderBeforeDue);
+	pPrefs->WriteProfileString(szKey, _T("ReminderSound"), m_sReminderSound);
 
 	m_btDefColor.SavePreferences(pPrefs);
 	
@@ -351,6 +372,7 @@ void CPreferencesTaskDefPage::OnSelchangeReminder()
 	UpdateData();
 
 	GetDlgItem(IDC_DEFREMINDERDATE)->EnableWindow(m_nDefReminderLeadinMins != TDLRPC_NOREMINDER);
+	GetDlgItem(IDC_PLAYSOUND)->EnableWindow(m_nDefReminderLeadinMins != TDLRPC_NOREMINDER);
 }
 
 void CPreferencesTaskDefPage::OnSelchangeCommentsformat() 

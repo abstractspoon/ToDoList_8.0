@@ -2377,6 +2377,7 @@
 #define IDS_OA_ENDDATE                  51577
 #define IDS_TDC_EDITPROMPT_UNKNOWNFORMAT 51578
 #define IDS_ADVANCEDFILTERPLACEHOLDER   51579
+#define IDS_NOSOUND                     51580
 
 // Next default values for new objects
 // 
