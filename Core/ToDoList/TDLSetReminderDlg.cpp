@@ -105,9 +105,9 @@ int CTDLSetReminderDlg::DoModal(TDCREMINDER& rem, BOOL bNewReminder)
 		{
 			m_sSoundFile.Empty();
 		}
-		else if (m_sSoundFile.IsEmpty()) // backwards compatibility
+		else if (m_sSoundFile.IsEmpty()) // first time initialisation
 		{
-			m_sSoundFile = FileMisc::GetWindowsFolder() + _T("\\media\\tada.wav");
+			m_sSoundFile = CSoundEdit::GetWindowsSound(_T("tada"));
 		}
 		
 		// init absolute date and time to now
