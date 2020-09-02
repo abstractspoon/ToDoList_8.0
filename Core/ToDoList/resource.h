@@ -2352,7 +2352,7 @@
 #define IDS_PRINTDLG_TASKSEL            51516
 #define IDS_EXPORTDLG_EXPORT            51517
 #define IDS_EXPORTDLG_TASKSEL           51518
-#define IDS_MSVCR100_MSG                51519
+#define IDS_MSVCREDIST_MSG              51519
 #define IDS_FIND_TITLE                  51556
 #define IDS_REPLACE_TITLE               51557
 #define IDS_CAD_BROWSEIMAGES            51558

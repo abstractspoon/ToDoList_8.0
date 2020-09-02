@@ -78,9 +78,6 @@ LPCTSTR FORUM_URL			= _T("https://www.abstractspoon.com/phpBB/");
 LPCTSTR LICENSE_URL			= _T("https://www.abstractspoon.com/wiki/doku.php?id=free-open-source-software"); 
 LPCTSTR DONATE_URL			= _T("https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=abstractspoon2%40optusnet%2ecom%2eau&item_name=Software"); 
 
-LPCTSTR MSVCR100_DLL		= _T("MSVCR100.dll"); 
-LPCTSTR MSVCR100_URL		= _T("https://www.microsoft.com/en-hk/download/details.aspx?id=8328"); 
-
 /////////////////////////////////////////////////////////////////////////////
 // CToDoListApp
 
@@ -172,23 +169,26 @@ BOOL CToDoListApp::HandleSimpleQueries(const CEnCommandLineInfo& cmdInfo)
 	return FALSE;
 }
 
-BOOL CToDoListApp::HasVS2010Redistributable()
+BOOL CToDoListApp::HasVSRedistributable()
 {
-	CString sVs2010Runtime;
-	VERIFY(FileMisc::GetSpecialFilePath(CSIDL_SYSTEM, MSVCR100_DLL, sVs2010Runtime));
-
-	if (::LoadLibraryEx(sVs2010Runtime, NULL, LOAD_IGNORE_CODE_AUTHZ_LEVEL) == NULL)
+	// Only reliable way to see if the C# plugins will load
+	// is to try to load the PluginHelpers.dll since it has
+	// dependencies on MSVCRT, MFC and .Net
+	// Don't test on Linux
+	if (COSVersion() >= OSV_XP)
 	{
-		CToDoListWnd::EnableLogging();
+		const CString PLUGINHELPERS = FileMisc::GetAppFolder(_T("PluginHelpers.dll"));
 
-		FileMisc::LogText(_T("LoadLibrary(%s) failed"), sVs2010Runtime);
-		FileMisc::LogTextRaw(Misc::FormatGetLastError());
-		
-		if (AfxMessageBox(CEnString(IDS_MSVCR100_MSG), MB_OKCANCEL | MB_ICONEXCLAMATION) == IDOK)
-			FileMisc::Run(::GetDesktopWindow(), MSVCR100_URL);
+		if (FileMisc::FileExists(PLUGINHELPERS) && !LoadLibrary(PLUGINHELPERS))
+		{
+			LPCTSTR MSVCREDIST_URL = _T("https://www.microsoft.com/en-hk/download/details.aspx?id=8328"); 
+			
+			if (AfxMessageBox(CEnString(IDS_MSVCREDIST_MSG, 2010), MB_OKCANCEL | MB_ICONEXCLAMATION) == IDOK)
+				FileMisc::Run(::GetDesktopWindow(), MSVCREDIST_URL);
 
-		// Always quit
-		return FALSE;
+			// Always quit
+			return FALSE;
+		}
 	}
 
 	// All good
@@ -198,7 +198,7 @@ BOOL CToDoListApp::HasVS2010Redistributable()
 BOOL CToDoListApp::InitInstance()
 {
 	// .NET plugins require VS2010 redistributable to be installed
-	if (!HasVS2010Redistributable())
+	if (!HasVSRedistributable())
 		return FALSE;
 
 	// Set up icons that might be required during startup
