@@ -263,38 +263,39 @@ private:
 	template <class T> 
 	BOOL OutputExpectResult(T t1, LPCTSTR szFmt1, T t2, LPCTSTR szFmt2, TEST_OP nOp, BOOL bSuccess, LPCTSTR szTrail) const 
 	{
-		CString sOp, sOutput;
-
-		switch (nOp)
+		if (!bSuccess)
 		{
-		case OP_EQ: sOp = _T("=="); break;
-		case OP_NE: sOp = _T("!="); break;
-		case OP_LT: sOp = _T("< "); break;
-		case OP_GT: sOp = _T("> "); break;
-		case OP_LE: sOp = _T("<="); break;
-		case OP_GE: sOp = _T(">="); break;
-		}
+			CString sOp;
 
-		ASSERT(!sOp.IsEmpty());
+			switch (nOp)
+			{
+			case OP_EQ: sOp = _T("=="); break;
+			case OP_NE: sOp = _T("!="); break;
+			case OP_LT: sOp = _T("< "); break;
+			case OP_GT: sOp = _T("> "); break;
+			case OP_LE: sOp = _T("<="); break;
+			case OP_GE: sOp = _T(">="); break;
+			}
 
-		if (bSuccess)
-			sOutput.Format(_T("  Test [%2d] succeeded:          \"%s\" %s \"%s\""), m_nCurTest, szFmt1, sOp, szFmt2);
-		else
+			ASSERT(!sOp.IsEmpty());
+
+			CString sOutput;
 			sOutput.Format(_T("  Test [%2d] failed:    Expected \"%s\" %s \"%s\""), m_nCurTest, szFmt1, sOp, szFmt2);
 
-		if (!Misc::IsEmpty(szTrail))
-		{
-			CString sTrail;
-			sTrail.Format(_T(" (%s)\n"), szTrail);
+			if (!Misc::IsEmpty(szTrail))
+			{
+				CString sTrail;
+				sTrail.Format(_T(" (%s)\n"), szTrail);
 
-			sOutput += sTrail;
-		}
-		else
-		{
-			sOutput += '\n';
-		}
+				sOutput += sTrail;
+			}
+			else
+			{
+				sOutput += '\n';
+			}
 
-		_tprintf(sOutput, t1, t2);
+			_tprintf(sOutput, t1, t2);
+		}
 
 		return bSuccess;
 	}
