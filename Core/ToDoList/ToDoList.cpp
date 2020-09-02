@@ -181,7 +181,7 @@ BOOL CToDoListApp::HasVSRedistributable()
 
 		if (FileMisc::FileExists(PLUGINHELPERS) && !LoadLibrary(PLUGINHELPERS))
 		{
-			LPCTSTR MSVCREDIST_URL = _T("https://www.microsoft.com/en-hk/download/details.aspx?id=8328"); 
+			LPCTSTR MSVCREDIST_URL = _T("https://www.microsoft.com/en-au/download/details.aspx?id=8328"); 
 			
 			if (AfxMessageBox(CEnString(IDS_MSVCREDIST_MSG, 2010), MB_OKCANCEL | MB_ICONEXCLAMATION) == IDOK)
 				FileMisc::Run(::GetDesktopWindow(), MSVCREDIST_URL);
