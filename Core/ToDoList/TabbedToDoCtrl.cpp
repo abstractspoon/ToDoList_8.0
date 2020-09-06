@@ -1528,7 +1528,7 @@ DWORD CTabbedToDoCtrl::ProcessUIExtensionMod(const IUITASKMOD& mod)
 			COleDateTime date(CDateHelper::GetDate(mod.tValue));
 
 			if (dwTaskID)
-				bChange = (m_data.SetTaskDate(dwTaskID, TDCD_DUE, date));
+				bChange = (SET_CHANGE == m_data.SetTaskDate(dwTaskID, TDCD_DUE, date));
 			else
 				bChange = SetSelectedTaskDate(TDCD_DUE, date);
 
@@ -1547,7 +1547,7 @@ DWORD CTabbedToDoCtrl::ProcessUIExtensionMod(const IUITASKMOD& mod)
 			Misc::Split(mod.szValue, aValues, '\n');
 
 			if (dwTaskID)
-				bChange = (m_data.SetTaskAllocTo(dwTaskID, aValues, FALSE));
+				bChange = (SET_CHANGE == m_data.SetTaskAllocTo(dwTaskID, aValues, FALSE));
 			else 
 				bChange = SetSelectedTaskAllocTo(aValues);
 
@@ -1559,7 +1559,7 @@ DWORD CTabbedToDoCtrl::ProcessUIExtensionMod(const IUITASKMOD& mod)
 			Misc::Split(mod.szValue, aValues, '\n');
 
 			if (dwTaskID)
-				bChange = (m_data.SetTaskCategories(dwTaskID, aValues, FALSE));
+				bChange = (SET_CHANGE == m_data.SetTaskCategories(dwTaskID, aValues, FALSE));
 			else 
 				bChange = SetSelectedTaskCategories(aValues);
 		}
@@ -1570,7 +1570,7 @@ DWORD CTabbedToDoCtrl::ProcessUIExtensionMod(const IUITASKMOD& mod)
 			Misc::Split(mod.szValue, aValues, '\n');
 
 			if (dwTaskID)
-				bChange = (m_data.SetTaskTags(dwTaskID, aValues, FALSE));
+				bChange = (SET_CHANGE == m_data.SetTaskTags(dwTaskID, aValues, FALSE));
 			else 
 				bChange = SetSelectedTaskTags(aValues);
 		}
@@ -1581,7 +1581,7 @@ DWORD CTabbedToDoCtrl::ProcessUIExtensionMod(const IUITASKMOD& mod)
 			Misc::Split(mod.szValue, aValues, '\n');
 
 			if (dwTaskID)
-				bChange = (m_data.SetTaskFileLinks(dwTaskID, aValues, FALSE));
+				bChange = (SET_CHANGE == m_data.SetTaskFileLinks(dwTaskID, aValues, FALSE));
 			else 
 				bChange = SetSelectedTaskFileLinks(aValues);
 		}
@@ -1592,7 +1592,7 @@ DWORD CTabbedToDoCtrl::ProcessUIExtensionMod(const IUITASKMOD& mod)
 			Misc::Split(mod.szValue, aValues, '\n');
 
 			if (dwTaskID)
-				bChange = (m_data.SetTaskDependencies(dwTaskID, aValues, FALSE));
+				bChange = (SET_CHANGE == m_data.SetTaskDependencies(dwTaskID, aValues, FALSE));
 			else 
 				bChange = SetSelectedTaskDependencies(aValues);
 	
