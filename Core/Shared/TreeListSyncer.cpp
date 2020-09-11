@@ -2653,7 +2653,7 @@ LRESULT CTreeListSyncer::ScWindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM
 		// if this is a click in the area where the vertical
 		// scroll would normally be we convert it to a client
 		// mouse msg
-		if (IsLeft(hRealWnd) && (wp == HTVSCROLL))
+		if (!IsHiding(TLSH_RIGHT) && IsLeft(hRealWnd) && (wp == HTVSCROLL))
 		{
 			VERIFY(ConvertNonClientToClientMouseMsg(hRealWnd, msg, wp, lp));
 
