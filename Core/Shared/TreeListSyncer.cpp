@@ -2993,6 +2993,11 @@ void CTreeListSyncer::Resize(const CRect& rLeft, const CRect& rRight)
 	HWND hwndLeft(Left()), hwndRight(Right());
 	CRect rLeftActual(rLeft), rRightActual(rRight);
 	
+	// Make sure 'right' has some width else its vert scrollbar 
+	// is not managed properly by windows
+	if (rRightActual.Width() <= 0)
+		rRightActual.right = (rRightActual.left + 1);
+	
 	// Adjust top of primary window to take account of its or the others header
 	CRect rLeftHeader, rRightHeader;
 	BOOL bLeftHasHeader = GetHeaderRect(hwndLeft, rLeftHeader, rLeft);
