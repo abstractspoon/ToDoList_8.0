@@ -2995,7 +2995,7 @@ void CTreeListSyncer::Resize(const CRect& rLeft, const CRect& rRight)
 	
 	// Make sure 'right' has some width else its vert scrollbar 
 	// is not managed properly by windows
-	if (rRightActual.Width() <= 0)
+	if (rRightActual.right <= rRightActual.left)
 		rRightActual.right = (rRightActual.left + 1);
 	
 	// Adjust top of primary window to take account of its or the others header
