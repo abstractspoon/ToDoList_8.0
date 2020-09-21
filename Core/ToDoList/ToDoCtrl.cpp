@@ -11441,7 +11441,7 @@ LRESULT CToDoCtrl::OnTDCFailedLink(WPARAM /*wParam*/, LPARAM lParam)
 	}
 	else if (!CMSOutlookHelper::IsOutlookUrl(sLink) && ::PathIsRelative(sLink))
 	{
-		CString sLink = FileMisc::GetFullPath(sLink, m_taskTree.GetTasklistFolder());
+		sLink = FileMisc::GetFullPath(sLink, m_taskTree.GetTasklistFolder());
 		
 		if (FileMisc::Run(*this, sLink) >= SE_ERR_SUCCESS)
 			return 0L;
