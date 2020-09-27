@@ -2697,7 +2697,7 @@ namespace MSDN.Html.Editor
 							range.moveStart("character", -newHrefText.Length);
 
 							// insert or update the current link
-							if (anchor == null)
+//							if (anchor == null)
 							{
 								ExecuteCommandRange(range, HTML_COMMAND_INSERT_LINK, hrefLink);
 								element = (mshtmlElement)range.parentElement();
@@ -2709,10 +2709,10 @@ namespace MSDN.Html.Editor
 								if (element != null)
 									anchor = (mshtmlAnchorElement)element;
 							}
-							else
-							{
-								anchor.href = hrefLink;
-							}
+// 							else
+// 							{
+// 								anchor.href = hrefLink;
+// 							}
 
 							if (target != NavigateActionOption.Default)
 								anchor.target = (target == NavigateActionOption.NewWindow) ? TARGET_WINDOW_NEW : TARGET_WINDOW_SAME;
