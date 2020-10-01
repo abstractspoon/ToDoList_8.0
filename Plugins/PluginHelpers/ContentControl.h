@@ -42,6 +42,8 @@ namespace Abstractspoon
 					HWND GetFrom();
 					String^ ValidateLink(String^ sLink);
 				};
+
+				static bool GoToLink(String^ sLink, IntPtr hwndParent, IntPtr hwndFrom);
 			};
 
 			public interface class IContentControlWnd
