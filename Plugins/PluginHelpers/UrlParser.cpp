@@ -70,7 +70,7 @@ int UrlParser::MatchProtocol(String^ sUrl)
 
 bool UrlParser::ProtocolWantsNotification(int nProtocol)
 {
-	return m_parser->ProtocolWantsNotification(nProtocol);
+	return (m_parser->ProtocolWantsNotification(nProtocol) != FALSE);
 }
 
 String^ UrlParser::GetUrlAsFile(String^ sUrl)
