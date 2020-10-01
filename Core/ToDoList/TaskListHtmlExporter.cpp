@@ -9,6 +9,7 @@
 #include "..\shared\xmlfile.h"
 #include "..\shared\filemisc.h"
 #include "..\shared\graphicsmisc.h"
+#include "..\shared\localizer.h"
 
 #include "..\3rdparty\stdiofileex.h"
 
@@ -106,6 +107,12 @@ bool CTaskListHtmlExporter::InitConsts(const ITASKLISTBASE* pTasks, LPCTSTR szDe
 	STRIKETHRUDONE = pPrefs->GetProfileInt(szKey, _T("StrikethroughDone"), TRUE);
 	EXPORTSTYLE = ValidateExportStyle(_ttoi(pTasks->GetMetaData(TDL_EXPORTSTYLE)));
 
+	if (pPrefs->GetProfileInt(szKey, _T("EnableTDLProtocol"), FALSE))
+	{
+		TASKLISTLINK.Format(_T("tdl://%s"), pTasks->GetFileName(true));
+		TASKLISTLINK.Replace('\\', '/');
+	}
+
 	INDENT.Empty();
 
 	if (pPrefs->GetProfileInt(szKey, _T("UseSpaceIndents"), TRUE))
@@ -195,7 +202,7 @@ CString CTaskListHtmlExporter::FormatTitle(const ITASKLISTBASE* pTasks) const
 	if (!sTitle.IsEmpty())
 	{
 		CString sProjTitle;
-		sProjTitle.Format(_T("<h2>%s</h2>%s<p/>"), sTitle, sDate);
+		sProjTitle.Format(_T("<h2>%s</h2>%s"), sTitle, sDate);
 		
 		sTitleBlock += DEFAULTFONT;
 		sTitleBlock += sProjTitle;
@@ -204,8 +211,9 @@ CString CTaskListHtmlExporter::FormatTitle(const ITASKLISTBASE* pTasks) const
 	{
 		sTitleBlock += DEFAULTFONT;
 		sTitleBlock += sDate;
-		sTitleBlock += _T("<p/>");
 	}
+
+	sTitleBlock += _T("<p/>");
 	
 	if (EXPORTSTYLE == TDLPDS_TABLE)
 	{
@@ -418,15 +426,31 @@ CString CTaskListHtmlExporter::FormatAttribute(const ITASKLISTBASE* pTasks, HTAS
 	switch (nAttrib)
 	{
 	case TDCA_POSITION:
+		// Indent subtasks in table view only
+		if (EXPORTSTYLE == TDLPDS_TABLE)
+		{
+			while (--nDepth)
+				sItem = (INDENT + sItem);
+		}
+		break;
+
 	case TDCA_TASKNAME:
 		// Indent subtasks in table view only
 		if (EXPORTSTYLE == TDLPDS_TABLE)
 		{
-			if ((nAttrib == TDCA_POSITION) || !pTasks->IsAttributeAvailable(TDCA_POSITION))
+			if (!pTasks->IsAttributeAvailable(TDCA_POSITION))
 			{
 				while (--nDepth)
 					sItem = (INDENT + sItem);
 			}
+		}
+
+		if (!TASKLISTLINK.IsEmpty())
+		{
+			CString sTaskLink;
+			sTaskLink.Format(_T(" (<a href=\"%s?%ld\">%s</a>)"), TASKLISTLINK, pTasks->GetTaskID(hTask), CLocalizer::TranslateText(_T("link")));
+
+			sItem += sTaskLink;
 		}
 		break;
 
@@ -456,9 +480,9 @@ CString CTaskListHtmlExporter::FormatAttribute(const ITASKLISTBASE* pTasks, HTAS
 		{
 			// do it over creating a link for each file ref
 			CString sFileLinks;
-			int nNumFileLinks = pTasks->GetTaskFileLinkCount(hTask);
+			int nNumFiles = pTasks->GetTaskFileLinkCount(hTask);
 
-			for (int nFile = 0; nFile < nNumFileLinks; nFile++) 
+			for (int nFile = 0; nFile < nNumFiles; nFile++) 
 			{ 
 				CString sFilePath = pTasks->GetTaskFileLink(hTask, nFile), sFileName;
 
