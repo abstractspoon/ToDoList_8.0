@@ -1029,10 +1029,6 @@ BOOL CTaskCalendarCtrl::UpdateCellScrollBarVisibility(BOOL bEnsureSelVisible)
 void CTaskCalendarCtrl::CalcScrollBarRect(const CRect& rCell, CRect& rScrollbar) const
 {
 	rScrollbar = rCell;
-
-	if (m_crTheme != CLR_NONE)
-		rScrollbar.DeflateRect(0, 0, 2, 2);
-
 	rScrollbar.left = (rScrollbar.right - GetSystemMetrics(SM_CXVSCROLL));
 }
 
