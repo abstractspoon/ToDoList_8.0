@@ -109,7 +109,7 @@ bool CTaskListHtmlExporter::InitConsts(const ITASKLISTBASE* pTasks, LPCTSTR szDe
 
 	if (pPrefs->GetProfileInt(szKey, _T("EnableTDLProtocol"), FALSE))
 	{
-		TASKLISTLINK.Format(_T("tdl://%s"), pTasks->GetFileName(true));
+		TASKLISTLINK.Format(_T("tdl://%s?"), pTasks->GetFileName(true));
 		TASKLISTLINK.Replace('\\', '/');
 	}
 
@@ -448,7 +448,7 @@ CString CTaskListHtmlExporter::FormatAttribute(const ITASKLISTBASE* pTasks, HTAS
 		if (!TASKLISTLINK.IsEmpty())
 		{
 			CString sTaskLink;
-			sTaskLink.Format(_T(" (<a href=\"%s?%ld\">%s</a>)"), TASKLISTLINK, pTasks->GetTaskID(hTask), CLocalizer::TranslateText(_T("link")));
+			sTaskLink.Format(_T(" (<a href=\"%s%ld\">%s</a>)"), TASKLISTLINK, pTasks->GetTaskID(hTask), CLocalizer::TranslateText(_T("link")));
 
 			sItem += sTaskLink;
 		}
