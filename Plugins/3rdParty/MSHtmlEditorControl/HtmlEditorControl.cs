@@ -2008,33 +2008,33 @@ namespace MSDN.Html.Editor
 			{
 				var text = Clipboard.GetText();
 
-                if (EnterImageForm.IsImagePath(text))
-                {
-                    if (File.Exists(text) || !IsValidHref(text))
-                        text = new System.Uri(text).AbsoluteUri;
+				if (EnterImageForm.IsImagePath(text))
+				{
+					if (File.Exists(text) || !IsValidHref(text))
+						text = new System.Uri(text).AbsoluteUri;
 
-                    InsertImagePrompt(text);
-                    return;
-                }
-                else if (IsValidHref(text))
-                {
-                    InsertLinkPrompt(text, text);
-                    return;
-                }
-                else
-                {
-                    // Unquote path in case it was produced by Windows Explorer
-                    text = text.Trim('"');
+					InsertImagePrompt(text);
+					return;
+				}
+				else if (IsValidHref(text))
+				{
+					InsertLinkPrompt(text, text);
+					return;
+				}
+				else
+				{
+					// Unquote path in case it was produced by Windows Explorer
+					text = text.Trim('"');
 
-                    if (Path.IsPathRooted(text))
-                    {
-                        var fileUrl = new System.Uri(text).AbsoluteUri;
+					if (Path.IsPathRooted(text))
+					{
+						var fileUrl = new System.Uri(text).AbsoluteUri;
 
-                        InsertLinkPrompt(fileUrl, text);
-                        return;
-                    }
-                }
-            }
+						InsertLinkPrompt(fileUrl, text);
+						return;
+					}
+				}
+			}
 			else if (Clipboard.ContainsFileDropList())
 			{
 				var filePath = Clipboard.GetFileDropList()[0];
