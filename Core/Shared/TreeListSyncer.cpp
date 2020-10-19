@@ -492,6 +492,10 @@ BOOL CTreeListSyncer::ResyncScrollPos(HWND hwnd, HWND hwndTo)
 	if (!CanResync())
 		return FALSE;
 
+	// Don't resync if the window is hidden
+	if (IsHiding(hwnd))
+		return FALSE;
+
 	CAutoFlag af(m_bResyncing, TRUE);
 	BOOL bSynced = FALSE;
 
