@@ -143,9 +143,10 @@ public:
 	BOOL HasItem(DWORD dwTaskID) const;
 	GANTTITEM* GetItem(DWORD dwTaskID, BOOL bResolveReferences) const;
 	BOOL RestoreItem(const GANTTITEM& giPrev);
+
 	BOOL ItemIsLocked(DWORD dwTaskID, BOOL bTreatRefsAsUnlocked) const;
 	BOOL ItemIsReference(DWORD dwTaskID) const;
-
+	BOOL ItemIsDone(DWORD dwTaskID, BOOL bIncGoodAs) const;
 	BOOL ItemHasDependecies(DWORD dwTaskID) const;
 	BOOL IsItemDependentOn(const GANTTITEM& gi, DWORD dwOtherID) const;
 	COleDateTime CalcMaxDependencyDate(const GANTTITEM& gi) const;
