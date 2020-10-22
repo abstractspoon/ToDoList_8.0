@@ -1007,9 +1007,18 @@ int CTabbedToDoCtrl::GetSelectedTasksForExtensionViewUpdate(const CTDCAttributeM
 
 	// Globals
 	if (mapAttrib.IsEmpty())
+	{
 		AddGlobalsToTaskFile(tasks, TDCA_ALL);
+	}
+	else if (mapAttrib.Has(TDCA_NEWTASK))
+	{
+		ASSERT(mapAttrib.HasOnly(TDCA_NEWTASK));
+		AddGlobalsToTaskFile(tasks, TDCA_ALL);
+	}
 	else
+	{
 		AddGlobalsToTaskFile(tasks, mapAttrib);
+	}
 
 	return tasks.GetTaskCount();
 }
