@@ -331,9 +331,14 @@ void CTDLShowReminderDlg::SnoozeReminders(BOOL bAll)
 			DoSnoozeReminder(aRem[nRem]);
 	}
 
+	if (m_lcReminders.GetItemCount())
+	{
+		m_lcReminders.SetFocus();
+		m_lcReminders.SetItemState(0, (LVIS_SELECTED | LVIS_FOCUSED), (LVIS_SELECTED | LVIS_FOCUSED));
+	}
+
 	UpdateControls();
 }
-
 
 void CTDLShowReminderDlg::OnSnoozeAll() 
 {
