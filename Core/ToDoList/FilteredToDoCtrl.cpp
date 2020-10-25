@@ -916,6 +916,23 @@ void CFilteredToDoCtrl::RefreshExtensionFilter(FTC_VIEW nView, BOOL bShowProgres
 	}
 }
 
+void CFilteredToDoCtrl::OnStylesUpdated(const CTDCStyleMap& styles)
+{
+	CTabbedToDoCtrl::OnStylesUpdated(styles);
+
+	if (StyleChangesNeedRefilter(styles))
+	{
+		RefreshFilter(); // will handle list and plugins
+	}
+	else if (styles.HasStyle(TDCS_ALWAYSHIDELISTPARENTS))
+	{
+		// We only need to rebuild the list if FO_HIDEPARENTS is OFF
+		// because otherwise TDCS_ALWAYSHIDELISTPARENTS has no effect
+		if (!m_filter.HasFilterFlag(FO_HIDEPARENTS))
+			RefreshListFilter();
+	}
+}
+
 // base class override
 void CFilteredToDoCtrl::RebuildList(const void* pContext)
 {
@@ -1071,40 +1088,6 @@ void CFilteredToDoCtrl::AddTreeItemToList(HTREEITEM hti, const void* pContext)
 			htiChild = m_taskTree.GetNextItem(htiChild);
 		}
 	}
-}
-
-BOOL CFilteredToDoCtrl::ModifyStyles(const CTDCStyleMap& styles)
-{
-	if (CTabbedToDoCtrl::ModifyStyles(styles))
-	{
-		// do we need to re-filter?
-		if (HasAnyFilter() && GetViewData2(FTCV_TASKLIST)->bNeedRefilter)
-		{
-			RefreshTreeFilter(); // always
-
-			if (InListView())
-				RefreshListFilter();
-		}
-
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-DWORD CFilteredToDoCtrl::SetStyle(TDC_STYLE nStyle, BOOL bEnable)
-{
-	switch (nStyle)
-	{
-	case TDCS_DUEHAVEHIGHESTPRIORITY:
-	case TDCS_DONEHAVELOWESTPRIORITY:
-	case TDCS_ALWAYSHIDELISTPARENTS:
-	case TDCS_TREATSUBCOMPLETEDASDONE:
-		GetViewData2(FTCV_TASKLIST)->bNeedRefilter = TRUE;
-		break;
-	}
-
-	return CTabbedToDoCtrl::SetStyle(nStyle, bEnable);
 }
 
 void CFilteredToDoCtrl::SetDueTaskColors(COLORREF crDue, COLORREF crDueToday)
@@ -1319,6 +1302,92 @@ BOOL CFilteredToDoCtrl::ModNeedsRefilter(TDC_ATTRIBUTE nModType, FTC_VIEW nView,
 	}
 
 	return bNeedRefilter;
+}
+
+BOOL CFilteredToDoCtrl::StyleChangesNeedRefilter(const CTDCStyleMap& styles) const
+{
+	// sanity check
+	if (!HasAnyFilter())
+		return FALSE;
+
+	CTDCAttributeMap mapAttribAffected;
+	POSITION pos = styles.GetStartPosition();
+
+	while (pos)
+	{
+		switch (styles.GetNext(pos))
+		{
+		case TDCS_NODUEDATEISDUETODAYORSTART:
+		case TDCS_USEEARLIESTDUEDATE:
+		case TDCS_USELATESTDUEDATE:
+			mapAttribAffected.Add(TDCA_DUEDATE);
+			break;
+
+		case TDCS_USEEARLIESTSTARTDATE:
+		case TDCS_USELATESTSTARTDATE:
+			mapAttribAffected.Add(TDCA_STARTDATE);
+			break;
+
+		case TDCS_CALCREMAININGTIMEBYDUEDATE:
+		case TDCS_CALCREMAININGTIMEBYSPENT:
+		case TDCS_CALCREMAININGTIMEBYPERCENT:
+			// Not supported
+			break;
+
+		case TDCS_DUEHAVEHIGHESTPRIORITY:
+		case TDCS_DONEHAVELOWESTPRIORITY:
+		case TDCS_USEHIGHESTPRIORITY:
+		case TDCS_INCLUDEDONEINPRIORITYCALC:
+			mapAttribAffected.Add(TDCA_PRIORITY);
+			break;
+
+		case TDCS_DONEHAVELOWESTRISK:
+		case TDCS_USEHIGHESTRISK:
+		case TDCS_INCLUDEDONEINRISKCALC:
+			mapAttribAffected.Add(TDCA_RISK);
+			break;
+
+		case TDCS_TREATSUBCOMPLETEDASDONE:
+			{
+				mapAttribAffected.Add(TDCA_DONEDATE);
+
+				if (styles.HasStyle(TDCS_DONEHAVELOWESTPRIORITY) || 
+					styles.HasStyle(TDCS_INCLUDEDONEINPRIORITYCALC))
+				{
+					mapAttribAffected.Add(TDCA_PRIORITY);
+				}
+
+				if (styles.HasStyle(TDCS_DONEHAVELOWESTRISK) ||
+					styles.HasStyle(TDCS_INCLUDEDONEINRISKCALC))
+				{
+					mapAttribAffected.Add(TDCA_PRIORITY);
+				}
+
+				if (styles.HasStyle(TDCS_INCLUDEDONEINAVERAGECALC))
+				{
+					mapAttribAffected.Add(TDCA_PERCENT);
+				}
+			}
+			break;
+
+		case TDCS_USEPERCENTDONEINTIMEEST:
+			mapAttribAffected.Add(TDCA_TIMEEST);
+			break;
+
+		case TDCS_INCLUDEDONEINAVERAGECALC:
+		case TDCS_WEIGHTPERCENTCALCBYNUMSUB:
+		case TDCS_AVERAGEPERCENTSUBCOMPLETION:
+		case TDCS_AUTOCALCPERCENTDONE:
+			mapAttribAffected.Add(TDCA_PERCENT);
+			break;
+
+		case TDCS_HIDESTARTDUEFORDONETASKS:
+			//mapAttribAffected.Add(TDCA_);
+			break;
+		}
+	}
+	
+	return ModsNeedRefilter(mapAttribAffected, FTCV_TASKTREE, CDWordArray());
 }
 
 void CFilteredToDoCtrl::Sort(TDC_COLUMN nBy, BOOL bAllowToggle)

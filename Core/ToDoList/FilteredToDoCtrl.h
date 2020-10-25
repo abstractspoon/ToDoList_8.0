@@ -73,7 +73,6 @@ public:
 	int FindTasks(const SEARCHPARAMS& params, CResultArray& aResults) const;
 
 	BOOL SplitSelectedTask(int nNumSubtasks);
-	BOOL ModifyStyles(const CTDCStyleMap& styles);
 	void Sort(TDC_COLUMN nBy, BOOL bAllowToggle = TRUE);
 	void SetModified(BOOL bMod = TRUE) { CTabbedToDoCtrl::SetModified(bMod); }
 	void SetDueTaskColors(COLORREF crDue, COLORREF crDueToday);
@@ -119,10 +118,9 @@ protected:
 protected:
 	BOOL ModsNeedRefilter(const CTDCAttributeMap& attribIDs, FTC_VIEW nView, const CDWordArray& aModTaskIDs) const;
 	BOOL ModNeedsRefilter(TDC_ATTRIBUTE nModType, FTC_VIEW nView, const CDWordArray& aModTaskIDs) const;
+	BOOL StyleChangesNeedRefilter(const CTDCStyleMap& styles) const;
 
 	virtual void SetModified(const CTDCAttributeMap& attribIDs, const CDWordArray& aModTaskIDs, BOOL bAllowResort);
-	virtual DWORD SetStyle(TDC_STYLE nStyle, BOOL bEnable);
-
 	virtual BOOL LoadTasks(const CTaskFile& tasks);
 	virtual BOOL RemoveArchivedTask(DWORD dwTaskID);
 	virtual BOOL CopySelectedTasks() const;
@@ -134,6 +132,7 @@ protected:
 	virtual void LoadAttributeVisibility(const CTaskFile& tasks, const CPreferences& prefs);
 	virtual void SaveAttributeVisibility(CTaskFile& tasks) const;
 	virtual void SaveAttributeVisibility(CPreferences& prefs) const;
+	virtual void OnStylesUpdated(const CTDCStyleMap& styles);
 
 	void SaveSettings() const;
 	void LoadSettings();
