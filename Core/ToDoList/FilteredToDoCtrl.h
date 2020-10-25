@@ -128,6 +128,12 @@ protected:
 	virtual BOOL CopySelectedTasks() const;
 	virtual void EndTimeTracking(BOOL bAllowConfirm, BOOL bNotify);
 	virtual BOOL GetAllTasksForExtensionViewUpdate(const CTDCAttributeMap& mapAttrib, CTaskFile& tasks) const;
+	virtual void AddTreeItemToList(HTREEITEM hti, const void* pContext);
+	virtual DWORD RecreateRecurringTaskInTree(const CTaskFile& task, const COleDateTime& dtNext, BOOL bDueDate);
+	virtual DWORD MergeNewTaskIntoTree(const CTaskFile& tasks, HTASKITEM hTask, DWORD dwParentTaskID, BOOL bAndSubtasks);
+	virtual void LoadAttributeVisibility(const CTaskFile& tasks, const CPreferences& prefs);
+	virtual void SaveAttributeVisibility(CTaskFile& tasks) const;
+	virtual void SaveAttributeVisibility(CPreferences& prefs) const;
 
 	void SaveSettings() const;
 	void LoadSettings();
@@ -154,16 +160,9 @@ protected:
 	void RebuildList(const void* pContext); 
 	void RebuildList(const SEARCHPARAMS& filter);
 
-	virtual void AddTreeItemToList(HTREEITEM hti, const void* pContext);
-	virtual DWORD RecreateRecurringTaskInTree(const CTaskFile& task, const COleDateTime& dtNext, BOOL bDueDate);
-	virtual DWORD MergeNewTaskIntoTree(const CTaskFile& tasks, HTASKITEM hTask, DWORD dwParentTaskID, BOOL bAndSubtasks);
-
 	// Helper allowing insert position to be specified
 	DWORD MergeNewTaskIntoTree(const CTaskFile& tasks, HTASKITEM hTask, DWORD dwParentTaskID, DWORD dwPrevSiblingID, BOOL bAndSubtasks);
 
-	virtual void LoadAttributeVisibility(const CTaskFile& tasks, const CPreferences& prefs);
-	virtual void SaveAttributeVisibility(CTaskFile& tasks) const;
-	virtual void SaveAttributeVisibility(CPreferences& prefs) const;
 };
 
 #endif // !defined(AFX_FILTEREDTODOCTRL_H__356A6EB9_C7EC_4395_8716_623AFF4A269B__INCLUDED_)
