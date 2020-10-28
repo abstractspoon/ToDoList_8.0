@@ -2021,16 +2021,16 @@ namespace MSDN.Html.Editor
 					InsertLinkPrompt(text, text);
 					return;
 				}
-				else
+				else // see if it looks like a file path
 				{
 					// Unquote path in case it was produced by Windows Explorer
-					text = text.Trim('"');
+					var path = text.Trim('"');
 
-					if (Path.IsPathRooted(text))
+					if (path.StartsWith("\\\\") || (path.IndexOf(":\\") == 1))
 					{
-						var fileUrl = new System.Uri(text).AbsoluteUri;
+						var fileUrl = new System.Uri(path).AbsoluteUri;
 
-						InsertLinkPrompt(fileUrl, text);
+						InsertLinkPrompt(fileUrl, path);
 						return;
 					}
 				}
