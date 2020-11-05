@@ -1407,28 +1407,34 @@ VIEWDATA2* CFilteredToDoCtrl::GetActiveViewData2() const
 
 void CFilteredToDoCtrl::OnTimerMidnight()
 {
-	CTabbedToDoCtrl::OnTimerMidnight();
-
-	// don't re-filter delay-loaded tasklists
-	if (IsDelayLoaded())
-		return;
-
+	// Only re-filter loaded tasklists
 	BOOL bRefilter = FALSE;
-	TDCFILTER filter;
-	
-	if (m_filter.GetFilter(filter) == FS_ADVANCED)
+
+	if (!IsDelayLoaded())
 	{
-		bRefilter = (m_filter.HasAdvancedFilterAttribute(TDCA_STARTDATE) || 
-						m_filter.HasAdvancedFilterAttribute(TDCA_DUEDATE));
-	}
-	else
-	{
-		bRefilter = (((filter.nStartBy != FD_NONE) && (filter.nStartBy != FD_ANY)) ||
-					((filter.nDueBy != FD_NONE) && (filter.nDueBy != FD_ANY)));
-	}
+		TDCFILTER filter;
 	
-	if (bRefilter)
-		RefreshFilter();
+		if (m_filter.GetFilter(filter) == FS_ADVANCED)
+		{
+			bRefilter = (m_filter.HasAdvancedFilterAttribute(TDCA_STARTDATE) || 
+							m_filter.HasAdvancedFilterAttribute(TDCA_DUEDATE));
+		}
+		else
+		{
+			bRefilter = (((filter.nStartBy != FD_NONE) && (filter.nStartBy != FD_ANY)) ||
+						((filter.nDueBy != FD_NONE) && (filter.nDueBy != FD_ANY)));
+		}
+	
+		if (bRefilter)
+			RefreshFilter();
+	}
+
+	// Our base-class may want to update the active
+	// extension view but we can ignore that if we 
+	// have already done it
+	CAutoFlag af2(m_bIgnoreExtensionUpdate, bRefilter);
+
+	CTabbedToDoCtrl::OnTimerMidnight();
 }
 
 void CFilteredToDoCtrl::ResetNowFilterTimer()
