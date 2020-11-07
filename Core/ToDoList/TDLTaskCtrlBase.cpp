@@ -4891,7 +4891,7 @@ BOOL CTDLTaskCtrlBase::ModCausesTaskTextColorChange(TDC_ATTRIBUTE nModType) cons
 		return (HasStyle(TDCS_COLORTEXTBYATTRIBUTE) && (GetColorByAttribute() == nModType));
 
 	case TDCA_DONEDATE:
-		return (GetCompletedTaskColor() != CLR_NONE);
+		return (m_crDone != CLR_NONE);
 
 	case TDCA_DUEDATE:
 		return ((m_crDue != CLR_NONE) || (m_crDueToday != CLR_NONE));
