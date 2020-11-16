@@ -344,7 +344,7 @@ void CGanttCtrl::RecalcParentDates(HTREEITEM htiParent, GANTTITEM*& pGI)
 	}
 }
 
-BOOL CGanttCtrl::EditWantsResort(const ITASKLISTBASE* pTasks, IUI_UPDATETYPE nUpdate) const
+BOOL CGanttCtrl::UpdateWantsResort(const ITASKLISTBASE* pTasks, IUI_UPDATETYPE nUpdate) const
 {
 	switch (nUpdate)
 	{
@@ -470,7 +470,7 @@ void CGanttCtrl::UpdateTasks(const ITaskList* pTaskList, IUI_UPDATETYPE nUpdate)
 	}
 	InitItemHeights();
 
-	if (EditWantsResort(pTasks, nUpdate))
+	if (UpdateWantsResort(pTasks, nUpdate))
 	{
 		ASSERT(m_sort.IsSorting());
 
