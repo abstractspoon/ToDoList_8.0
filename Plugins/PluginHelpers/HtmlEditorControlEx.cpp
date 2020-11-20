@@ -22,7 +22,9 @@ using namespace Command::Handling;
 HtmlEditorControlEx::HtmlEditorControlEx(Drawing::Font^ font, Translator^ trans)
 {
 	m_ControlsFont = font;
+
 	m_toolbarRenderer = gcnew UIThemeToolbarRenderer();
+	m_toolbarRenderer->SetUITheme(gcnew UITheme());
 
 	if (trans != nullptr)
 		m_Trans = trans;
