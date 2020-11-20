@@ -134,10 +134,16 @@ int CEnImageList::Replace(int nImage, HICON hIcon, COLORREF crBkgnd)
 
 int CEnImageList::AddReplace(HICON hIcon, COLORREF crBkgnd, int nImage)
 {
-	if ((crBkgnd == CLR_NONE) || 
-		Misc::IsHighContrastActive() ||
-		!GraphicsMisc::WantDPIScaling() ||
-		(GraphicsMisc::GetIconSize(hIcon).cx >= GetImageSize()))
+	BOOL bDoDefault = ((crBkgnd == CLR_NONE) ||
+					   !GraphicsMisc::WantDPIScaling() ||
+					   (GraphicsMisc::GetIconSize(hIcon).cx >= GetImageSize()));
+
+	// Our custom scaling below produces nicer images than 
+	// the default imagelist scaling but introduces some
+	// artifacts than look terrible on high contract schemes
+	bDoDefault |= Misc::IsHighContrastActive();
+
+	if (bDoDefault)
 	{
 		if (nImage == -1)
 			return CImageList::Add(hIcon);
