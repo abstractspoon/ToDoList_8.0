@@ -7,6 +7,7 @@
 #include "GraphicsMisc.h"
 #include "EnBitmapEx.h"
 #include "icon.h"
+#include "misc.h"
 
 //////////////////////////////////////////////////////////////////////
 
@@ -134,6 +135,7 @@ int CEnImageList::Replace(int nImage, HICON hIcon, COLORREF crBkgnd)
 int CEnImageList::AddReplace(HICON hIcon, COLORREF crBkgnd, int nImage)
 {
 	if ((crBkgnd == CLR_NONE) || 
+		Misc::IsHighContrastActive() ||
 		!GraphicsMisc::WantDPIScaling() ||
 		(GraphicsMisc::GetIconSize(hIcon).cx >= GetImageSize()))
 	{
