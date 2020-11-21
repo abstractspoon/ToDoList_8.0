@@ -17,6 +17,7 @@
 using namespace System::Runtime::InteropServices;
 using namespace System::Windows::Forms;
 using namespace System::Drawing;
+using namespace System::Drawing::Drawing2D;
 
 using namespace Abstractspoon::Tdl::PluginHelpers;
 
@@ -225,16 +226,29 @@ bool UIThemeToolbarRenderer::RenderButtonBackground(ToolStripItemRenderEventArgs
 		rect->Width--;
 		rect->Height--;
 
-		if (item->Pressed || checkedButton)
+		Brush^ brush = nullptr;
+
+		if (SystemInformation::HighContrast)
 		{
-			Brush^ brush = gcnew SolidBrush(m_PressedFillColor);
-			e->Graphics->FillRectangle(brush, *rect);
+			if (checkedButton)
+			{
+				brush = gcnew HatchBrush(HatchStyle::Percent50, m_PressedFillColor);
+			}
 		}
-		else if (item->Selected)
+		else
 		{
-			Brush^ brush = gcnew SolidBrush(m_HotFillColor);
-			e->Graphics->FillRectangle(brush, *rect);
+			if (item->Pressed || checkedButton)
+			{
+				brush = gcnew SolidBrush(m_PressedFillColor);
+			}
+			else if (item->Selected)
+			{
+				brush = gcnew SolidBrush(m_HotFillColor);
+			}
 		}
+
+		if (brush)
+			e->Graphics->FillRectangle(brush, *rect);
 
 		Pen^ pen = gcnew Pen(m_HotBorderColor);
 		e->Graphics->DrawRectangle(pen, *rect);
