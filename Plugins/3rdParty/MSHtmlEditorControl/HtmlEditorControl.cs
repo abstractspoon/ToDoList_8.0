@@ -384,6 +384,8 @@ namespace MSDN.Html.Editor
             this.contextDocumentWordwrap.Checked = true;
 			this.toolstripEnableEditing.Checked = !ReadOnly;
 
+			this.toolstripEditor.RemapSysColors();
+
 			m_ToolbarRedrawTimer = new System.Windows.Forms.Timer();
 			m_ToolbarRedrawTimer.Interval = 100;
 			m_ToolbarRedrawTimer.Tick += delegate
