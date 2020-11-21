@@ -212,10 +212,12 @@ int CEnCommandLineInfo::SetCommandLine(LPCTSTR szCmdLine, int nFirstArg)
 	return m_mapCommandLine.GetCount();
 }
 
-void CEnCommandLineInfo::Reset()
+void CEnCommandLineInfo::Reset(BOOL bIncFileExts)
 {
+	if (bIncFileExts)
+		m_aFileExt.RemoveAll();
+
 	m_mapCommandLine.RemoveAll();
-	m_aFileExt.RemoveAll();
 	m_sCurFlag.Empty();
 	m_nLastParameter = -1;
 

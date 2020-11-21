@@ -15,7 +15,7 @@ public:
 	CEnCommandLineInfo(const CString& szFileExts = _T(""));
 	virtual ~CEnCommandLineInfo();
 
-	void Reset();
+	void Reset(BOOL bIncFileExts = FALSE);
 
 	BOOL HasOption(LPCTSTR szFlag) const; 
 	BOOL GetOptions(LPCTSTR szFlag, CStringArray& aParams) const; 
