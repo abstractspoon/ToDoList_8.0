@@ -2174,7 +2174,7 @@ struct TDCCOLEDITVISIBILITY
 		bColumnChange = !mapVisibleColumns.MatchAll(vis.mapVisibleColumns);
 		bEditChange = !mapVisibleEdits.MatchAll(vis.mapVisibleEdits);
 		
-		return (bEditChange || bColumnChange);
+		return (bEditChange || bColumnChange || (nShowFields != vis.nShowFields));
 	}
 
 	TDL_SHOWATTRIB GetShowFields() const 
