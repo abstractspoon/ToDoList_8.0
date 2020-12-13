@@ -69,8 +69,10 @@ struct CRecurrence
 
 	BOOL IsRecurring() const;
 	BOOL CanRecur() const;
-	BOOL GetNextOccurence(const COleDateTime& dtFrom, COleDateTime& dtNext);
+	BOOL GetNextOccurence(const COleDateTime& dtPrev, COleDateTime& dtNext); // updates remaining occurrences
 	BOOL FitDayToScheme(COleDateTime& dtRecur) const;
+	
+	BOOL CalcNextOccurence(const COleDateTime& dtPrev, COleDateTime& dtNext) const;
 
 	BOOL SetRegularity(RECURRENCE_REGULARITY nRegularity, DWORD dwSpecific1, DWORD dwSpecific2);
 	RECURRENCE_REGULARITY GetRegularity(DWORD& dwSpecific1, DWORD& dwSpecific2) const;
