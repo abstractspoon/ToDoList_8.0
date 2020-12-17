@@ -593,9 +593,8 @@ CString CToolbarHelper::GetResourceTip(UINT nID)
 		
 		if (nStartTip != -1) 
 			sTip = sTip.Right(sTip.GetLength() - nStartTip - 1);
-
-		else // strip '...' if present
-			sTip.Replace(_T("."), _T(""));
+		else
+			sTip.Replace(_T("."), _T("")); // strip '...' if present
 
 		Misc::Trim(sTip);
 	}
