@@ -259,8 +259,7 @@ LRESULT CToolbarHelper::WindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM lp
 			switch (pNMHDR->code)
 			{
 			case TBN_DROPDOWN:
-				// check its our toolbar
-				if (pNMHDR->hwndFrom == m_pToolbar->GetSafeHwnd())
+				if (pNMHDR->hwndFrom == *m_pToolbar)
 				{
 					// load the menu
 					LPNMTOOLBAR pNMTB = (LPNMTOOLBAR)pNMHDR;
@@ -271,6 +270,7 @@ LRESULT CToolbarHelper::WindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM lp
 				break;
 
 			case TTN_NEEDTEXT:
+				if (pNMHDR->hwndFrom == m_tt)
 				{
 					// to be thorough we will need to handle UNICODE versions of the message also !!
 					TOOLTIPTEXT* pTTT = (TOOLTIPTEXT*)pNMHDR;
@@ -300,6 +300,7 @@ LRESULT CToolbarHelper::WindowProc(HWND hRealWnd, UINT msg, WPARAM wp, LPARAM lp
 				break;
 
 			case TTN_SHOW:
+				if (pNMHDR->hwndFrom == m_tt)
 				{
 					CWnd* pTooltipCtrl = CWnd::FromHandle(pNMHDR->hwndFrom);
 					ASSERT (pTooltipCtrl);
