@@ -1407,6 +1407,8 @@ VIEWDATA2* CFilteredToDoCtrl::GetActiveViewData2() const
 
 void CFilteredToDoCtrl::OnTimerMidnight()
 {
+	FileMisc::LogText(_T("CFilteredToDoCtrl::OnTimerMidnight"));
+
 	// Only re-filter loaded tasklists
 	BOOL bRefilter = FALSE;
 

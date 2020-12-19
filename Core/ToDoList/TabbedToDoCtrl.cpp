@@ -6050,21 +6050,25 @@ void CTabbedToDoCtrl::OnListSelChanged()
 
 void CTabbedToDoCtrl::OnTimerMidnight()
 {
-	CToDoCtrl::OnTimerMidnight();
+	FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight"));
 
 	// Check whether extensions need a color update
 	if (!HasAnyExtensionViews())
-		return;
-
-	if (!m_taskTree.ModCausesTaskTextColorChange(TDCA_STARTDATE) &&
-		!m_taskTree.ModCausesTaskTextColorChange(TDCA_DUEDATE))
 	{
-		FileMisc::LogText(_T("OnTimerMidnight(no colour change detected)"));
+		FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight(no extensions active)"));
 
 		return;
 	}
 
-	FileMisc::LogText(_T("OnTimerMidnight(colour change detected)"));
+	if (!m_taskTree.ModCausesTaskTextColorChange(TDCA_STARTDATE) &&
+		!m_taskTree.ModCausesTaskTextColorChange(TDCA_DUEDATE))
+	{
+		FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight(no colour change detected)"));
+
+		return;
+	}
+
+	FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight(colour change detected)"));
 
 	CAutoFlag af(m_bUpdatingExtensions, TRUE);
 
@@ -6084,11 +6088,11 @@ void CTabbedToDoCtrl::OnTimerMidnight()
 		if (!GetExtensionWnd(nExtView, pExtWnd, pVData))
 			continue;
 
-		FileMisc::LogText(_T("OnTimerMidnight('%s' wants colour update)"), pExtWnd->GetMenuText());
+		FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight('%s' wants colour update)"), pExtWnd->GetMenuText());
 		
 		if (nExtView == nCurView)
 		{
-			FileMisc::LogText(_T("OnTimerMidnight(updating '%s' view)"), pExtWnd->GetMenuText());
+			FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight(updating '%s' view)"), pExtWnd->GetMenuText());
 
 			BeginExtensionProgress(pVData);
 
@@ -6097,7 +6101,7 @@ void CTabbedToDoCtrl::OnTimerMidnight()
 
 			if (GetAllTasksForExtensionViewUpdate(TDCA_COLOR, tasks))
 			{
-				FileMisc::LogText(_T("OnTimerMidnight(updating '%s' view with %d tasks)"), pExtWnd->GetMenuText(), tasks.GetTaskCount());
+				FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight(updating '%s' view with %d tasks)"), pExtWnd->GetMenuText(), tasks.GetTaskCount());
 
 				pVData->bNeedFullTaskUpdate = FALSE;
 				UpdateExtensionView(pExtWnd, tasks, IUI_EDIT);
@@ -6107,11 +6111,13 @@ void CTabbedToDoCtrl::OnTimerMidnight()
 		}
 		else
 		{
-			FileMisc::LogText(_T("OnTimerMidnight(marking '%s' view as needing update)"), pExtWnd->GetMenuText());
+			FileMisc::LogText(_T("CTabbedToDoCtrl::OnTimerMidnight(marking '%s' view as needing update)"), pExtWnd->GetMenuText());
 
 			pVData->bNeedFullTaskUpdate = TRUE;
 		}
 	}
+
+	CToDoCtrl::OnTimerMidnight();
 }
 
 HTREEITEM CTabbedToDoCtrl::GetTreeItem(int nItem) const
