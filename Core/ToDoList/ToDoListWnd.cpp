@@ -6465,7 +6465,7 @@ BOOL CToDoListWnd::CreateTempPrintFile(const CTDLPrintDialog& dlg, const CString
 			CTaskFile tasks;
 			GetTasks(tdc, TRUE, FALSE, dlg.GetTaskSelection(), tasks, NULL);
 
-			tasks.SetMetaData(TDL_EXPORTSTYLE, Misc::Format(nStyle));
+			tasks.SetMetaData(TDL_HTMLEXPORTSTYLE, Misc::Format(nStyle));
 			tasks.SetReportDetails(dlg.GetTitle(), dlg.GetDate());
 
 			// save intermediate tasklist to file as required

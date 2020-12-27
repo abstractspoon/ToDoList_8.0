@@ -105,7 +105,7 @@ bool CTaskListHtmlExporter::InitConsts(const ITASKLISTBASE* pTasks, LPCTSTR szDe
 	}
 	
 	STRIKETHRUDONE = pPrefs->GetProfileInt(szKey, _T("StrikethroughDone"), TRUE);
-	EXPORTSTYLE = ValidateExportStyle(_ttoi(pTasks->GetMetaData(TDL_EXPORTSTYLE)));
+	EXPORTSTYLE = ValidateExportStyle(_ttoi(pTasks->GetMetaData(TDL_HTMLEXPORTSTYLE)));
 
 	if (pPrefs->GetProfileInt(szKey, _T("EnableTDLProtocol"), FALSE))
 	{
