@@ -18,6 +18,7 @@ namespace HTMLReportExporter
 		
 		private String m_BodyFontStyle = "";
 		private bool m_StrikeThruDone = true;
+		private bool m_Printing = false;
 
 		private const float ContentPadding = 4; // ems
 
@@ -37,10 +38,12 @@ namespace HTMLReportExporter
 
 		// -------------------------------------------------------------
 
-		public HtmlReportBuilder(Translator trans, TaskList tasks, Preferences prefs, HtmlReportTemplate template, bool preview)
+		public HtmlReportBuilder(Translator trans, TaskList tasks, Preferences prefs, 
+								HtmlReportTemplate template, bool preview)
 		{
 			m_Tasklist = tasks;
 			m_Template = template;
+			m_Printing = (tasks.GetMetaData("Printing") == "1"); // Temporary hack
 
 			m_StrikeThruDone = prefs.GetProfileBool("Preferences", "StrikethroughDone", true);
 			m_BodyFontStyle = HtmlReportUtils.FormatBodyFontStyle(prefs);
@@ -55,18 +58,24 @@ namespace HTMLReportExporter
 			Tasks = new TaskTemplateReporter(trans, template.Task, baseIndent, preview);
 		}
 
-		public bool BuildReport(HtmlTextWriter html)
+		public bool BuildReport(string filePath)
 		{
 			try
 			{
-				html.Write(DocType);
-				html.WriteLine();
-				html.RenderBeginTag(HtmlTextWriterTag.Html);
+				using (var file = new System.IO.StreamWriter(filePath))
+				{
+					using (var html = new HtmlTextWriter(file))
+					{
+						html.Write(DocType);
+						html.WriteLine();
+						html.RenderBeginTag(HtmlTextWriterTag.Html);
 
-				WriteHead(html);
-				WriteBody(html);
+						WriteHead(html);
+						WriteBody(html);
 
-				html.RenderEndTag(); // Html
+						html.RenderEndTag(); // Html
+					}
+				}
 			}
 			catch
 			{
@@ -133,7 +142,9 @@ namespace HTMLReportExporter
 			Title.WriteStyles(html);
 
 			// Print styles
-			html.WriteLine("@page { margin: 0; }");
+			if (!m_Printing)
+				html.WriteLine("@page { margin: 0; }");
+
 			html.WriteLine("@media print ");
 			html.WriteLine("{ "); // open
 			html.WriteLine(".title-page { border: none; } ");
@@ -420,6 +431,8 @@ namespace HTMLReportExporter
 
 		}
 
+		// --------------------------------------------------------------------------
+
 		public class TitleTemplateReporter : TitleTemplate
 		{
 			private Translator m_Trans;
@@ -540,6 +553,8 @@ namespace HTMLReportExporter
 				return true;
 			}
 		}
+
+		// --------------------------------------------------------------------------
 
 		public class TaskTemplateReporter : TaskTemplate
 		{
