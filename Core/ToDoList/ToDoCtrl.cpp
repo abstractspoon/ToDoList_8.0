@@ -7882,12 +7882,6 @@ LRESULT CToDoCtrl::OnAutoComboAddDelete(WPARAM wp, LPARAM /*lp*/)
 	return 0L;
 }
 
-void CToDoCtrl::OnAutoComboListChange(TDC_ATTRIBUTE nAttribID, CAutoComboBox& combo, CStringArray& aItems)
-{
-	combo.GetItems(aItems);
-	GetParent()->SendMessage(WM_TDCN_LISTCHANGE, 0, nAttribID);
-}
-
 void CToDoCtrl::OnSelChangeAllocTo()
 {
 	UpdateTask(TDCA_ALLOCTO);
