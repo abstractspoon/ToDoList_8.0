@@ -220,7 +220,7 @@ BOOL CKanbanCtrl::SelectClosestAdjacentItemToSelection(int nAdjacentCol)
 	return TRUE;
 }
 
-BOOL CKanbanCtrl::HandleKeyDown(WPARAM wp, LPARAM lp)
+BOOL CKanbanCtrl::HandleKeyDown(WPARAM wp, LPARAM /*lp*/)
 {
 	// We need to process these before they reach the focused column 
 	switch (wp)
@@ -962,21 +962,21 @@ BOOL CKanbanCtrl::UpdateData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, BOOL 
 					KANBANCUSTOMATTRIBDEF& def = m_aCustomAttribDefs[nID];
 
 					CString sValue(pTasks->GetTaskCustomAttributeData(hTask, def.sAttribID, true));
-					CStringArray aValues;
+					CStringArray aCustValues;
 
 					if (!sValue.IsEmpty())
 					{
-						if (Misc::Split(sValue, aValues) > 1)
+						if (Misc::Split(sValue, aCustValues) > 1)
 							def.bMultiValue = TRUE;
 					}
 
-					if (UpdateTrackableTaskAttribute(pKI, def.sAttribID, aValues))
+					if (UpdateTrackableTaskAttribute(pKI, def.sAttribID, aCustValues))
 					{
 						// Add to global values
 						CKanbanValueMap* pValues = m_mapAttributeValues.GetAddMapping(def.sAttribID);
 						ASSERT(pValues);
 						
-						pValues->AddValues(aValues);
+						pValues->AddValues(aCustValues);
 						bChange = TRUE;
 					}
 				}
@@ -2806,7 +2806,7 @@ BOOL CKanbanCtrl::IsSelectedColumn(HWND hWnd) const
 	return (m_pSelectedColumn && (m_pSelectedColumn->GetSafeHwnd() == hWnd));
 }
 
-void CKanbanCtrl::OnColumnItemSelChange(NMHDR* pNMHDR, LRESULT* pResult)
+void CKanbanCtrl::OnColumnItemSelChange(NMHDR* pNMHDR, LRESULT* /*pResult*/)
 {
 	// only interested in selection changes caused by the user
 	LPNMTREEVIEW pNMTV = (LPNMTREEVIEW)pNMHDR;
@@ -2856,7 +2856,7 @@ LRESULT CKanbanCtrl::OnColumnEditLabel(WPARAM wp, LPARAM lp)
 	return 0L;
 }
 
-void CKanbanCtrl::OnHeaderDividerDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
+void CKanbanCtrl::OnHeaderDividerDoubleClick(NMHDR* pNMHDR, LRESULT* /*pResult*/)
 {
 	NMHEADER* pHDN = (NMHEADER*)pNMHDR;
 
@@ -2872,7 +2872,7 @@ void CKanbanCtrl::OnHeaderDividerDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
 	}
 }
 
-void CKanbanCtrl::OnHeaderItemChanging(NMHDR* pNMHDR, LRESULT* pResult)
+void CKanbanCtrl::OnHeaderItemChanging(NMHDR* pNMHDR, LRESULT* /*pResult*/)
 {
 	if (m_bResizingHeader || m_bSavingToImage)
 		return;
@@ -3403,7 +3403,7 @@ LRESULT CKanbanCtrl::OnColumnGetTaskIcon(WPARAM wp, LPARAM lp)
 	return GetParent()->SendMessage(WM_KBC_GETTASKICON, wp, lp);
 }
 
-void CKanbanCtrl::OnColumnSetFocus(NMHDR* pNMHDR, LRESULT* pResult)
+void CKanbanCtrl::OnColumnSetFocus(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 {
 	*pResult = 0;
 
