@@ -1871,17 +1871,10 @@ PFNTLSCOMPARE CTDLTaskCtrlBase::PrepareSort(TDSORTPARAMS& ss) const
 
 void CTDLTaskCtrlBase::DoSort()
 {
-	// Scope the hold to have finished before resyncing
-	{
-		CHoldListVScroll hold(m_lcColumns);
-
-		TDSORTPARAMS ss(*this);
-		CTreeListSyncer::Sort(PrepareSort(ss), (LPARAM)&ss);
-
-		ResyncSelection(m_lcColumns, Tasks(), FALSE);
-	}
-
-	ResyncScrollPos(Tasks(), m_lcColumns);
+	TDSORTPARAMS ss(*this);
+	CTreeListSyncer::Sort(PrepareSort(ss), (LPARAM)&ss);
+	
+	ResyncSelection(m_lcColumns, Tasks(), FALSE);
 	EnsureSelectionVisible(TRUE);
 }
 

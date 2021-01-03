@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "TreeCtrlHelper.h"
+#include "TreeListSyncer.h"
 #include "holdredraw.h"
 #include "graphicsmisc.h"
 
@@ -446,7 +447,7 @@ BOOL CTreeCtrlHelper::IsItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL bHo
 	m_tree.GetClientRect(rClient);
 		
 	// vertically
-	if (rIntersect.IntersectRect(rClient, rItem))
+	if ((rItem.bottom > rClient.top) && (rItem.top < rClient.bottom))
 	{
 		bVertVisible = (bVertPartialOK || (rItem.top >= rClient.top && rItem.bottom <= rClient.bottom));
 	}
@@ -454,7 +455,7 @@ BOOL CTreeCtrlHelper::IsItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL bHo
 	// horizontally
 	rClient.DeflateRect(HVISIBLE, 0);
 
-	if (rIntersect.IntersectRect(rClient, rItem))
+	if ((rItem.right > rClient.left) && (rItem.left < rClient.right))
 	{
 		bHorzVisible = (bHorzPartialOK || (rItem.left >= rClient.left && rItem.right <= rClient.right));
 	}
@@ -464,14 +465,86 @@ BOOL CTreeCtrlHelper::IsItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL bHo
 
 void CTreeCtrlHelper::EnsureItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL bHorzPartialOK)
 {
+	if (!hti)
+		return;
+
+	BOOL bVertVisible = FALSE, bHorzVisible = FALSE;
+
+	if (IsItemVisible(hti, bVertPartialOK, bHorzPartialOK, bVertVisible, bHorzVisible))
+		return;
+
+	// Vertical visibility
+	if (!bVertVisible)
+	{
+		CHoldHScroll hold(m_tree);
+
+		m_tree.EnsureVisible(hti);
+
+		bHorzVisible = FALSE; // recheck
+	}
+
+	// horizontal visibility
+	if (!bHorzVisible)
+	{
+		CRect rClient, rItem;
+		m_tree.GetClientRect(rClient);
+
+		m_tree.GetItemRect(hti, rItem, TRUE);
+		rItem.DeflateRect(HVISIBLE, 0);
+
+		CRect rOrg(rItem);
+
+		if (rItem.left < rClient.left || (bHorzPartialOK && rItem.right < rClient.left))
+		{
+			while (rClient.left > (bHorzPartialOK ? rItem.right : rItem.left))
+			{
+				m_tree.SendMessage(WM_HSCROLL, SB_LINELEFT);
+
+				// check for no change
+				m_tree.GetItemRect(hti, rItem, TRUE);
+				rItem.DeflateRect(HVISIBLE, 0);
+
+				if (rItem == rOrg)
+					break;
+
+				rOrg = rItem;
+			}
+		}
+		else if (rItem.right > rClient.right || (bHorzPartialOK && rItem.left > rClient.right))
+		{
+			while (rClient.right < (bHorzPartialOK ? rItem.left : rItem.right))
+			{
+				m_tree.SendMessage(WM_HSCROLL, SB_LINERIGHT);
+
+				// check for no change
+				m_tree.GetItemRect(hti, rItem, TRUE);
+				rItem.DeflateRect(HVISIBLE, 0);
+
+				if (rItem == rOrg)
+					break;
+
+				rOrg = rItem;
+			}
+		}
+	}
+
+	m_tree.UpdateWindow();
+}
+/*
+
+void CTreeCtrlHelper::EnsureItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL bHorzPartialOK)
+{
+	if (!hti)
+		return;
+
+	if (IsItemVisible(hti, bVertPartialOK, bHorzPartialOK, bVertVisible, bHorzVisible))
+		return;
+
 	CRect rItem;
 
 	if (m_tree.GetItemRect(hti, rItem, FALSE))
 	{
 		BOOL bVertVisible = FALSE, bHorzVisible = FALSE;
-
-		if (IsItemVisible(hti, bVertPartialOK, bHorzPartialOK, bVertVisible, bHorzVisible))
-			return;
 
 		CRect rClient;
 		m_tree.GetClientRect(rClient);
@@ -568,6 +641,7 @@ void CTreeCtrlHelper::EnsureItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL
 
 	m_tree.UpdateWindow();
 }
+*/
 
 BOOL CTreeCtrlHelper::ItemLineIsOdd(HTREEITEM hti) const
 {
