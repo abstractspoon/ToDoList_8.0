@@ -754,9 +754,7 @@ protected:
 	virtual void ReposTaskTree(CDeferWndMove* pDWM, const CRect& rAvailable /*in*/);
 
 	virtual DWORD MergeNewTaskIntoTree(const CTaskFile& tasks, HTASKITEM hTask, DWORD dwParentTaskID, BOOL bAndSubtasks);
-	
 	virtual BOOL LoadTasks(const CTaskFile& tasks);
-
 	virtual int GetArchivableTasks(CTaskFile& tasks, BOOL bSelectedOnly = FALSE) const;
 	virtual BOOL RemoveArchivedTask(DWORD dwTaskID);
 	virtual HTREEITEM RebuildTree(const void* pContext = NULL);
@@ -795,11 +793,6 @@ protected:
 	int GetAllSelectedTaskDependencies(CDWordArray& aLocalDepends, CStringArray& aOtherDepends) const;
 	BOOL SetSelectedTaskPercentDone(int nPercent, BOOL bOffset, const COleDateTime& date);
 	BOOL CanSetSelectedTaskPercentDone(BOOL bToToday) const;
-
-	void SaveGlobals(CTaskFile& tasks) const;
-	void LoadGlobals(const CTaskFile& tasks);
-	void SaveCustomAttributeDefinitions(CTaskFile& tasks, const TDCGETTASKS& filter = TDCGETTASKS()) const;
-	void LoadCustomAttributeDefinitions(const CTaskFile& tasks);
 
 	BOOL HandleCustomColumnClick(TDC_COLUMN nColID);
 	UINT MapColumnToCtrlID(TDC_COLUMN nColID) const;
@@ -902,10 +895,12 @@ protected:
 	void DrawSplitter(CDC* pDC);
 	void FixupParentCompletion(DWORD dwParentID);
 
-	// used for building/creating the tree for saving/loading
-	// not for overriding
+	// used for building/creating the tree for saving/loading not for overriding
 	int GetAllTasks(CTaskFile& tasks) const;
 	HTREEITEM SetAllTasks(const CTaskFile& tasks);
+	void LoadGlobals(const CTaskFile& tasks);
+	void SaveCustomAttributeDefinitions(CTaskFile& tasks, const TDCGETTASKS& filter = TDCGETTASKS()) const;
+	void LoadCustomAttributeDefinitions(const CTaskFile& tasks);
 
 	void SelectItem(HTREEITEM hti);
 	BOOL BuildTreeItem(HTREEITEM hti, const TODOSTRUCTURE* pTDS, const void* pContext);
