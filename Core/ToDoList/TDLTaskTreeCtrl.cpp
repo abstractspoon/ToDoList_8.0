@@ -1724,7 +1724,7 @@ BOOL CTDLTaskTreeCtrl::MoveSelection(HTREEITEM htiDestParent, HTREEITEM htiDestP
 	ResyncListToTreeSelection(m_tcTasks, moved, htiFirst);
 
 	// make sure first moved item is visible
-	if (bEnsureVisible)
+	if (bEnsureVisible && !TCH().IsItemVisible(htiFirst))
 		m_tcTasks.PostMessage(TVM_ENSUREVISIBLE, 0, (LPARAM)htiFirst);
 
 	// No need to notify parent of selection change
