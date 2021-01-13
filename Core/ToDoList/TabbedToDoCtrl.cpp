@@ -4939,7 +4939,7 @@ BOOL CTabbedToDoCtrl::ValidatePreviousSiblingTaskID(DWORD dwTaskID, DWORD& dwPre
 
 	while (dwOtherTaskID != 0)
 	{
-		if (m_data.TaskHasSibling(dwTaskID, dwOtherTaskID))
+		if (m_data.TaskHasSibling(dwTaskID, dwOtherTaskID, FALSE))
 		{
 			dwPrevSiblingID = dwOtherTaskID;
 			return TRUE;
