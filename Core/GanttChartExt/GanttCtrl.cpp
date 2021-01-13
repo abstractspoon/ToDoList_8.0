@@ -1563,6 +1563,7 @@ LRESULT CGanttCtrl::OnHeaderCustomDraw(NMCUSTOMDRAW* pNMCD)
 			// only need handle drawing for double row height
 			if (m_listHeader.GetRowCount() > 1)
 				return CDRF_NOTIFYITEMDRAW;
+			break;
 							
 		case CDDS_ITEMPREPAINT:
 			// only need handle drawing for double row height
@@ -2140,7 +2141,7 @@ BOOL CGanttCtrl::OnTreeMouseMove(UINT /*nFlags*/, CPoint point)
 			HTREEITEM htiHot = m_tree.HitTest(point);
 			
 			if (htiHot)
-				nHotItem = GetListItem(GetTaskID(htiHot));
+				nHotItem = GetListItem(htiHot);
 			
 			SetDropHighlight(htiHot, nHotItem);
 			
@@ -3719,14 +3720,15 @@ BOOL CGanttCtrl::CalcDependencyEndPos(DWORD dwTaskID, GANTTDEPENDENCY& depend, B
 		HTREEITEM htiParent = m_tree.GetParentItem(GetTreeItem(dwTaskID));
 		ASSERT(htiParent);
 
-		while (htiParent && !TCH().IsParentItemExpanded(htiParent))
+		while (htiParent)
+		{
+			nItem = GetListItem(htiParent);
+
+			if (nItem != -1)
+				break;
+
 			htiParent = m_tree.GetParentItem(htiParent);
-
-		DWORD dwParentID = GetTaskID(htiParent);
-		ASSERT(dwParentID);
-
-		nItem = GetListItem(dwParentID);
-		ASSERT(nItem != -1);
+		}
 	}
 
 	return CalcDependencyEndPos(dwTaskID, nItem, depend, bFrom, lpp);
