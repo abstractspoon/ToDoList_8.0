@@ -89,6 +89,7 @@ protected:
 	DWORD m_dwSelectedTaskID;
 	DWORD m_dwOptions;
 	CPoint m_ptDragOrigin;
+	COleDateTime m_dtDragOrigin;
 	int m_nCellVScrollPos;
 	CFont m_fontAltText;
 	CFontCache m_fonts;
