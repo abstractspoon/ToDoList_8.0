@@ -151,6 +151,7 @@ public:
 	HTREEITEM GetFirstChildItem(HTREEITEM hti) const;
 
 	void SetItemStateEx(HTREEITEM hti, UINT nState, UINT nMask, BOOL bChildren = FALSE);
+	BOOL HasStyle(DWORD dwStyle) const { return (dwStyle != 0) && ((m_tree.GetStyle() & dwStyle) == dwStyle); }
 
 	HTREEITEM GetTopLevelItem(HTREEITEM hti) const;
 	HTREEITEM GetNextTopLevelItem(HTREEITEM hti, BOOL bNext = TRUE) const;
@@ -194,6 +195,7 @@ protected:
 
 protected:
 	void AddVisibleItemToIndex(HTREEITEM hti) const;
+	int GetPageCount() const;
 
 	TCH_WHERE GetMoveTarget(HTREEITEM htiDestParent, HTREEITEM htiDestPrevSibling, HTREEITEM& htiTarget) const;
 	HTREEITEM CopyTree(HTREEITEM hDest, HTREEITEM hSrc, TCH_WHERE nWhere, BOOL bUsesTextCallback = FALSE, BOOL bUsesImageCallback = FALSE);

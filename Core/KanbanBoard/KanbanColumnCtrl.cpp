@@ -1808,6 +1808,14 @@ void CKanbanColumnCtrl::OnKeyDown(UINT nChar, UINT /*nRepCnt*/, UINT /*nFlags*/)
 		htiSel = GetLastSelectedItem();
 		htiNext = TCH().GetNextPageVisibleItem(htiSel);
 		break;
+
+	case VK_HOME:
+		htiNext = TCH().GetFirstItem();
+		break;
+
+	case VK_END:
+		htiNext = TCH().GetLastItem();
+		break;
 	}
 
 	if (!htiNext)
