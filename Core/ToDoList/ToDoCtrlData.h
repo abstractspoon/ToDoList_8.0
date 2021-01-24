@@ -97,7 +97,6 @@ public:
 	// Gets
 	BOOL GetTaskAttributes(DWORD dwTaskID, TODOITEM& tdi) const;
 
-	DWORD GetTaskParentID(DWORD dwTaskID) const;
 	CString GetTaskTitle(DWORD dwTaskID) const;
 	CString GetTaskIcon(DWORD dwTaskID) const;
 	COleDateTime GetTaskDate(DWORD dwTaskID, TDC_DATE nDate) const;
@@ -141,6 +140,7 @@ public:
 	int GetTaskFileLinkCount(DWORD dwTaskID) const;
 	int GetTaskArray(DWORD dwTaskID, TDC_ATTRIBUTE nAttrib, CStringArray& aItems) const;
 
+	DWORD GetTaskParentID(DWORD dwTaskID) const;
 	DWORD GetTrueTaskID(DWORD dwTaskID) const;
 	void GetTrueTaskIDs(CDWordArray& aTaskIDs) const;
 	BOOL IsTaskReference(DWORD dwTaskID) const;
@@ -149,6 +149,7 @@ public:
 	BOOL IsReferenceToTask(DWORD dwTestID, DWORD dwTaskID) const;
 	BOOL IsTaskTimeTrackable(DWORD dwTaskID) const;
 	BOOL IsTaskParent(DWORD dwTaskID) const;
+	int GetTaskParentIDs(DWORD dwTaskID, CDWordArray& aTaskIDs) const;
 
 	BOOL TaskHasDependencies(DWORD dwTaskID) const;
 	BOOL TaskHasDependents(DWORD dwTaskID) const;
