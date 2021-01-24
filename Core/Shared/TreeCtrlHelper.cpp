@@ -465,10 +465,6 @@ BOOL CTreeCtrlHelper::IsItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL bHo
 
 void CTreeCtrlHelper::EnsureItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL bHorzPartialOK)
 {
-	// Non-partial horizontal visibility is only meaningful
-	// with non-partial vertical visibility
-	ASSERT(!bVertPartialOK || bHorzPartialOK);
-
 	if (!hti)
 		return;
 
@@ -477,15 +473,8 @@ void CTreeCtrlHelper::EnsureItemVisible(HTREEITEM hti, BOOL bVertPartialOK, BOOL
 	if (IsItemVisible(hti, bVertPartialOK, bHorzPartialOK, bVertVisible, bHorzVisible))
 		return;
 
-	// If partial visibility is wholly disabled and the
-	// item is not fully visible just do the default
-	if ((!bVertVisible && !bVertPartialOK) || (!bHorzVisible && !bHorzPartialOK))
-	{
-		m_tree.EnsureVisible(hti);
-
-		bHorzVisible = TRUE; // All done
-	}
-	else if (!bVertVisible)
+	// Vertical visibility
+	if (!bVertVisible)
 	{
 		CHoldHScroll hold(m_tree);
 
