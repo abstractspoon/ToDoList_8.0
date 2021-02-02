@@ -358,7 +358,7 @@ namespace HTMLContentControl
 						tooltip = args.tooltip;
 				}
 
-				if (IsEditable)
+				if (IsEditable && !string.IsNullOrEmpty(element.InnerText))
 				{
 					// No need for tooltip if the same as the visible text
 					if (tooltip.Contains(element.InnerText))
