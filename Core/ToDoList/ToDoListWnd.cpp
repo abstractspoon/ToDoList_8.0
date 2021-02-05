@@ -9388,8 +9388,8 @@ void CToDoListWnd::OnSysCommand(UINT nID, LPARAM lParam)
 				// button it ends up sending us a close message!
 				ShowWindow(SW_MINIMIZE);
 			}
-			return; // eat it
 		}
+		return;
 
 	case SC_HOTKEY:
 		Show(FALSE);
