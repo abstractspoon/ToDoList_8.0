@@ -761,7 +761,7 @@ BOOL CKanbanCtrl::AddTaskToData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, DW
 		pKI->dwParentID = dwParentID;
 		pKI->bLocked = pTasks->IsTaskLocked(hTask, true);
 		pKI->bHasIcon = !Misc::IsEmpty(pTasks->GetTaskIcon(hTask));
-		pKI->bFlagged = (pTasks->IsTaskFlagged(hTask, false) ? TRUE : FALSE);
+		pKI->bFlagged = (pTasks->IsTaskFlagged(hTask, false) ? TRUE : FALSE); // NOT calculated
 		pKI->nPosition = pTasks->GetTaskPosition(hTask);
 
 		pKI->SetColor(pTasks->GetTaskTextColor(hTask));
@@ -797,8 +797,8 @@ BOOL CKanbanCtrl::AddTaskToData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, DW
 		pKI->SetTrackedAttributeValue(TDCA_STATUS, pTasks->GetTaskStatus(hTask));
 		pKI->SetTrackedAttributeValue(TDCA_ALLOCBY, pTasks->GetTaskAllocatedBy(hTask));
 		pKI->SetTrackedAttributeValue(TDCA_VERSION, pTasks->GetTaskVersion(hTask));
-		pKI->SetTrackedAttributeValue(TDCA_PRIORITY, pTasks->GetTaskPriority(hTask, FALSE));
-		pKI->SetTrackedAttributeValue(TDCA_RISK, pTasks->GetTaskRisk(hTask, FALSE));
+		pKI->SetTrackedAttributeValue(TDCA_PRIORITY, pTasks->GetTaskPriority(hTask, true)); // calculated
+		pKI->SetTrackedAttributeValue(TDCA_RISK, pTasks->GetTaskRisk(hTask, true)); // calculated
 
 		// custom attributes
 		int nCust = pTasks->GetCustomAttributeCount();
@@ -893,7 +893,7 @@ BOOL CKanbanCtrl::UpdateData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, BOOL 
 				pKI->bHasIcon = !Misc::IsEmpty(pTasks->GetTaskIcon(hTask));
 
 			if (pTasks->IsAttributeAvailable(TDCA_FLAG))
-				pKI->bFlagged = (pTasks->IsTaskFlagged(hTask, true) ? TRUE : FALSE);
+				pKI->bFlagged = (pTasks->IsTaskFlagged(hTask, false) ? TRUE : FALSE); // NOT calculated
 			
 			// Trackable attributes
 			CStringArray aValues;
@@ -926,10 +926,10 @@ BOOL CKanbanCtrl::UpdateData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, BOOL 
 				bChange |= UpdateTrackableTaskAttribute(pKI, TDCA_VERSION, pTasks->GetTaskVersion(hTask));
 
 			if (pTasks->IsAttributeAvailable(TDCA_PRIORITY))
-				bChange |= UpdateTrackableTaskAttribute(pKI, TDCA_PRIORITY, pTasks->GetTaskPriority(hTask, true));
+				bChange |= UpdateTrackableTaskAttribute(pKI, TDCA_PRIORITY, pTasks->GetTaskPriority(hTask, true)); // calculated
 
 			if (pTasks->IsAttributeAvailable(TDCA_RISK))
-				bChange |= UpdateTrackableTaskAttribute(pKI, TDCA_RISK, pTasks->GetTaskRisk(hTask, true));
+				bChange |= UpdateTrackableTaskAttribute(pKI, TDCA_RISK, pTasks->GetTaskRisk(hTask, true)); // calculated
 
 			if (pTasks->IsAttributeAvailable(TDCA_CUSTOMATTRIB))
 			{
@@ -967,7 +967,7 @@ BOOL CKanbanCtrl::UpdateData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, BOOL 
 			pKI->SetColor(pTasks->GetTaskTextColor(hTask));
 
 			// Always update lock state
-			pKI->bLocked = pTasks->IsTaskLocked(hTask, true);
+			pKI->bLocked = pTasks->IsTaskLocked(hTask, true); // calculated
 		}
 	}
 		
@@ -998,10 +998,10 @@ void CKanbanCtrl::UpdateItemDisplayAttributes(KANBANITEM* pKI, const ITASKLISTBA
 	time64_t tDate = 0;
 	
 	if (pTasks->IsAttributeAvailable(TDCA_TIMEEST))
-		pKI->dTimeEst = pTasks->GetTaskTimeEstimate(hTask, pKI->nTimeEstUnits, true);
+		pKI->dTimeEst = pTasks->GetTaskTimeEstimate(hTask, pKI->nTimeEstUnits, true); // calculated
 	
 	if (pTasks->IsAttributeAvailable(TDCA_TIMESPENT))
-		pKI->dTimeSpent = pTasks->GetTaskTimeSpent(hTask, pKI->nTimeSpentUnits, true);
+		pKI->dTimeSpent = pTasks->GetTaskTimeSpent(hTask, pKI->nTimeSpentUnits, true); // calculated
 	
 	if (pTasks->IsAttributeAvailable(TDCA_COST))
 		pKI->sCost = pTasks->GetTaskAttribute(hTask, TDCA_COST);
@@ -1022,7 +1022,7 @@ void CKanbanCtrl::UpdateItemDisplayAttributes(KANBANITEM* pKI, const ITASKLISTBA
 	
 	if (pTasks->IsAttributeAvailable(TDCA_DUEDATE))
 	{
-		if (pTasks->GetTaskDueDate64(hTask, true, tDate))
+		if (pTasks->GetTaskDueDate64(hTask, true, tDate)) // calculated
 			pKI->dtDue = CDateHelper::GetDate(tDate);
 		else
 			CDateHelper::ClearDate(pKI->dtDue);
@@ -1030,7 +1030,7 @@ void CKanbanCtrl::UpdateItemDisplayAttributes(KANBANITEM* pKI, const ITASKLISTBA
 	
 	if (pTasks->IsAttributeAvailable(TDCA_STARTDATE))
 	{
-		if (pTasks->GetTaskStartDate64(hTask, true, tDate))
+		if (pTasks->GetTaskStartDate64(hTask, true, tDate)) // calculated
 			pKI->dtStart = CDateHelper::GetDate(tDate);
 		else
 			CDateHelper::ClearDate(pKI->dtStart);
@@ -1045,7 +1045,7 @@ void CKanbanCtrl::UpdateItemDisplayAttributes(KANBANITEM* pKI, const ITASKLISTBA
 	}
 	
 	if (pTasks->IsAttributeAvailable(TDCA_PERCENT))
-		pKI->nPercent = pTasks->GetTaskPercentDone(hTask, true);
+		pKI->nPercent = pTasks->GetTaskPercentDone(hTask, true); // calculated
 	
 	if (pTasks->IsAttributeAvailable(TDCA_EXTERNALID))
 		pKI->sExternalID = pTasks->GetTaskExternalID(hTask);
@@ -1240,7 +1240,7 @@ int CKanbanCtrl::GetTaskTrackedAttributeValues(DWORD dwTaskID, CStringArray& aVa
 	ASSERT(pKI);
 
 	if (pKI)
-		pKI->GetTrackedAttributeValues(m_sTrackAttribID, aValues);
+		pKI->GetTrackedAttributeValues(m_sTrackAttribID, m_dwOptions, aValues);
 	else
 		aValues.RemoveAll();
 	
@@ -1482,7 +1482,7 @@ BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, const CString& s
 	if (!pKI->AttributeValuesMatch(sAttribID, aNewValues))
 	{
 		CStringArray aCurValues;
-		pKI->GetTrackedAttributeValues(sAttribID, aCurValues);
+		pKI->GetTrackedAttributeValues(sAttribID, m_dwOptions, aCurValues);
 		
 		// Remove any list item whose current value is not found in the new values
 		int nVal = aCurValues.GetSize();
@@ -1761,7 +1761,7 @@ void CKanbanCtrl::RebuildColumns(BOOL bRebuildData, BOOL bTaskUpdate, const CDWo
 	CHoldRedraw gr(*this, NCR_PAINT | NCR_ERASEBKGND);
 
 	CKanbanItemArrayMap mapKIArray;
-	m_data.BuildTempItemMaps(m_sTrackAttribID, mapKIArray);
+	m_data.BuildTempItemMaps(m_sTrackAttribID, m_dwOptions, mapKIArray);
 
 	if (UsingDynamicColumns())
 		RebuildDynamicColumns(mapKIArray);
@@ -2236,11 +2236,21 @@ void CKanbanCtrl::SetOptions(DWORD dwOptions)
 		{
 			RebuildColumns(FALSE, FALSE);
 		}
+		else if ((m_nTrackAttribute == TDCA_PRIORITY) && Misc::FlagHasChanged(KBCF_DUEHAVEHIGHESTPRIORITYRISK | KBCF_DONEHAVELOWESTPRIORITYRISK, m_dwOptions, dwPrevOptions))
+		{
+			RebuildColumns(TRUE, FALSE);
+		}
 
 		m_aColumns.SetOptions(dwOptions & ~(KBCF_SHOWPARENTTASKS | KBCF_SHOWEMPTYCOLUMNS | KBCF_ALWAYSSHOWBACKLOG));
 
 		if (Misc::FlagHasChanged(KBCF_SORTSUBTASTASKSBELOWPARENTS, m_dwOptions, dwPrevOptions))
+		{
 			m_aColumns.Sort(m_nSortBy, m_bSortAscending);
+		}
+		else if (m_nSortBy == TDCA_PRIORITY && Misc::FlagHasChanged(KBCF_DUEHAVEHIGHESTPRIORITYRISK | KBCF_DONEHAVELOWESTPRIORITYRISK, m_dwOptions, dwPrevOptions))
+		{
+			m_aColumns.Sort(m_nSortBy, m_bSortAscending);
+		}
 	}
 }
 
