@@ -2242,7 +2242,7 @@ void CKanbanCtrl::SetOptions(DWORD dwOptions)
 		{
 			RebuildColumns(FALSE, FALSE);
 		}
-		else if ((m_nTrackAttribute == TDCA_PRIORITY) && Misc::FlagHasChanged(KBCF_DUEHAVEHIGHESTPRIORITYRISK | KBCF_DONEHAVELOWESTPRIORITYRISK, m_dwOptions, dwPrevOptions))
+		else if (((m_nTrackAttribute == TDCA_PRIORITY) || (m_nTrackAttribute == TDCA_RISK)) && Misc::FlagHasChanged(KBCF_DUEHAVEHIGHESTPRIORITYRISK | KBCF_DONEHAVELOWESTPRIORITYRISK, m_dwOptions, dwPrevOptions))
 		{
 			RebuildColumns(TRUE, FALSE);
 		}
@@ -2253,7 +2253,7 @@ void CKanbanCtrl::SetOptions(DWORD dwOptions)
 		{
 			m_aColumns.Sort(m_nSortBy, m_bSortAscending);
 		}
-		else if (m_nSortBy == TDCA_PRIORITY && Misc::FlagHasChanged(KBCF_DUEHAVEHIGHESTPRIORITYRISK | KBCF_DONEHAVELOWESTPRIORITYRISK, m_dwOptions, dwPrevOptions))
+		else if (((m_nSortBy == TDCA_PRIORITY) || (m_nSortBy == TDCA_RISK)) && Misc::FlagHasChanged(KBCF_DUEHAVEHIGHESTPRIORITYRISK | KBCF_DONEHAVELOWESTPRIORITYRISK, m_dwOptions, dwPrevOptions))
 		{
 			m_aColumns.Sort(m_nSortBy, m_bSortAscending);
 		}
