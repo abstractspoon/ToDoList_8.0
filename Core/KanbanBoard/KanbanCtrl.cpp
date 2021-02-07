@@ -873,6 +873,7 @@ BOOL CKanbanCtrl::UpdateData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, BOOL 
 			
 			if (pTasks->IsAttributeAvailable(TDCA_DONEDATE))
 			{
+				// Note: Actual completion date is updated in UpdateItemDisplayAttributes
 				BOOL bDone = pTasks->IsTaskDone(hTask);
 				BOOL bGoodAsDone = pTasks->IsTaskGoodAsDone(hTask);
 
@@ -880,7 +881,19 @@ BOOL CKanbanCtrl::UpdateData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, BOOL 
 				{
 					pKI->bDone = bDone;
 					pKI->bGoodAsDone = bGoodAsDone;
+
+					if (HasOption(KBCF_DONEHAVELOWESTPRIORITYRISK) || HasOption(KBCF_DUEHAVEHIGHESTPRIORITYRISK))
+						bChange = TRUE;
 				}
+			}
+
+			if (pTasks->IsAttributeAvailable(TDCA_DUEDATE) && HasOption(KBCF_DUEHAVEHIGHESTPRIORITYRISK))
+			{
+				// Note: Actual due date is updated in UpdateItemDisplayAttributes
+				BOOL bDue = pTasks->IsTaskDue(hTask);
+
+				if (pKI->IsDue() != bDue)
+					bChange = TRUE;
 			}
 
 			if (pTasks->IsAttributeAvailable(TDCA_SUBTASKDONE))

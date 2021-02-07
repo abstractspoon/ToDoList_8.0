@@ -597,6 +597,9 @@ BOOL KANBANITEM::IsDone(BOOL bIncludeGoodAs) const
 
 BOOL KANBANITEM::IsDue() const
 {
+	if (IsDone(FALSE))
+		return FALSE;
+
 	return (CDateHelper::IsDateSet(dtDue) && 
 			((int)dtDue.m_dt <= CDateHelper::GetDate(DHD_TODAY)));
 }
