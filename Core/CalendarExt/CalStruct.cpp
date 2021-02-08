@@ -314,7 +314,8 @@ BOOL TASKCALITEM::IsStartDateSet() const
 {
 	if (CDateHelper::IsDateSet(dtStart))
 	{
-		ASSERT(!CDateHelper::IsDateSet(dtStartCalc) || (IsDone(FALSE) && (dtStart > dtDone)));
+		// sanity check
+		ASSERT(!CDateHelper::IsDateSet(dtStartCalc) || (IsEndDateSet() && (dtStart > GetAnyEndDate())));
 		return TRUE;
 	}
 
