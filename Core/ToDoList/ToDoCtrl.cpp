@@ -5574,6 +5574,9 @@ int CToDoCtrl::OnToolHitTest(CPoint point, TOOLINFO * pTI) const
 			CTDCAttributeMap mapAttrib;
 			TDC::MapColumnsToAttributes(m_visColEdit.GetVisibleColumns(), mapAttrib);
 
+			// Always add path for context
+			mapAttrib.Add(TDCA_PATH);
+
 			if (m_nMaxState == TDCMS_NORMAL)
 				mapAttrib.Add(TDCA_COMMENTS);
 
