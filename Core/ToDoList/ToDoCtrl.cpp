@@ -5582,7 +5582,8 @@ int CToDoCtrl::OnToolHitTest(CPoint point, TOOLINFO * pTI) const
 
 			CString sInfoTip = m_infoTip.FormatTip(dwTaskID, 
 												   mapAttrib, 
-												   m_nMaxInfotipCommentsLength);
+												   m_nMaxInfotipCommentsLength,
+												   m_sCompletionStatus);
 			ASSERT(!sInfoTip.IsEmpty());
 
 			HWND hwndHit = CDialogHelper::GetWindowFromPoint(GetSafeHwnd(), point);
