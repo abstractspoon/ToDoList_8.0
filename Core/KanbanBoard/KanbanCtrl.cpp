@@ -3013,7 +3013,6 @@ void CKanbanCtrl::OnBeginDragColumnItem(NMHDR* pNMHDR, LRESULT* pResult)
 				TRACE(_T("CKanbanCtrl::OnBeginDragColItem(start drag)\n"));
 
 				SetCapture();
-				TRACE(_T("CKanbanCtrl::OnBeginDragColItem(start drag)\n"));
 			}
 		}
 		else
