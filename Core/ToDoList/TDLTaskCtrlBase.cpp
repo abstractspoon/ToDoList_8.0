@@ -960,7 +960,7 @@ BOOL CTDLTaskCtrlBase::CanCopyTaskColumnValues(TDC_COLUMN nColID, BOOL bSelected
 	case TDCC_DEPENDENCY:
 	case TDCC_RECURRENCE:
 	case TDCC_VERSION:
-	case TDCC_REMAINING:
+	case TDCC_TIMEREMAINING:
 	case TDCC_REMINDER:
 	case TDCC_PARENTID:
 	case TDCC_PATH:
@@ -2714,7 +2714,7 @@ void CTDLTaskCtrlBase::DrawColumnsRowText(CDC* pDC, int nItem, DWORD dwTaskID, c
 		case TDCC_TAGS:
 		case TDCC_CREATEDBY:
 		case TDCC_PATH:
-		case TDCC_REMAINING:
+		case TDCC_TIMEREMAINING:
 		case TDCC_SUBTASKDONE:
 		case TDCC_TIMEESTIMATE:
 		case TDCC_LASTMODBY:
@@ -3737,32 +3737,32 @@ CString CTDLTaskCtrlBase::GetTaskColumnText(DWORD dwTaskID, const TODOITEM* pTDI
 
 	switch (nColID)
 	{
-	case TDCC_CLIENT:		return pTDI->sTitle;
-	case TDCC_EXTERNALID:	return pTDI->sExternalID;
-	case TDCC_VERSION:		return pTDI->sVersion;
-	case TDCC_LASTMODBY:	return pTDI->sLastModifiedBy;
-	case TDCC_ALLOCBY:		return pTDI->sAllocBy;
-	case TDCC_CREATEDBY:	return pTDI->sCreatedBy;
+	case TDCC_CLIENT:			return pTDI->sTitle;
+	case TDCC_EXTERNALID:		return pTDI->sExternalID;
+	case TDCC_VERSION:			return pTDI->sVersion;
+	case TDCC_LASTMODBY:		return pTDI->sLastModifiedBy;
+	case TDCC_ALLOCBY:			return pTDI->sAllocBy;
+	case TDCC_CREATEDBY:		return pTDI->sCreatedBy;
 
-	case TDCC_POSITION:		return m_formatter.GetTaskPosition(pTDS);
-	case TDCC_RISK:			return m_formatter.GetTaskRisk(pTDI, pTDS);
-	case TDCC_RECURRENCE:	return m_formatter.GetTaskRecurrence(pTDI);
-	case TDCC_RECENTEDIT:	return m_formatter.GetTaskRecentlyModified(pTDI, pTDS);
-	case TDCC_COST:			return m_formatter.GetTaskCost(pTDI, pTDS);
-	case TDCC_ALLOCTO:		return m_formatter.GetTaskAllocTo(pTDI);
-	case TDCC_STATUS:		return m_formatter.GetTaskStatus(pTDI, pTDS, m_sCompletionStatus);
-	case TDCC_CATEGORY:		return m_formatter.GetTaskCategories(pTDI);
-	case TDCC_TAGS:			return m_formatter.GetTaskTags(pTDI);
-	case TDCC_PERCENT:		return m_formatter.GetTaskPercentDone(pTDI, pTDS);
-	case TDCC_REMAINING:	return m_formatter.GetTaskTimeRemaining(pTDI, pTDS);
-	case TDCC_TIMEESTIMATE:	return m_formatter.GetTaskTimeEstimate(pTDI, pTDS);
-	case TDCC_TIMESPENT:	return m_formatter.GetTaskTimeSpent(pTDI, pTDS);
-	case TDCC_PATH:			return m_formatter.GetTaskPath(pTDI, pTDS);
-	case TDCC_SUBTASKDONE:	return m_formatter.GetTaskSubtaskCompletion(pTDI, pTDS);
-	case TDCC_COMMENTSSIZE:	return m_formatter.GetTaskCommentSize(pTDI);
+	case TDCC_POSITION:			return m_formatter.GetTaskPosition(pTDS);
+	case TDCC_RISK:				return m_formatter.GetTaskRisk(pTDI, pTDS);
+	case TDCC_RECURRENCE:		return m_formatter.GetTaskRecurrence(pTDI);
+	case TDCC_RECENTEDIT:		return m_formatter.GetTaskRecentlyModified(pTDI, pTDS);
+	case TDCC_COST:				return m_formatter.GetTaskCost(pTDI, pTDS);
+	case TDCC_ALLOCTO:			return m_formatter.GetTaskAllocTo(pTDI);
+	case TDCC_STATUS:			return m_formatter.GetTaskStatus(pTDI, pTDS, m_sCompletionStatus);
+	case TDCC_CATEGORY:			return m_formatter.GetTaskCategories(pTDI);
+	case TDCC_TAGS:				return m_formatter.GetTaskTags(pTDI);
+	case TDCC_PERCENT:			return m_formatter.GetTaskPercentDone(pTDI, pTDS);
+	case TDCC_TIMEREMAINING:	return m_formatter.GetTaskTimeRemaining(pTDI, pTDS);
+	case TDCC_TIMEESTIMATE:		return m_formatter.GetTaskTimeEstimate(pTDI, pTDS);
+	case TDCC_TIMESPENT:		return m_formatter.GetTaskTimeSpent(pTDI, pTDS);
+	case TDCC_PATH:				return m_formatter.GetTaskPath(pTDI, pTDS);
+	case TDCC_SUBTASKDONE:		return m_formatter.GetTaskSubtaskCompletion(pTDI, pTDS);
+	case TDCC_COMMENTSSIZE:		return m_formatter.GetTaskCommentSize(pTDI);
 
-	case TDCC_ID:			return m_formatter.GetID(dwTaskID, pTDS->GetTaskID());
-	case TDCC_PARENTID:		return m_formatter.GetID(pTDS->GetParentTaskID());
+	case TDCC_ID:				return m_formatter.GetID(dwTaskID, pTDS->GetTaskID());
+	case TDCC_PARENTID:			return m_formatter.GetID(pTDS->GetParentTaskID());
 
 		// items having no text
 	case TDCC_ICON:
@@ -4702,7 +4702,7 @@ void CTDLTaskCtrlBase::SetModified(const CTDCAttributeMap& mapAttribIDs, BOOL bA
 				bRedrawCols |= !AccumulateRecalcColumn(TDCC_TIMEESTIMATE, aColIDs);
 
 				if (HasStyle(TDCS_CALCREMAININGTIMEBYSPENT))
-					bRedrawCols |= !AccumulateRecalcColumn(TDCC_REMAINING, aColIDs);
+					bRedrawCols |= !AccumulateRecalcColumn(TDCC_TIMEREMAINING, aColIDs);
 
 				if (bRedrawCols)
 					bRedrawCols = HasStyle(TDCS_AUTOCALCPERCENTDONE);
@@ -4714,7 +4714,7 @@ void CTDLTaskCtrlBase::SetModified(const CTDCAttributeMap& mapAttribIDs, BOOL bA
 				bRedrawCols |= !AccumulateRecalcColumn(TDCC_TIMESPENT, aColIDs);
 
 				if (HasStyle(TDCS_CALCREMAININGTIMEBYSPENT))
-					bRedrawCols |= !AccumulateRecalcColumn(TDCC_REMAINING, aColIDs);
+					bRedrawCols |= !AccumulateRecalcColumn(TDCC_TIMEREMAINING, aColIDs);
 
 				if (bRedrawCols)
 					bRedrawCols = HasStyle(TDCS_AUTOCALCPERCENTDONE);
@@ -5084,7 +5084,7 @@ BOOL CTDLTaskCtrlBase::ModNeedsResort(TDC_ATTRIBUTE nModType, TDC_COLUMN nSortBy
 		return (((nModType == TDCA_DONEDATE) && HasStyle(TDCS_DONEHAVELOWESTPRIORITY)) ||
 				((nModType == TDCA_DUEDATE) && HasStyle(TDCS_DUEHAVEHIGHESTPRIORITY)));
 		
-	case TDCC_REMAINING: 
+	case TDCC_TIMEREMAINING: 
 		return (((nModType == TDCA_DUEDATE) && HasStyle(TDCS_CALCREMAININGTIMEBYDUEDATE)) ||
 				((nModType == TDCA_TIMESPENT) && HasStyle(TDCS_CALCREMAININGTIMEBYSPENT)) ||
 				((nModType == TDCA_PERCENT) && HasStyle(TDCS_CALCREMAININGTIMEBYPERCENT)));
@@ -5379,7 +5379,7 @@ int CTDLTaskCtrlBase::CalcColumnWidth(int nCol, CDC* pDC, BOOL bVisibleTasksOnly
 		
 	case TDCC_TIMEESTIMATE:
 	case TDCC_TIMESPENT:
-	case TDCC_REMAINING:
+	case TDCC_TIMEREMAINING:
 		if (HasStyle(TDCS_DISPLAYHMSTIMEFORMAT))
 		{
 			nColWidth = pDC->GetTextExtent("-12m4w").cx;
@@ -5390,9 +5390,9 @@ int CTDLTaskCtrlBase::CalcColumnWidth(int nCol, CDC* pDC, BOOL bVisibleTasksOnly
 
 			switch (nColID)
 			{
-			case TDCC_TIMEESTIMATE:	sLongest = m_find.GetLongestTimeEstimate(bVisibleTasksOnly);	break;
-			case TDCC_TIMESPENT:	sLongest = m_find.GetLongestTimeSpent(bVisibleTasksOnly);		break;
-			case TDCC_REMAINING: 	sLongest = m_find.GetLongestTimeRemaining(bVisibleTasksOnly);	break;
+			case TDCC_TIMEESTIMATE:		sLongest = m_find.GetLongestTimeEstimate(bVisibleTasksOnly);	break;
+			case TDCC_TIMESPENT:		sLongest = m_find.GetLongestTimeSpent(bVisibleTasksOnly);		break;
+			case TDCC_TIMEREMAINING: 	sLongest = m_find.GetLongestTimeRemaining(bVisibleTasksOnly);	break;
 			}
 
 			nColWidth = (pDC->GetTextExtent(sLongest).cx + 4); // add a bit to handle different time unit widths

@@ -1339,7 +1339,7 @@ int CTDCTaskComparer::CompareTasks(DWORD dwTask1ID, DWORD dwTask2ID, TDC_COLUMN 
 			}
 			break;
 
-		case TDCC_REMAINING:
+		case TDCC_TIMEREMAINING:
 			{
 				TDC_UNITS nUnits1, nUnits2;
 				double dRemain1 = m_calculator.GetTaskRemainingTime(pTDI1, pTDS1, nUnits1);
@@ -3765,7 +3765,7 @@ CString CTDCTaskFormatter::GetTaskTimePeriod(const TODOITEM* pTDI, const TODOSTR
 			}
 			return GetTimePeriod(dTime, nUnits, TRUE);
 
-		case TDCC_REMAINING:
+		case TDCC_TIMEREMAINING:
 			return GetTaskTimeRemaining(pTDI, pTDS);
 		}
 	}
