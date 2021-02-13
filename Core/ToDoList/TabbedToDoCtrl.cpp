@@ -1432,7 +1432,7 @@ DWORD CTabbedToDoCtrl::ProcessUIExtensionMod(const IUITASKMOD& mod)
 		}
 		break;
 
-	case TDCA_TIMEEST:		
+	case TDCA_TIMEESTIMATE:		
 		{
 			TDCTIMEPERIOD time(mod.dValue, mod.nTimeUnits);
 
@@ -2412,7 +2412,7 @@ DWORD CTabbedToDoCtrl::SetStyle(TDC_STYLE nStyle, BOOL bEnable)
 
 	case TDCS_USEPERCENTDONEINTIMEEST:
 		{
-			m_mapAttribsAffectedByPrefs.Add(TDCA_TIMEEST);
+			m_mapAttribsAffectedByPrefs.Add(TDCA_TIMEESTIMATE);
 		}
 		break;
 	}
@@ -3627,7 +3627,7 @@ BOOL CTabbedToDoCtrl::IsCalculatedAttribute(TDC_ATTRIBUTE nAttrib) const
 
 	case TDCA_COST: 
 	case TDCA_TIMESPENT:
-	case TDCA_TIMEEST:
+	case TDCA_TIMEESTIMATE:
 		return TRUE;
 		
 	case TDCA_RISK: 

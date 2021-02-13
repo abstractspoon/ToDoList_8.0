@@ -353,7 +353,7 @@ bool CBurndownWnd::WantTaskUpdate(TDC_ATTRIBUTE nAttribute) const
 	case TDCA_DONEDATE:
 	case TDCA_STARTDATE:
 	case TDCA_CREATIONDATE:
-	case TDCA_TIMEEST:
+	case TDCA_TIMEESTIMATE:
 	case TDCA_TIMESPENT:
 	case TDCA_COST:
 	case TDCA_ALLOCBY:

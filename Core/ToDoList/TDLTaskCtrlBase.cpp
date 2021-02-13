@@ -4697,7 +4697,7 @@ void CTDLTaskCtrlBase::SetModified(const CTDCAttributeMap& mapAttribIDs, BOOL bA
 			AccumulateRecalcColumn(TDCC_DUEDATE, aColIDs);
 			break;
 
-		case TDCA_TIMEEST:
+		case TDCA_TIMEESTIMATE:
 			{
 				bRedrawCols |= !AccumulateRecalcColumn(TDCC_TIMEEST, aColIDs);
 
@@ -4980,7 +4980,7 @@ BOOL CTDLTaskCtrlBase::ModNeedsResort(TDC_ATTRIBUTE nModType, TDC_COLUMN nSortBy
 	case TDCA_STATUS:		
 	case TDCA_CATEGORY:		
 	case TDCA_TAGS:			
-	case TDCA_TIMEEST:		
+	case TDCA_TIMEESTIMATE:		
 	case TDCA_RISK:			
 	case TDCA_EXTERNALID:	
 	case TDCA_VERSION:		

@@ -3636,7 +3636,7 @@ LRESULT CToDoListWnd::OnToDoCtrlNotifyMod(WPARAM wp, LPARAM lp)
 		UpdateTimeTrackerTasks(tdc, FALSE);
 	}
 
-	if (pMod->mapAttrib.Has(TDCA_TIMEEST) ||
+	if (pMod->mapAttrib.Has(TDCA_TIMEESTIMATE) ||
 		pMod->mapAttrib.Has(TDCA_TIMESPENT))
 	{
 		m_dlgTimeTracker.UpdateTaskTime(&tdc);
