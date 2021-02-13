@@ -12392,7 +12392,7 @@ void CToDoListWnd::OnUpdateSBSelectionCount(CCmdUI* /*pCmdUI*/)
 		else
 			sText = CTimeHelper().FormatTime(sbi.dTimeEst, nTHUnits, 2);
 
-		UpdateSBPaneAndTooltip(ID_SB_SELTIMEEST, ID_SB_SELTIMEEST, sText, IDS_SB_SELTIMEEST_TIP, TDCC_TIMEEST);
+		UpdateSBPaneAndTooltip(ID_SB_SELTIMEEST, ID_SB_SELTIMEEST, sText, IDS_SB_SELTIMEEST_TIP, TDCC_TIMEESTIMATE);
 
 		// spent
 		nTHUnits = TDC::MapUnitsToTHUnits(sbi.nTimeSpentUnits);
