@@ -116,7 +116,7 @@ protected:
 
 protected:
 	CString GetTrackedAttributeValue(LPCTSTR szAttrib) const;
-	int GetPriorityRisk(TDC_ATTRIBUTE nAttrib, DWORD dwOptions) const;
+	int GetPriorityOrRisk(TDC_ATTRIBUTE nAttrib, DWORD dwOptions) const;
 };
 typedef CArray<const KANBANITEM*, const KANBANITEM*> CKanbanItemArray;
 

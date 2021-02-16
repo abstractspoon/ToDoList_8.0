@@ -606,15 +606,15 @@ BOOL KANBANITEM::IsDue() const
 
 int KANBANITEM::GetPriority(DWORD dwOptions) const
 {
-	return GetPriorityRisk(TDCA_PRIORITY, dwOptions);
+	return GetPriorityOrRisk(TDCA_PRIORITY, dwOptions);
 }
 
 int KANBANITEM::GetRisk(DWORD dwOptions) const
 {
-	return GetPriorityRisk(TDCA_RISK, dwOptions);
+	return GetPriorityOrRisk(TDCA_RISK, dwOptions);
 }
 
-int KANBANITEM::GetPriorityRisk(TDC_ATTRIBUTE nAttrib, DWORD dwOptions) const
+int KANBANITEM::GetPriorityOrRisk(TDC_ATTRIBUTE nAttrib, DWORD dwOptions) const
 {
 	ASSERT((nAttrib == TDCA_PRIORITY) || (nAttrib == TDCA_RISK));
 
