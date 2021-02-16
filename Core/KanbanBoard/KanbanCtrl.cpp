@@ -1445,27 +1445,23 @@ BOOL CKanbanCtrl::IsTrackedAttributeMultiValue() const
 
 BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, TDC_ATTRIBUTE nAttrib, const CString& sNewValue)
 {
-	CStringArray aNewValues;
-
 	switch (nAttrib)
 	{
 	case TDCA_PRIORITY:
 	case TDCA_RISK:
-		if (!sNewValue.IsEmpty())
-			aNewValues.Add(sNewValue);
-		break;
-
 	case TDCA_ALLOCBY:
 	case TDCA_STATUS:
 	case TDCA_VERSION:
-		aNewValues.Add(sNewValue);
 		break;
 
 	default:
 		ASSERT(0);
-		break;
+		return FALSE;
 	}
 	
+	CStringArray aNewValues;
+	aNewValues.Add(sNewValue);
+
 	return UpdateTrackableTaskAttribute(pKI, KANBANITEM::GetAttributeID(nAttrib), aNewValues);
 }
 
