@@ -1382,7 +1382,6 @@ CString CKanbanCtrl::GetXMLTag(TDC_ATTRIBUTE nAttrib)
 
 BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, TDC_ATTRIBUTE nAttrib, int nNewValue)
 {
-#ifdef _DEBUG
 	switch (nAttrib)
 	{
 	case TDCA_PRIORITY:
@@ -1391,17 +1390,26 @@ BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, TDC_ATTRIBUTE nA
 
 	default:
 		ASSERT(0);
-		break;
+		return FALSE;
 	}
-#endif
 
-	CString sValue; // empty
+	CString sNewValue;
 
 	if (nNewValue >= 0)
-		sValue = Misc::Format(nNewValue);
-	
-	// else empty
-	return UpdateTrackableTaskAttribute(pKI, nAttrib, sValue);
+		sNewValue = Misc::Format(nNewValue);
+
+	// special handling for tasks which ought not to be moved
+	if (pKI->HasDueOrDonePriorityOrRisk(m_dwOptions))
+	{
+		CStringArray aNewValues;
+		aNewValues.Add(sNewValue);
+
+		pKI->SetTrackedAttributeValues(KANBANITEM::GetAttributeID(nAttrib), aNewValues);
+		return FALSE;
+	}
+
+	// all else
+	return UpdateTrackableTaskAttribute(pKI, nAttrib, sNewValue);
 }
 
 BOOL CKanbanCtrl::IsTrackedAttributeMultiValue() const
@@ -1426,7 +1434,6 @@ BOOL CKanbanCtrl::IsTrackedAttributeMultiValue() const
 			
 			if (nDef != -1)
 				return m_aCustomAttribDefs[nDef].bMultiValue;
-
 		}
 		break;
 	}
@@ -1488,7 +1495,7 @@ BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, TDC_ATTRIBUTE nA
 
 BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, const CString& sAttribID, const CStringArray& aNewValues)
 {
-	// Check if we need to update listctrls or not
+	// Check if we need to update the columns or not
 	if (!IsTracking(sAttribID) || (pKI->bParent && !HasOption(KBCF_SHOWPARENTTASKS)))
 	{
 		pKI->SetTrackedAttributeValues(sAttribID, aNewValues);
@@ -1515,7 +1522,7 @@ BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, const CString& s
 
 		while (nVal--)
 		{
-			if (!Misc::Contains(aCurValues[nVal], aNewValues, FALSE, TRUE))
+			if (!Misc::Contains(aCurValues[nVal], aNewValues, FALSE, FALSE))
 			{
 				CKanbanColumnCtrl* pCurCol = m_aColumns.Get(aCurValues[nVal]);
 				ASSERT(pCurCol);
@@ -1536,7 +1543,7 @@ BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, const CString& s
 		
 		while (nVal--)
 		{
-			if (!Misc::Contains(aNewValues[nVal], aCurValues, FALSE, TRUE))
+			if (!Misc::Contains(aNewValues[nVal], aCurValues, FALSE, FALSE))
 			{
 				CKanbanColumnCtrl* pCurCol = m_aColumns.Get(aNewValues[nVal]);
 				

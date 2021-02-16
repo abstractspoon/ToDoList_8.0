@@ -88,6 +88,7 @@ struct KANBANITEM
 	COLORREF GetBorderColor(BOOL bColorIsBkgnd) const;
 	int GetPriority(DWORD dwOptions) const;
 	int GetRisk(DWORD dwOptions) const;
+	BOOL HasDueOrDonePriorityOrRisk(DWORD dwOptions) const;
 
 	BOOL HasColor() const;
 	BOOL IsDone(BOOL bIncludeGoodAs) const;

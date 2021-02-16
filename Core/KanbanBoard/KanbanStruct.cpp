@@ -614,6 +614,17 @@ int KANBANITEM::GetRisk(DWORD dwOptions) const
 	return GetPriorityOrRisk(TDCA_RISK, dwOptions);
 }
 
+BOOL KANBANITEM::HasDueOrDonePriorityOrRisk(DWORD dwOptions) const
+{
+	if ((dwOptions & KBCF_DONEHAVELOWESTPRIORITYRISK) && IsDone(TRUE))
+		return TRUE;
+
+	if ((dwOptions & KBCF_DUEHAVEHIGHESTPRIORITYRISK) && IsDue())
+		return TRUE;
+
+	return FALSE;
+}
+
 int KANBANITEM::GetPriorityOrRisk(TDC_ATTRIBUTE nAttrib, DWORD dwOptions) const
 {
 	ASSERT((nAttrib == TDCA_PRIORITY) || (nAttrib == TDCA_RISK));
