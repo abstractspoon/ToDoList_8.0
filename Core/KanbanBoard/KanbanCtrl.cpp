@@ -1500,50 +1500,54 @@ BOOL CKanbanCtrl::UpdateTrackableTaskAttribute(KANBANITEM* pKI, const CString& s
 	
 	if (!pKI->AttributeValuesMatch(sAttribID, aNewValues))
 	{
-		CStringArray aCurValues;
-		pKI->GetTrackedAttributeValues(sAttribID, m_dwOptions, aCurValues);
-		
-		// Remove any list item whose current value is not found in the new values
-		int nVal = aCurValues.GetSize();
-		
-		// Special case: Item needs removing from backlog
-		if (nVal == 0)
+		// Move items between columns as required BUT only if they are draggable
+		if (CanDragTask(pKI->dwTaskID))
 		{
-			aCurValues.Add(_T(""));
-			nVal++;
-		}
-
-		while (nVal--)
-		{
-			if (!Misc::Contains(aCurValues[nVal], aNewValues, FALSE, TRUE))
+			CStringArray aCurValues;
+			pKI->GetTrackedAttributeValues(sAttribID, m_dwOptions, aCurValues);
+		
+			// Remove any list item whose current value is not found in the new values
+			int nVal = aCurValues.GetSize();
+		
+			// Special case: Item needs removing from backlog
+			if (nVal == 0)
 			{
-				CKanbanColumnCtrl* pCurCol = m_aColumns.Get(aCurValues[nVal]);
-				ASSERT(pCurCol);
-
-				if (pCurCol)
-				{
-					VERIFY(pCurCol->DeleteTask(pKI->dwTaskID));
-					bChange |= (pCurCol->GetCount() == 0);
-				}
-
-				// Remove from list to speed up later searching
-				aCurValues.RemoveAt(nVal);
+				aCurValues.Add(_T(""));
+				nVal++;
 			}
-		}
-		
-		// Add any new items not in the current list
-		nVal = aNewValues.GetSize();
-		
-		while (nVal--)
-		{
-			if (!Misc::Contains(aNewValues[nVal], aCurValues, FALSE, TRUE))
+
+			while (nVal--)
 			{
-				CKanbanColumnCtrl* pCurCol = m_aColumns.Get(aNewValues[nVal]);
+				if (!Misc::Contains(aCurValues[nVal], aNewValues, FALSE, TRUE))
+				{
+					CKanbanColumnCtrl* pCurCol = m_aColumns.Get(aCurValues[nVal]);
+					ASSERT(pCurCol);
+
+					if (pCurCol)
+					{
+						VERIFY(pCurCol->DeleteTask(pKI->dwTaskID));
+						bChange |= (pCurCol->GetCount() == 0);
+					}
+
+					// Remove from list to speed up later searching
+					aCurValues.RemoveAt(nVal);
+				}
+			}
+		
+			// Add any new items not in the current list
+			nVal = aNewValues.GetSize();
+		
+			while (nVal--)
+			{
+				if (!Misc::Contains(aNewValues[nVal], aCurValues, FALSE, TRUE))
+				{
+					CKanbanColumnCtrl* pCurCol = m_aColumns.Get(aNewValues[nVal]);
 				
-				if (pCurCol)
-					pCurCol->AddTask(*pKI);
-				else
-					bChange = TRUE; // needs new list ctrl
+					if (pCurCol)
+						pCurCol->AddTask(*pKI);
+					else
+						bChange = TRUE; // needs new list ctrl
+				}
 			}
 		}
 	
