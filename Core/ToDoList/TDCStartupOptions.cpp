@@ -36,7 +36,12 @@ BOOL TDCSTARTUPATTRIB::operator==(const CString& sValue) const
 
 BOOL TDCSTARTUPATTRIB::IsEmpty() const 
 { 
-	return (!bSet || !lstrlen(szValue)); 
+	return (!IsSet() || !lstrlen(szValue)); 
+}
+
+BOOL TDCSTARTUPATTRIB::IsSet() const
+{
+	return bSet;
 }
 
 void TDCSTARTUPATTRIB::SetValue(const CString& sValue)
@@ -376,8 +381,23 @@ void CTDCStartupOptions::SetCmdInfo(const CEnCommandLineInfo& cmdInfo)
 	// Custom attribute
 	CStringArray aValues;
 
-	if (cmdInfo.GetOptions(SWITCH_TASKCUSTOMATTRIB, aValues) && (aValues.GetSize() == 2))
-		m_sCustomAttrib.SetValue(Misc::FormatArray(aValues, '|'));
+	if (cmdInfo.GetOptions(SWITCH_TASKCUSTOMATTRIB, aValues))
+	{
+		switch (aValues.GetSize())
+		{
+		case 0:
+		default:
+			break;
+
+		case 1:
+			m_sTaskCustomAttrib.SetValue(aValues[0] + '|');
+			break;
+
+		case 2:
+			m_sTaskCustomAttrib.SetValue(Misc::FormatArray(aValues, '|'));
+			break;
+		}
+	}
 
 	// Copying task attributes
 	if (cmdInfo.GetOptions(SWITCH_TASKCOPYATTRIB, aValues) && (aValues.GetSize() == 2))
@@ -702,8 +722,7 @@ BOOL CTDCStartupOptions::GetTaskCreationDate(COleDateTime& dtValue) const
 
 BOOL CTDCStartupOptions::GetTaskPriority(int& nValue, BOOL& bOffset) const 
 { 
-	// handle 'n' for none
-	if (m_nTaskPriority == _T("n"))
+	if (m_nTaskPriority.IsSet() && m_nTaskPriority.IsEmpty())
 	{
 		nValue = -2;
 		bOffset = FALSE;
@@ -717,8 +736,7 @@ BOOL CTDCStartupOptions::GetTaskPriority(int& nValue, BOOL& bOffset) const
 
 BOOL CTDCStartupOptions::GetTaskRisk(int& nValue, BOOL& bOffset) const 
 { 
-	// handle 'n' for none
-	if (m_nTaskRisk == _T("n"))
+	if (m_nTaskRisk.IsSet() && m_nTaskRisk.IsEmpty())
 	{
 		nValue = -2;
 		bOffset = FALSE;
@@ -731,23 +749,9 @@ BOOL CTDCStartupOptions::GetTaskRisk(int& nValue, BOOL& bOffset) const
 
 BOOL CTDCStartupOptions::GetTaskCustomAttribute(CString& sCustomID, CString& sValue) const
 {
-	if (!m_sCustomAttrib.IsEmpty())
-	{
-		CStringArray aValues;
-		
-		if (Misc::Split(m_sCustomAttrib.GetValue(), aValues, '|') == 2)
-		{
-			sCustomID = aValues[0];
-			sValue = aValues[1];
-			
-			return !(sCustomID.IsEmpty() || sValue.IsEmpty());
-		}
-	}
+	sCustomID = m_sTaskCustomAttrib.GetValue();
 
-	sCustomID.Empty();
-	sValue.Empty();
-
-	return FALSE;
+	return Misc::Split(sCustomID, sValue, '|');
 }
 
 int CTDCStartupOptions::GetCommandIDs(CUIntArray& aCmdIDs) const
