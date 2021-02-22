@@ -390,11 +390,11 @@ void CTDCStartupOptions::SetCmdInfo(const CEnCommandLineInfo& cmdInfo)
 			break;
 
 		case 1:
-			m_sTaskCustomAttrib.SetValue(aValues[0] + '|');
+			m_sCustomAttrib.SetValue(aValues[0] + '|');
 			break;
 
 		case 2:
-			m_sTaskCustomAttrib.SetValue(Misc::FormatArray(aValues, '|'));
+			m_sCustomAttrib.SetValue(Misc::FormatArray(aValues, '|'));
 			break;
 		}
 	}
@@ -749,7 +749,7 @@ BOOL CTDCStartupOptions::GetTaskRisk(int& nValue, BOOL& bOffset) const
 
 BOOL CTDCStartupOptions::GetTaskCustomAttribute(CString& sCustomID, CString& sValue) const
 {
-	sCustomID = m_sTaskCustomAttrib.GetValue();
+	sCustomID = m_sCustomAttrib.GetValue();
 
 	return Misc::Split(sCustomID, sValue, '|');
 }
