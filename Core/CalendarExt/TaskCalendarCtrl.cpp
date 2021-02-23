@@ -2635,10 +2635,7 @@ void CTaskCalendarCtrl::OnShowTooltip(NMHDR* pNMHDR, LRESULT* pResult)
 	m_tooltip.AdjustRect(rTip, TRUE);
 	rTip.OffsetRect(TIP_PADDING, 0);
 
-	rTip.top = rLabel.top;
-	rTip.bottom = rLabel.bottom;
-
-	m_tooltip.SetWindowPos(NULL, rTip.left, rTip.top, 0, 0, (SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE));
+	m_tooltip.SetWindowPos(NULL, rTip.left, rLabel.top, 0, 0, (SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE));
 
 	*pResult = TRUE; // we do the positioning
 }
