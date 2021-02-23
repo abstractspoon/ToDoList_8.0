@@ -1342,7 +1342,7 @@ DWORD CTaskCalendarCtrl::HitTest(const CPoint& ptClient) const
 	return HitTest(ptClient, nHit);
 }
 
-DWORD CTaskCalendarCtrl::HitTest(const CPoint& ptClient, TCC_HITTEST& nHit) const
+DWORD CTaskCalendarCtrl::HitTest(const CPoint& ptClient, TCC_HITTEST& nHit, LPRECT pRect) const
 {
 	nHit = TCCHT_NOWHERE;
 
@@ -1408,6 +1408,15 @@ DWORD CTaskCalendarCtrl::HitTest(const CPoint& ptClient, TCC_HITTEST& nHit) cons
 			else if (dtHit > pTCI->GetAnyStartDate() && dtHit < pTCI->GetAnyEndDate())
 			{
 				nHit = TCCHT_MIDDLE;
+			}
+
+			if (pRect)
+			{
+				pRect->left = rCell.left;
+				pRect->right = rCell.right;
+
+				pRect->top = (rCell.top + (nPos * nTaskHeight));
+				pRect->bottom = (pRect->top + nTaskHeight);
 			}
 			
 			return ((nHit == TCCHT_NOWHERE) ? 0 : dwTaskID);
@@ -2570,8 +2579,9 @@ void CTaskCalendarCtrl::FilterToolTipMessage(MSG* pMsg)
 
 int CTaskCalendarCtrl::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
 {
-	// perform a hit-test
-	DWORD dwTaskID = HitTest(point);
+	TCC_HITTEST nUnused;
+	CRect rHit;
+	DWORD dwTaskID = HitTest(point, nUnused, rHit);
 
 	if (dwTaskID)
 	{
@@ -2584,13 +2594,7 @@ int CTaskCalendarCtrl::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
 			const TASKCALITEM* pTCI = GetTaskCalItem(dwTaskID);
 			ASSERT(pTCI);
 
-			CRect rLabel;
-			VERIFY(GetTaskLabelRect(dwTaskID, rLabel));
-
-			if (rLabel.PtInRect(point))
-			{
-				return CToolTipCtrlEx::SetToolInfo(*pTI, this, pTCI->GetName(), dwTaskID, rLabel);
-			}
+			return CToolTipCtrlEx::SetToolInfo(*pTI, this, pTCI->GetName(), dwTaskID, rHit);
 		}
 	}
 
@@ -2628,7 +2632,20 @@ void CTaskCalendarCtrl::OnShowTooltip(NMHDR* pNMHDR, LRESULT* pResult)
 
 	// Calculate exact position required
 	CRect rLabel;
-	VERIFY(GetTaskLabelRect(dwTaskID, rLabel));
+
+	if (HasOption(TCCO_DISPLAYCONTINUOUS))
+	{
+		VERIFY(GetTaskLabelRect(dwTaskID, rLabel));
+	}
+	else
+	{
+		CPoint ptTip(::GetMessagePos());
+		ScreenToClient(&ptTip);
+
+		TCC_HITTEST nUnused;
+		VERIFY(HitTest(ptTip, nUnused, rLabel));
+	}
+
 	ClientToScreen(rLabel);
 
 	CRect rTip(rLabel);

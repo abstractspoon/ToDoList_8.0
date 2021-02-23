@@ -180,7 +180,7 @@ protected:
 	CFont* GetTaskFont(const TASKCALITEM* pTCI);
 	void CalcScrollBarRect(const CRect& rCell, CRect& rScrollbar) const;
 
-	DWORD HitTest(const CPoint& ptClient, TCC_HITTEST& nHit) const;
+	DWORD HitTest(const CPoint& ptClient, TCC_HITTEST& nHit, LPRECT pRect = NULL) const;
 	BOOL GetDateFromPoint(const CPoint& ptCursor, COleDateTime& date) const;
 	BOOL StartDragging(const CPoint& ptCursor);
 	BOOL EndDragging(const CPoint& ptCursor);
