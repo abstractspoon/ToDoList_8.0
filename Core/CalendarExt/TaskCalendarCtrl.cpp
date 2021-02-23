@@ -1034,6 +1034,9 @@ void CTaskCalendarCtrl::CalcScrollBarRect(const CRect& rCell, CRect& rScrollbar)
 
 BOOL CTaskCalendarCtrl::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
+	if (m_tooltip.GetSafeHwnd())
+		m_tooltip.Pop();
+
 	// if the mouse is over the cell with the scrollbar
 	// then pass to the scrollbar instead
 	int nRow, nCol;
