@@ -1360,43 +1360,36 @@ DWORD CTaskCalendarCtrl::HitTest(const CPoint& ptClient, TCC_HITTEST& nHit, LPRE
 	if (pCell == NULL)
 		return 0;
 
-	CTaskCalItemArray* pTasks = static_cast<CTaskCalItemArray*>(pCell->pUserData);
+	const CTaskCalItemArray* pTasks = static_cast<CTaskCalItemArray*>(pCell->pUserData);
 	ASSERT(pTasks);
 	
 	if (!pTasks || !pTasks->GetSize())
 		return 0;
 	
-	// determine the vertical 'task pos' of the cursor
+	// handle clicking above tasks
 	CRect rCell;
 	GetGridCellRect(nRow, nCol, rCell, TRUE);
 	
-	// handle clicking above tasks
 	if (ptClient.y < rCell.top)
 		return 0;
 	
-	int nTaskHeight = GetTaskHeight();
-	int nPos = ((ptClient.y - rCell.top) / nTaskHeight);
-	
-	// look thru the tasks for this pos
+	// Find the task beneath the mouse
 	for (int nTask = 0; nTask < pTasks->GetSize(); nTask++)
 	{
-		const TASKCALITEM* pTCI = (*pTasks)[nTask];
-		ASSERT(pTCI);
+		CRect rTask;
 
-		DWORD dwTaskID = pTCI->GetTaskID();
-		ASSERT(dwTaskID);
-
-		int nTaskPos = GetTaskVertPos(dwTaskID, nTask, pCell, IsCellScrollBarActive());
+		if (!CalcTaskCellRect(nTask, pCell, rCell, rTask))
+			continue;
 		
-		if (nTaskPos == nPos)
+		if (rTask.PtInRect(ptClient))
 		{
-			// now we figure out where on the item we hit
+			// now check for closeness to ends
 			COleDateTime dtHit;
 			VERIFY(GetDateFromPoint(ptClient, dtHit));
-			
-			// now check for closeness to ends
+
 			double dDateTol = CalcDateDragTolerance();
-			
+			const TASKCALITEM* pTCI = pTasks->GetAt(nTask);
+
 			if (fabs(dtHit.m_dt - pTCI->GetAnyStartDate().m_dt) < dDateTol)
 			{
 				nHit = TCCHT_BEGIN;
@@ -1409,17 +1402,16 @@ DWORD CTaskCalendarCtrl::HitTest(const CPoint& ptClient, TCC_HITTEST& nHit, LPRE
 			{
 				nHit = TCCHT_MIDDLE;
 			}
+			else
+			{
+				ASSERT(0);
+				break;
+			}
 
 			if (pRect)
-			{
-				pRect->left = rCell.left;
-				pRect->right = rCell.right;
+				*pRect = rTask;
 
-				pRect->top = (rCell.top + (nPos * nTaskHeight));
-				pRect->bottom = (pRect->top + nTaskHeight);
-			}
-			
-			return ((nHit == TCCHT_NOWHERE) ? 0 : dwTaskID);
+			return pTCI->GetTaskID();
 		}
 	}
 
@@ -2579,23 +2571,36 @@ void CTaskCalendarCtrl::FilterToolTipMessage(MSG* pMsg)
 
 int CTaskCalendarCtrl::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
 {
-	TCC_HITTEST nUnused;
+	TCC_HITTEST nHit;
 	CRect rHit;
-	DWORD dwTaskID = HitTest(point, nUnused, rHit);
+	DWORD dwTaskID = HitTest(point, nHit, rHit);
 
-	if (dwTaskID)
+	// Don't show tooltip when hovering over 'ends'
+	if (dwTaskID && (nHit == TCCHT_MIDDLE))
 	{
-		int nTextOffset = GetTaskContinuousDrawInfo(dwTaskID).nTextOffset;
+		const TASKCALITEM* pTCI = GetTaskCalItem(dwTaskID);
+		ASSERT(pTCI);
 
-		if ((nTextOffset > 0) || 
-			!HasOption(TCCO_DISPLAYCONTINUOUS) ||
-			(GetTaskHeight() < MIN_TASK_HEIGHT))
+		BOOL bWantTooltip = (GetTaskHeight() < MIN_TASK_HEIGHT);
+
+		if (!bWantTooltip)
 		{
-			const TASKCALITEM* pTCI = GetTaskCalItem(dwTaskID);
-			ASSERT(pTCI);
+			if (HasOption(TCCO_DISPLAYCONTINUOUS))
+			{
+				int nTextOffset = GetTaskContinuousDrawInfo(dwTaskID).nTextOffset;
+				bWantTooltip = (nTextOffset > 0);
+			}
+			else
+			{
+				CFontCache& fonts = const_cast<CFontCache&>(m_fonts);
 
-			return CToolTipCtrlEx::SetToolInfo(*pTI, this, pTCI->GetName(), dwTaskID, rHit);
+				int nTextLen = GraphicsMisc::GetTextWidth(pTCI->GetName(), m_tooltip, fonts.GetHFont(pTCI->bTopLevel ? GMFS_BOLD : 0));
+				bWantTooltip = (nTextLen > rHit.Width());
+			}
 		}
+
+		if (bWantTooltip)
+			return CToolTipCtrlEx::SetToolInfo(*pTI, this, pTCI->GetName(), dwTaskID, rHit);
 	}
 
 	// else
@@ -2604,6 +2609,8 @@ int CTaskCalendarCtrl::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
 
 void CTaskCalendarCtrl::OnShowTooltip(NMHDR* pNMHDR, LRESULT* pResult)
 {
+	*pResult = 0;
+
 	// Only handle our tooltips
 	if (pNMHDR->hwndFrom != m_tooltip)
 		return;
