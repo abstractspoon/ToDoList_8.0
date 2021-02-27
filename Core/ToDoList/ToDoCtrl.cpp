@@ -223,6 +223,7 @@ CToDoCtrl::CToDoCtrl(const CTDLContentMgr& mgrContent,
 	m_exporter(m_data, m_taskTree, m_mgrContent),
 	m_formatter(m_data),
 	m_infoTip(m_data, m_aCustomAttribDefs),
+	m_dtLastDayCheck(CDateHelper::GetDate(DHD_TODAY)),
 #pragma warning (disable: 4355)
 	m_sourceControl(*this),
 	m_findReplace(*this),
@@ -11090,13 +11091,14 @@ void CToDoCtrl::OnTimer(UINT nIDEvent)
 		{
 			// check if we've just passed midnight, in which case some tasks
 			// may have just become due
-			static double dPrev = CDateHelper::GetDate(DHD_TODAY); // once only
-			double dNow = CDateHelper::GetDate(DHD_TODAY);
+			ASSERT(CDateHelper::IsDateSet(m_dtLastDayCheck));
 
-			if (dNow > dPrev)
+			COleDateTime dtToday = CDateHelper::GetDate(DHD_TODAY);
+
+			if (dtToday > m_dtLastDayCheck)
 				OnTimerMidnight();  
 
-			dPrev = dNow;
+			m_dtLastDayCheck = dtToday;
 		}
 		break;
 	}
