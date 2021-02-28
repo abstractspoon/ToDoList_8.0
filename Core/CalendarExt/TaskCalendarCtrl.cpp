@@ -2798,6 +2798,8 @@ void CTaskCalendarCtrl::OnTimer(UINT_PTR nIDEvent)
 				m_dtLastDayCheck = dtToday;
 
 				RecalcTaskDates();
+				RebuildCellTasks();
+
 				Invalidate(FALSE);
 			}
 		}
