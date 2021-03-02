@@ -775,6 +775,7 @@ BOOL CKanbanCtrl::AddTaskToData(const ITASKLISTBASE* pTasks, HTASKITEM hTask, DW
 		pKI->bHasIcon = !Misc::IsEmpty(pTasks->GetTaskIcon(hTask));
 		pKI->bFlagged = (pTasks->IsTaskFlagged(hTask, false) ? TRUE : FALSE); // NOT calculated
 		pKI->nPosition = pTasks->GetTaskPosition(hTask);
+		pKI->sFullPosition = pTasks->GetTaskPositionString(hTask); // for 'Unsorting'
 
 		pKI->SetColor(pTasks->GetTaskTextColor(hTask));
 
@@ -2581,7 +2582,7 @@ void CKanbanCtrl::Sort(TDC_ATTRIBUTE nBy, BOOL bAscending)
 	{
 		ASSERT((nBy == TDCA_NONE) || (bAscending != -1));
 
-		if ((m_nSortBy != nBy) || (nBy != TDCA_NONE) || HasOption(KBCF_SORTSUBTASTASKSBELOWPARENTS))
+		if ((m_nSortBy != nBy) || (nBy == TDCA_NONE) || HasOption(KBCF_SORTSUBTASTASKSBELOWPARENTS))
 		{
 			m_nSortBy = nBy;
 			m_bSortAscending = bAscending;

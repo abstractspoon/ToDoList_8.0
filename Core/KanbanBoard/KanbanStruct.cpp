@@ -185,6 +185,7 @@ KANBANITEM& KANBANITEM::operator=(const KANBANITEM& ki)
 	bHasIcon = ki.bHasIcon;
 	bSomeSubtaskDone = ki.bSomeSubtaskDone;
 	nPosition = ki.nPosition;
+	sFullPosition = ki.sFullPosition;
 
 	mapAttribValues.Copy(ki.mapAttribValues);
 	
@@ -208,6 +209,7 @@ BOOL KANBANITEM::operator==(const KANBANITEM& ki) const
 			(bSomeSubtaskDone == ki.bSomeSubtaskDone) &&
 			(dwParentID == ki.dwParentID) &&
 			(nPosition == ki.nPosition) &&
+			(sFullPosition == ki.sFullPosition) &&
 			mapAttribValues.MatchAll(ki.mapAttribValues));
 }
 
