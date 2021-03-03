@@ -7278,7 +7278,7 @@ BOOL CToDoCtrl::DropSelectedTasks(DD_DROPEFFECT nDrop, HTREEITEM htiDropTarget, 
 			if (GetSelectedTasks(tasks, filter))
 			{
 				IMPLEMENT_DATA_UNDO(m_data, TDCUAT_COPY);
-				HOLD_REDRAW(*this, m_taskTree);
+				HOLD_REDRAW(NULL, m_taskTree);
 
 				// fix up the dependencies of the copied tasks
 				if (bDropRefs)
@@ -7300,7 +7300,7 @@ BOOL CToDoCtrl::DropSelectedTasks(DD_DROPEFFECT nDrop, HTREEITEM htiDropTarget, 
 	case DD_DROPEFFECT_MOVE:
 		{
 			IMPLEMENT_DATA_UNDO(m_data, TDCUAT_MOVE);
-			HOLD_REDRAW(*this, m_taskTree);
+			HOLD_REDRAW(NULL, m_taskTree);
 
 			DWORD dwSrcParentID = GetSelectedTaskParentID(); // zero for multiple parents
 			
