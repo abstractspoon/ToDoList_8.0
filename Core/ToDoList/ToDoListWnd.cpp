@@ -4556,7 +4556,7 @@ TDC_FILE CToDoListWnd::OpenTaskList(CFilteredToDoCtrl* pTDC, LPCTSTR szFilePath,
 		}
 
 		if (userPrefs.GetExpandTasksOnLoad())
-			pTDC->ExpandTasks(TDCEC_ALL);
+			PostMessage(WM_COMMAND, ID_VIEW_EXPANDALL);
 		
 		// update find dialog with this ToDoCtrl's custom attributes
 		UpdateFindDialogActiveTasklist(pTDC);
