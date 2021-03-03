@@ -4555,6 +4555,7 @@ TDC_FILE CToDoListWnd::OpenTaskList(CFilteredToDoCtrl* pTDC, LPCTSTR szFilePath,
 				*pInfo = storageInfo;
 		}
 
+		// Delay task expansion until we're finished
 		if (userPrefs.GetExpandTasksOnLoad())
 			PostMessage(WM_COMMAND, ID_VIEW_EXPANDALL);
 		
