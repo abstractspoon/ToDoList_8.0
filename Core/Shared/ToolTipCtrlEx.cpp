@@ -363,17 +363,17 @@ void CToolTipCtrlEx::Activate(BOOL bActivate)
 {
 	CToolTipCtrl::Activate(bActivate);
 
-	if (!bActivate)
+	if (bActivate)
+	{
+		// Our own implementation of WM_MOUSELEAVE
+		SetTimer(ID_TIMERLEAVE, 500, NULL);
+	}
+	else
 	{
 		SendMessage(TTM_DELTOOL, 0, (LPARAM)&m_tiLast);
 		
 		InitToolInfo(m_tiLast, FALSE);
 		m_nLastHit = -1;
-	}
-	else
-	{
-		// Our own implementation of WM_MOUSELEAVE
-		SetTimer(ID_TIMERLEAVE, 500, NULL);
 	}
 }
 
