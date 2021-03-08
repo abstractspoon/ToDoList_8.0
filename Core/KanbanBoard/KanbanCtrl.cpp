@@ -143,6 +143,8 @@ BOOL CKanbanCtrl::Create(DWORD dwStyle, const RECT &rect, CWnd* pParentWnd, UINT
 
 int CKanbanCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	m_bClosing = FALSE;
+
 	if (CWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
@@ -162,11 +164,7 @@ int CKanbanCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CKanbanCtrl::OnDestroy()
 {
-	// Prevent focus changes during shutdown
-	// because these can cause a hang whose exact
-	// cause I have yet to determine
-	m_aColumns.SetSelectedColumn(NULL);
-	m_aColumns.RemoveAll();
+	m_bClosing = TRUE;
 
 	CWnd::OnDestroy();
 }
@@ -2317,12 +2315,22 @@ BOOL CKanbanCtrl::OnEraseBkgnd(CDC* pDC)
 
 void CKanbanCtrl::OnSetFocus(CWnd* pOldWnd)
 {
-	if (m_pSelectedColumn)
-		m_pSelectedColumn->SetFocus();
-	else
+	// Don't handle focus changes during shutdown because these can 
+	// cause a hang inside the treectrl whose exact cause I have 
+	// yet to determine
+	if (m_bClosing)
+	{
 		CWnd::OnSetFocus(pOldWnd);
+	}
+	else
+	{
+		if (m_pSelectedColumn)
+			m_pSelectedColumn->SetFocus();
+		else
+			CWnd::OnSetFocus(pOldWnd);
 
-	ScrollToSelectedTask();
+		ScrollToSelectedTask();
+	}
 }
 
 int CKanbanCtrl::GetVisibleColumnCount() const
