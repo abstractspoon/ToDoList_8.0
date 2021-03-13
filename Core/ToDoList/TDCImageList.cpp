@@ -291,7 +291,8 @@ BOOL CTDCImageList::LoadImage(const CString& sImageFile, COLORREF crTransparent,
 			return TRUE;
 
 		// else
-		image.RemapSysColors();
+		if (CEnBitmap::GetFileType(sImageFile) == FT_BMP)
+			image.RemapSysColors();
 
 		return AddImage(sImageFile, image, crTransparent, pImages, nNextNameIndex);
 	}
