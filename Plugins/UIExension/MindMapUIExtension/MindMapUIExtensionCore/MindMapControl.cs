@@ -532,7 +532,7 @@ namespace MindMapUIExtension
 				}
 				else if (IsParent(hit))
 				{
-					if (IsAnyNodeExpanded(hit.Nodes))
+					if (hit.IsExpanded)
 						expand = ExpandNode.CollapseSelection;
 					else
 						expand = ExpandNode.ExpandSelectionAll;
