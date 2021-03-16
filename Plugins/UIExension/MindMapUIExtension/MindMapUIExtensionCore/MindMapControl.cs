@@ -1519,7 +1519,7 @@ namespace MindMapUIExtension
                     RecalculatePositions(graphics, rightFrom, rightTo, horzOffset, 0);
 
 				    // Left side
-                    horzOffset = (ItemHorzSeparation - ExpansionButtonSize);
+                    horzOffset = ItemHorzSeparation;
 
 				    TreeNode leftFrom = rootNode.Nodes[iToNode + 1];
                     TreeNode leftTo = rootNode.Nodes[rootNode.Nodes.Count - 1];
