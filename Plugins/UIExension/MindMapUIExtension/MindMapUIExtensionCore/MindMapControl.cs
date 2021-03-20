@@ -166,6 +166,7 @@ namespace MindMapUIExtension
 
         private Point m_DrawOffset;
 		private TreeNode m_DropTarget;
+		private TreeNode m_PrevSelection;
         private DropPos m_DropPos = DropPos.None;
 		private Timer m_DragTimer;
 		private Color m_ConnectionColor = Color.Magenta;
@@ -267,8 +268,8 @@ namespace MindMapUIExtension
 
 				case ExpandNode.CollapseSelection:
 					if (!IsRoot(SelectedNode))
-						SelectedNode.Collapse();
-					break;
+						SelectedNode.Collapse(true); // don't collapse children
+				break;
 			}
 
 			EndUpdate();
@@ -569,7 +570,7 @@ namespace MindMapUIExtension
 						BeginUpdate();
 
 						if (hit.IsExpanded)
-							hit.Collapse();
+							hit.Collapse(true); // don't collapse children
 						else
 							hit.Expand();
 
@@ -589,6 +590,11 @@ namespace MindMapUIExtension
 				}
 			}
         }
+
+		static int Validate(int pos, ScrollProperties scroll)
+		{
+			return Math.Max(scroll.Minimum, Math.Min(pos, scroll.Maximum));
+		}
 
 		protected override void OnMouseMove(MouseEventArgs e)
 		{
@@ -745,14 +751,25 @@ namespace MindMapUIExtension
             EnsureItemVisible(Item(e.Node));
 		}
 
-        protected void OnTreeViewAfterSelect(object sender, TreeViewEventArgs e)
+		protected void OnTreeViewBeforeCollapse(object sender, TreeViewCancelEventArgs e)
+		{
+			// Prevent the root node from ever collapsing
+			e.Cancel = IsRoot(e.Node);
+		}
+
+		protected void OnTreeViewAfterSelect(object sender, TreeViewEventArgs e)
         {
 			var item = Item(e.Node);
 
 			if (!ClientRectangle.Contains(GetItemDrawRect(item.ItemBounds)))
+			{
 				EnsureItemVisible(item);
+			}
 			else
-				Invalidate();
+			{
+ 				RedrawNode(e.Node);
+ 				RedrawNode(m_PrevSelection);
+			}
 
 			if (SelectionChange != null)
 				SelectionChange(this, item.ItemData);
@@ -778,6 +795,9 @@ namespace MindMapUIExtension
 		protected override void OnLostFocus(EventArgs e)
 		{
 			base.OnLostFocus(e);
+
+			if (m_TreeView.Focused)
+				Focus();
 
 			Invalidate(GetSelectedItemLabelRect());
 		}
@@ -818,7 +838,7 @@ namespace MindMapUIExtension
 				case Keys.Subtract:
 					if ((SelectedNode != null) && !IsRoot(SelectedNode))
 					{
-						SelectedNode.Collapse();
+						SelectedNode.Collapse(true); // don't collapse children
 						return;
 					}
 					break;
@@ -1088,9 +1108,8 @@ namespace MindMapUIExtension
                 if (xOffset != 0)
                 {
                     int scrollX = (HorizontalScroll.Value + xOffset);
-                    scrollX = Math.Min(Math.Max(HorizontalScroll.Minimum, scrollX), HorizontalScroll.Maximum);
   
-                    HorizontalScroll.Value = scrollX;
+                    HorizontalScroll.Value = Validate(scrollX, HorizontalScroll);
                 }
             }
 
@@ -1110,9 +1129,8 @@ namespace MindMapUIExtension
                 if (yOffset != 0)
                 {
                     int scrollY = (VerticalScroll.Value + yOffset);
-                    scrollY = Math.Min(Math.Max(VerticalScroll.Minimum, scrollY), VerticalScroll.Maximum);
   
-                    VerticalScroll.Value = scrollY;
+                    VerticalScroll.Value = Validate(scrollY, VerticalScroll);
                 }
             }
 
@@ -1300,7 +1318,15 @@ namespace MindMapUIExtension
 		protected TreeNode SelectedNode
 		{
 			get { return m_TreeView.SelectedNode; }
-			set { m_TreeView.SelectedNode = value; }
+
+			set
+			{
+				if (m_TreeView.SelectedNode != value)
+				{
+					m_PrevSelection = m_TreeView.SelectedNode;
+					m_TreeView.SelectedNode = value;
+				}
+			}
 		}
 
 		protected MindMapItem SelectedItem
@@ -1321,7 +1347,6 @@ namespace MindMapUIExtension
 
 			// Always just the first of the root's children
 			return RootNode.FirstNode;
-			
 		}
 
 		protected TreeNode FirstLeftNode()
@@ -1478,9 +1503,13 @@ namespace MindMapUIExtension
 			}
 		}
 
-        private int CalculateHorizontalChildOffset(TreeNode node)
+        private int CalculateHorizontalChildOffset(Graphics graphics, TreeNode node)
         {
-            int horzOffset = (node.Bounds.Width + ItemHorzSeparation + GetExtraWidth(node));
+			// Always calculate the width of the text because the tree 
+			// doesn't seem to return the same widths as the Graphics object
+			// which is what we will be using to render the text
+			int nodeWidth = Size.Ceiling(graphics.MeasureString(node.Text, GetNodeFont(node))).Width;
+            int horzOffset = (nodeWidth + ItemHorzSeparation + GetExtraWidth(node));
 
             if (!IsRoot(node))
                 horzOffset += ExpansionButtonSize;
@@ -1509,7 +1538,8 @@ namespace MindMapUIExtension
                 else // Double-sided graph
                 {
                     // Right side
-                    int horzOffset = CalculateHorizontalChildOffset(rootNode);
+ 					int horzOffset = CalculateHorizontalChildOffset(graphics, rootNode);
+
 
                     TreeNode rightFrom = rootNode.Nodes[0];
 
@@ -1549,6 +1579,7 @@ namespace MindMapUIExtension
             OffsetPositions(rootNode, -graphRect.Left, -graphRect.Top);
             
 			this.AutoScrollMinSize = graphRect.Size;
+			this.VerticalScroll.SmallChange = graphRect.Height / 100;
 
             RecalculateDrawOffset();
 			Invalidate();
@@ -1595,7 +1626,7 @@ namespace MindMapUIExtension
             while (node != null)
 			{
 				// Children of this node First
-                int childOffset = (horzOffset + CalculateHorizontalChildOffset(node));
+                int childOffset = (horzOffset + CalculateHorizontalChildOffset(graphics, node));
 
                 RecalculatePositions(graphics, node.Nodes, childOffset, vertOffset);
 
@@ -1779,7 +1810,7 @@ namespace MindMapUIExtension
 		{
 			foreach (TreeNode node in nodes)
 			{
-				// Don't draw items falling wholly outside the client rectangle
+				// Don't draw items falling wholly outside the clip rectangle
 				MindMapItem item = Item(node);
 				Rectangle clipRect = Rectangle.Round(graphics.ClipBounds);
 
@@ -1810,6 +1841,9 @@ namespace MindMapUIExtension
 
 					if (DebugMode())
 					{
+						labelRect = new Rectangle(labelRect.Location, node.Bounds.Size);
+						graphics.DrawRectangle(new Pen(Color.Blue), labelRect);
+
 						labelRect = GetItemDrawRect(item.ChildBounds);
 						labelRect.Inflate(-1, -1);
 						graphics.DrawRectangle(new Pen(Color.Black), labelRect);
@@ -2059,6 +2093,9 @@ namespace MindMapUIExtension
 
 		protected void RedrawNode(TreeNode node, bool update = true)
 		{
+			if (node == null)
+				return;
+
 			Invalidate(GetItemDrawRect(Item(node).ItemBounds));
 
 			if (update)
@@ -2213,7 +2250,7 @@ namespace MindMapUIExtension
 			{
 				itemRect = GetItemDrawRect(item.ItemBounds);
 
-				// subtract the vertical separation from selected items
+				// subtract the vertical separation
 				itemRect.Inflate(0, -(ItemVertSeparation / 2));
 			}
 
