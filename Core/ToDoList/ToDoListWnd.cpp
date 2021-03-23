@@ -7074,12 +7074,16 @@ void CToDoListWnd::OnTimerCheckoutStatus(int nCtrl, BOOL bForceCheckRemote)
 		{
 			int nMin = m_mgrToDoCtrls.GetElapsedMinutesSinceLastMod(nCtrl);
 			
-			if ((nMin >= userPrefs.GetAutoCheckinFrequency()) && 
-				(m_mgrToDoCtrls.CheckIn(nCtrl) == TDCF_SUCCESS))
+			if (nMin >= userPrefs.GetAutoCheckinFrequency())
 			{
-				// notify the user
-				sCheckedInFiles += m_mgrToDoCtrls.GetFriendlyProjectName(nCtrl);
-				sCheckedInFiles += ENDL;
+				StopTimeTrackingTask(nCtrl, FROM_APP);
+
+				if (m_mgrToDoCtrls.CheckIn(nCtrl) == TDCF_SUCCESS)
+				{
+					// notify the user
+					sCheckedInFiles += m_mgrToDoCtrls.GetFriendlyProjectName(nCtrl);
+					sCheckedInFiles += ENDL;
+				}
 			}
 		}
 	}
@@ -9709,6 +9713,8 @@ void CToDoListWnd::OnToolsCheckin()
 	CFilteredToDoCtrl& tdc = GetToDoCtrl(nSel);
 
 	tdc.Flush();
+
+	StopTimeTrackingTask(nSel, FROM_APP);
 	
 	// save modifications
 	TDC_FILE nSave = TDCF_SUCCESS;
