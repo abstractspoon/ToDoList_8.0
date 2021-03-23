@@ -8251,6 +8251,14 @@ TDC_FILE CToDoListWnd::ConfirmSaveTaskList(int nIndex, DWORD dwFlags)
 	// save changes
 	CFilteredToDoCtrl& tdc = GetToDoCtrl(nIndex);
 	
+	if (bClosingTaskList && tdc.IsActivelyTimeTracking())
+	{
+		if (bClosingWindows)
+			tdc.EndTimeTracking(FALSE);
+		else
+			StopTimeTrackingTask(nIndex, FROM_APP);
+	}
+
 	if (tdc.IsModified())
 	{
 		BOOL bFirstTimeSave = (!tdc.HasFilePath() && !m_mgrToDoCtrls.UsesStorage(nIndex));
@@ -8385,7 +8393,7 @@ void CToDoListWnd::OnCloseTasklist()
 	CFilteredToDoCtrl& tdc = GetToDoCtrl(nSel);
 
 	// make sure there are no edits pending
-	tdc.Flush(TRUE); 
+	tdc.Flush(); 
 	
 	// check if its a pristine tasklist and the last tasklist and 
 	// if so only close it if the default comments type has changed
