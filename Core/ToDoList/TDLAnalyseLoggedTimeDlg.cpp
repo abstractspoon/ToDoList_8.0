@@ -309,7 +309,7 @@ BOOL CTDLAnalyseLoggedTimeDlg::GetDateRange(COleDateTime& dtFrom, COleDateTime& 
 
 	case TTLP_THISWEEK:
 		dtFrom = CDateHelper::GetDate(DHD_BEGINTHISWEEK);
-		dtTo = (dtNow.m_dt + 7.0);
+		dtTo = (dtFrom.m_dt + 7.0);
 		break;
 
 	case TTLP_THISMONTH:
