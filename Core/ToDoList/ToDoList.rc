@@ -1064,7 +1064,7 @@ BEGIN
     GROUPBOX        "Manage edit/filter field visibility",IDC_ATTRIBGROUP,7,
                     194,224,60,WS_GROUP
     CONTROL         "&All tasklists",IDC_ALLTASKLISTS,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,250,208,149,10
+                    BS_AUTORADIOBUTTON | WS_GROUP,250,208,160,10
     CONTROL         "Acti&ve tasklist only",IDC_ACTIVETASKLIST,"Button",
                     BS_AUTORADIOBUTTON,250,223,159,10
     GROUPBOX        "Apply changes to:",IDC_STATIC,242,194,177,60,WS_GROUP
