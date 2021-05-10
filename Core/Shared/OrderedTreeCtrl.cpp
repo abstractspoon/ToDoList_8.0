@@ -684,7 +684,7 @@ BOOL COrderedTreeCtrl::OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
 					dwFlags |= GMIB_CLIPLEFT;
 				
 				CRect rItem;
-				GetItemRect(hti, rItem, TRUE);
+				VERIFY(GetItemRect(hti, rItem, TRUE));
 				rItem.left += 2;
 				
 				GM_ITEMSTATE nState = (bFocused ? GMIS_SELECTED : GMIS_SELECTEDNOTFOCUSED);
