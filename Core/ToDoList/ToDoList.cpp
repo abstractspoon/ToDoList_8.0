@@ -1065,6 +1065,8 @@ BOOL CToDoListApp::InitPreferences(CEnCommandLineInfo& cmdInfo)
 				reg.Write(_T("UninstallString"), sUninstall);
 			}
 		}
+
+		FixupExampleTasklistsTaskDates(_T("0.0.0.0"));
 	}
 
 	return TRUE;
