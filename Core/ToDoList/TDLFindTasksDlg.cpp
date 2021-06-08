@@ -325,6 +325,9 @@ BOOL CTDLFindTasksDlg::InitializeToolbar()
 	rCombo.bottom = rCombo.top + 200;
 	m_cbSearches.MoveWindow(rCombo);
 
+	// clear default selection
+	m_cbSearches.PostMessage(CB_SETEDITSEL, 0, MAKELPARAM(-1, 0));
+
 	return TRUE;
 }
 
@@ -925,18 +928,63 @@ void CTDLFindTasksDlg::OnGetMinMaxInfo(MINMAXINFO FAR* lpMMI)
 BOOL CTDLFindTasksDlg::PreTranslateMessage(MSG* pMsg) 
 {
 	// handle enter key if results list has the focus
-	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && pMsg->hwnd == m_lcResults)
+	if (pMsg->message == WM_KEYDOWN)
 	{
-		int nSel = m_lcResults.GetCurSel();
-		
-		if (nSel != -1)
+		switch (pMsg->wParam)
 		{
-			FTDRESULT* pRes = m_lcResults.GetResult(nSel);
-			
-			if (pRes)
-				GetParent()->SendMessage(WM_FTD_SELECTRESULT, 0, (LPARAM)pRes);
-			
-			return TRUE;
+		case VK_RETURN:
+			if (pMsg->hwnd == m_lcResults)
+			{
+				int nSel = m_lcResults.GetCurSel();
+
+				if (nSel != -1)
+				{
+					FTDRESULT* pRes = m_lcResults.GetResult(nSel);
+
+					if (pRes)
+						GetParent()->SendMessage(WM_FTD_SELECTRESULT, 0, (LPARAM)pRes);
+
+					return TRUE;
+				}
+			}
+			break;
+
+		case VK_TAB:
+			{
+				// Incorporate the toolbar save combo in the tab order
+				BOOL bReverse = Misc::IsKeyPressed(VK_SHIFT);
+
+				CWnd* pFocus = GetFocus();
+				CWnd* pNextFocus = GetNextDlgTabItem(pFocus, bReverse);
+				CWnd* pFirstCtrl = GetDlgItem(IDC_TASKLISTOPTIONS);
+				CWnd* pLastCtrl = GetNextDlgTabItem(pFirstCtrl, TRUE);
+
+				if (m_cbSearches.IsChild(pFocus))
+				{
+					pNextFocus = (bReverse ? pLastCtrl : pFirstCtrl);
+				}
+				else if ((bReverse && (pNextFocus == pLastCtrl)) || 
+						(!bReverse && (pNextFocus == pFirstCtrl)))
+				{
+					pNextFocus = &m_cbSearches;
+				}
+
+				if (pNextFocus)
+				{
+					// skip over empty results list
+					if ((pNextFocus == &m_lcResults) && (m_lcResults.GetItemCount() == 0))
+					{
+						if (bReverse)
+							pNextFocus = GetNextDlgTabItem(pNextFocus, TRUE);
+						else
+							pNextFocus = &m_cbSearches;
+					}
+
+					SendMessage(WM_NEXTDLGCTL, (WPARAM)pNextFocus->GetSafeHwnd(), TRUE);
+					return TRUE;
+				}
+			}
+			break;
 		}
 	}
 	
