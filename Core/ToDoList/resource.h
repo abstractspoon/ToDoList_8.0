@@ -2379,6 +2379,8 @@
 #define IDS_TDC_EDITPROMPT_UNKNOWNFORMAT 51578
 #define IDS_ADVANCEDFILTERPLACEHOLDER   51579
 #define IDS_NOSOUND                     51580
+#define IDS_FOCUS_REMINDERS             51581
+#define IDS_FOCUS_TIMETRACKER           51582
 
 // Next default values for new objects
 // 

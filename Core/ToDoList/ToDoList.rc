@@ -4514,6 +4514,8 @@ BEGIN
     IDS_TDC_EDITPROMPT_UNKNOWNFORMAT "<unknown format>"
     IDS_ADVANCEDFILTERPLACEHOLDER "Find Tasks Filters"
     IDS_NOSOUND             "<no sound>"
+    IDS_FOCUS_REMINDERS     "Task Reminders"
+    IDS_FOCUS_TIMETRACKER   "Time Tracker"
 END
 
 STRINGTABLE DISCARDABLE 
