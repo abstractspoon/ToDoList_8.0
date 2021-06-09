@@ -366,18 +366,14 @@ int CTDLTaskCtrlBase::GetTaskColumnTooltip(const CPoint& ptScreen, CString& sToo
 
 				const CString& sDepends = Misc::GetItem(pTDI->aDependencies, nDepend);
 				DWORD dwDependID = (DWORD)_ttol(sDepends);
-				
-				sTooltip += sDepends; // always
 
 				// If local, append task name
-				if ((dwDependID != 0) && m_data.HasTask(dwDependID))
-				{
-					sTooltip += ' ';
-					sTooltip += '(';
-					sTooltip += m_data.GetTaskTitle(dwDependID);
-					sTooltip += ')';
-				}
+				if (m_data.HasTask(dwDependID))
+					sTooltip += Misc::Format(_T("%s (%s)"), sDepends, m_data.GetTaskTitle(dwDependID));
+				else
+					sTooltip += sDepends;
 			}			
+
 			return GetUniqueToolTipID(dwTaskID, nColID);
 		}
 		break;
