@@ -418,10 +418,23 @@ int CTDLTaskCtrlBase::GetTaskColumnTooltip(const CPoint& ptScreen, CString& sToo
 
 			if (nIndex != -1)
 			{
-				CString sFile(pTDI->aFileLinks[nIndex]);
-				VERIFY(FileMisc::ExpandPathEnvironmentVariables(sFile));
+				// Append the task name if the link is to a local task 
+				CString sFile;
+				DWORD dwRefTaskID = 0;
 
-				sTooltip = FileMisc::GetFullPath(sFile, m_sTasklistFolder);
+				if (TODOITEM::ParseTaskLink(pTDI->aFileLinks[nIndex], TRUE, m_sTasklistFolder, dwRefTaskID, sFile) && 
+					m_data.HasTask(dwRefTaskID) && sFile.IsEmpty())
+				{
+					sTooltip.Format(_T("%s (%s)"), pTDI->aFileLinks[nIndex], m_data.GetTaskTitle(dwRefTaskID));
+				}
+				else
+				{
+					CString sFile(pTDI->aFileLinks[nIndex]);
+					VERIFY(FileMisc::ExpandPathEnvironmentVariables(sFile));
+
+					sTooltip = FileMisc::GetFullPath(sFile, m_sTasklistFolder);
+				}
+				
 				return GetUniqueToolTipID(dwTaskID, nColID, nIndex);
 			}
 		}
