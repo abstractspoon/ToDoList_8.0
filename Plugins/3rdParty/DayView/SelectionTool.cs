@@ -329,11 +329,15 @@ namespace Calendar
 					}
 				}
 
-                // all else
-                return Mode.Move;
-            }
+				// Must fall within appt rect
+				if (view.Rectangle.Contains(mousePos))
+				{
+					return Mode.Move;
+				}
+			}
 
-            return Mode.None;
+			// all else
+			return Mode.None;
         }
 
         public void MouseUp(System.Windows.Forms.MouseEventArgs e)
