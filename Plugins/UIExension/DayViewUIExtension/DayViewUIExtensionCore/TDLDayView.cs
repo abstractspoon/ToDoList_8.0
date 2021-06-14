@@ -358,14 +358,14 @@ namespace DayViewUIExtension
         {
             StartDate = DateTime.Now;
 
-			// And scroll to first task
+			// And scroll to first SHORT task
 			var appointments = GetMatchingAppointments(StartDate, EndDate, true);
 
 			if (appointments != null)
 			{
 				foreach (var appt in appointments)
 				{
-					if (EnsureVisible(appt, false))
+					if (!appt.IsLongAppt() && EnsureVisible(appt, false))
 						break;
 				}
 			}
