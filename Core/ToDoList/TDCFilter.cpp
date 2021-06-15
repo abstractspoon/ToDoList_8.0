@@ -539,7 +539,6 @@ void CTDCFilter::AddNonDateFilterQueryRules(const TDCFILTER& filter, const CTDCC
 		}
 	}
 
-	// note: these are all 'AND' 
 	AppendArrayRule(filter.aCategories, TDCA_CATEGORY, params.aRules, filter.dwFlags, FO_ANYCATEGORY);
 	AppendArrayRule(filter.aAllocTo, TDCA_ALLOCTO, params.aRules, filter.dwFlags, FO_ANYALLOCTO);
 	AppendArrayRule(filter.aAllocBy, TDCA_ALLOCBY, params.aRules);
