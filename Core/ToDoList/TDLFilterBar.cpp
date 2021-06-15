@@ -724,6 +724,8 @@ void CTDLFilterBar::EnableMultiSelection(BOOL bEnable)
 		m_cbTagFilter.EnableMultiSelection(bEnable);
 
 		CTDCCustomAttributeUIHelper::EnableMultiSelectionFilter(m_aCustomControls, this, bEnable);
+
+		UpdateData(); // Pick up any changes
 	}
 }
 
