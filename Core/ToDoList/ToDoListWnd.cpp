@@ -8635,12 +8635,11 @@ void CToDoListWnd::OnCloseall()
 	while (nCtrl--)
 		m_mgrToDoCtrls.DeleteToDoCtrl(nCtrl);
 
-	// if empty then create a new dummy item		
+	// if empty then create a new dummy tasklist		
 	if (!GetTDCCount())
 		CreateNewTaskList(FALSE);
-	else
-		Resize();
 
+	Resize();
 	m_filterBar.Invalidate();
 }
 
