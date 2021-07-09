@@ -684,6 +684,8 @@ BOOL CToDoCtrl::SetTreeFont(HFONT hFont)
 
 		if (m_taskTree.GetSafeHwnd())
 			return m_taskTree.SetFont(hFont);
+
+		return TRUE;
 	}
 
 	// no change
@@ -696,6 +698,8 @@ BOOL CToDoCtrl::SetCommentsFont(HFONT hFont)
 
 	if (hFont && !GraphicsMisc::SameFontNameSize(hFont, m_hFontComments))
 	{
+		HandleUnsavedComments();
+
 		m_hFontComments = hFont;
 
 #ifdef _DEBUG
