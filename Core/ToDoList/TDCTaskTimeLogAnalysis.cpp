@@ -202,7 +202,7 @@ BOOL CTDCTaskTimeLogAnalysis::AnalyseTaskLog(const COleDateTime& dtFrom,
 		return FALSE;
 
 	m_nGroupBy = nGroupBy;
-	ASSERT(!GetGroupByHeader().IsEmpty());
+	ASSERT(!WantGroupBy() || !GetGroupByHeader().IsEmpty());
 
 	BuildGroupByMapping();
 	

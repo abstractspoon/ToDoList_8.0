@@ -1732,10 +1732,10 @@ CAPTION "Analyse Logged Time"
 FONT 8, "Tahoma"
 BEGIN
     GROUPBOX        "Time Period",IDC_STATIC,7,7,181,125
-    CONTROL         "&Yesterday",IDC_YESTERDAY,"Button",BS_AUTORADIOBUTTON,
-                    16,19,165,10
-    CONTROL         "&Today",IDC_TODAY,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP,16,34,165,10
+    CONTROL         "&Yesterday",IDC_YESTERDAY,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,16,19,165,10
+    CONTROL         "&Today",IDC_TODAY,"Button",BS_AUTORADIOBUTTON,16,34,165,
+                    10
     CONTROL         "This &Week",IDC_THISWEEK,"Button",BS_AUTORADIOBUTTON,16,
                     49,165,10
     CONTROL         "This &Month",IDC_THISMONTH,"Button",BS_AUTORADIOBUTTON,

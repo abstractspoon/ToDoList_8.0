@@ -124,7 +124,7 @@ void CTDLAnalyseLoggedTimeDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_DateTimeCtrl(pDX, IDC_DATETO, m_dtTo);
 	DDX_Text(pDX, IDC_OUTPUTFILEPATH, m_sOutputFilePath);
 	//}}AFX_DATA_MAP
-	DDX_Radio(pDX, IDC_TODAY, (int&)m_nTimePeriod);
+	DDX_Radio(pDX, IDC_YESTERDAY, (int&)m_nTimePeriod);
 	DDX_Radio(pDX, IDC_BYTASK, (int&)m_nBreakdown);
 	DDX_Control(pDX, IDC_OUTPUTFILEPATH, m_eOutputFile);
 	DDX_Control(pDX, IDC_GROUPBYATTRIB, m_cbGroupByAttrib);
